@@ -49,7 +49,7 @@ class CNN(object):
 				input = self.x
 				is_input_layer = True
 			else:
-				input = self.layers[-1].output
+				input = self.layers[-1].output #output of previous layer
 				is_input_layer = False
 
 			config = conv_layer_configs[i]
