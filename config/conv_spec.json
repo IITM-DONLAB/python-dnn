@@ -1,0 +1,26 @@
+{
+
+   "comment" : "layers :: convolution layer configuration",
+   "layers": [
+		{
+			"convmat_dim" : [5,5],
+			"num_filters" : 100,
+			"poolsize" :  [2,2],
+			"flatten" : false,
+			"upddate" : true
+		},
+		{
+			"convmat_dim" : [4,4],
+			"num_filters" : 200,
+			"poolsize" :  [2,2],
+			"flatten" : true,
+			"upddate" : true
+		}
+	],
+
+   "comment" : "activation :: sigmoid or tanh",
+   "activation" : "tanh",
+
+  "comment" : "use_fast :: To use pylearn2 library for faster computation or not",
+  "use_fast" : false
+}
