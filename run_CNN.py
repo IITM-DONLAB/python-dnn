@@ -1,3 +1,7 @@
+#!/usr/bin/env python2.7
+# Copyright 2014	G.K SUDHARSHAN <sudharpun90@gmail.com>    IIT Madras
+# Copyright 2014	Abil N George<mail@abilng.in>    IIT Madras
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -19,7 +23,7 @@ import cPickle, gzip, os, time
 #import theano.tensor as T
 #from theano.tensor.shared_randomstreams import RandomStreams
 
-from utils.load_conf import load_model,load_conv_spec,load_mlp_spec,load_data_spec
+from utils.load_conf import load_model,load_conv_spec,load_mlp_spec,load_data_spec,checkConfig
 
 #from io.file_io import read_data_args, read_dataset
 from utils.learn_rates import LearningRateExpDecay,LearningRateConstant
@@ -28,6 +32,10 @@ from utils.learn_rates import LearningRateExpDecay,LearningRateConstant
 
 def runCNN(configFile):
 	model_config = load_model(configFile)
+
+	if checkConfig(model_config,'CNN'):
+		print "Error: the mandatory arguments are missing in model properties file.."
+		exit(1)
 
 	# learning rate
 	if model_config['l_rate_method'] =='E':

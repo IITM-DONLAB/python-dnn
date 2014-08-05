@@ -11,11 +11,7 @@ def load_model(input_file):
 
 	data = load_json(input_file)  
 	
-	if (not data.has_key('data_spec')) or  (not data.has_key('conv_nnet_spec')) \
-			or (not data.has_key('hidden_nnet_spec')) or (not data.has_key('wdir')) \
-			or (not data.has_key('conv_output_file')) or (not data.has_key('hidden_output_file')):
-		print "Error: the mandatory arguments are missing in model properties file.."
-		exit(1)
+
 	
 	if not data.has_key('batch_size') or not type(data['batch_size']) is int:
 		data['batch_size']=256
@@ -40,6 +36,33 @@ def load_model(input_file):
 		data['l_rate']=lrate_config
 
 	return data;
+
+
+def checkConfig(data,nnetType):
+	if not data.has_key('data_spec'): 
+		print('Missing Key in JSON :data_spec')
+		return False
+	if not data.has_key('wdir'):
+		print('Missing Key in JSON :wdir')
+		return False
+	if nnetType == 'CNN':
+		requiredKeys=['conv_output_file','hidden_output_file','conv_nnet_spec','hidden_nnet_spec']
+		if isKeysPresents(data,requiredKeys):
+			return False
+	elif nnetType == 'RBM':
+		pass
+	else :
+		print('Unknown nnet Type')
+		return False
+	return True
+
+def isKeysPresents(data,requiredKeys):
+	for key in requiredKeys:
+		if not data.has_key(key):
+			print('Missing Key in JSON :'+str(key))
+			return False 
+	return True
+	
 
 def load_data_spec(input_file):
 	print 'Loading data specification properties from ',input_file,' ...'
