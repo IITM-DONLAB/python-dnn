@@ -1,4 +1,17 @@
-import cPickle, gzip, os, sys, time
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+# WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+# MERCHANTABLITY OR NON-INFRINGEMENT.
+# See the Apache 2 License for the specific language governing permissions and
+# limitations under the License.
+
+import cPickle, gzip, os, time
 
 #import numpy
 
@@ -13,9 +26,9 @@ from utils.learn_rates import LearningRateExpDecay,LearningRateConstant
 #from utils.utils import parse_conv_spec, parse_lrate, parse_arguments
 
 
-if __name__ == '__main__':
-	model_config = load_model(sys.argv[1])
-	
+def runCNN(configFile):
+	model_config = load_model(configFile)
+
 	# learning rate
 	if model_config['l_rate_method'] =='E':
 		lrate = LearningRateExpDecay(model_config['l_rate'])
@@ -29,5 +42,9 @@ if __name__ == '__main__':
 	
 	data_spec =  load_data_spec(model_config['data_spec']);
 
-
 	
+
+
+if __name__ == '__main__':
+	import sys
+	runCNN(sys.argv[1])
