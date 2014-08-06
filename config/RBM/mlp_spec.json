@@ -1,0 +1,8 @@
+{
+
+   "comment" : "layers :: hidden layer configuration",
+   "layers": [500,200],
+
+   "comment" : "activation :: sigmoid or tanh",
+   "activation" : "tanh"
+}

@@ -23,7 +23,7 @@ import cPickle, gzip, os, time
 #import theano.tensor as T
 #from theano.tensor.shared_randomstreams import RandomStreams
 
-from utils.load_conf import load_model,load_conv_spec,load_mlp_spec,load_data_spec,checkConfig
+from utils.load_conf import load_model,load_conv_spec,load_mlp_spec,load_data_spec
 
 #from io.file_io import read_data_args, read_dataset
 from utils.learn_rates import LearningRateExpDecay,LearningRateConstant
@@ -31,11 +31,7 @@ from utils.learn_rates import LearningRateExpDecay,LearningRateConstant
 
 
 def runCNN(configFile):
-	model_config = load_model(configFile)
-
-	if checkConfig(model_config,'CNN'):
-		print "Error: the mandatory arguments are missing in model properties file.."
-		exit(1)
+	model_config = load_model(configFile,'CNN')
 
 	# learning rate
 	if model_config['l_rate_method'] =='E':

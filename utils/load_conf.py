@@ -6,13 +6,38 @@ def load_json(input_file):
 		data = json.load(data_file)  
 	return data;
 
-def load_model(input_file):
+def load_model(input_file,nnetType=None):
 	print 'Loading model properties from ',input_file,' ...'
+	data = load_json(input_file)
 
-	data = load_json(input_file)  
-	
+	#checking nnetType
+	if nnetType==None:
+		try:
+			nnetType=data['nnetType']
+		except KeyError, e:
+			print "Error: 'nnetType' is missing in model properties file.."
+			exit(1)
+	else :
+		if data.has_key('nnetType') and nnetType!=data['nnetType']:
+			print "Error: 'nnetType' is not Matching.."
+			exit(1)
 
-	
+	if checkConfig(data,nnetType):
+		print "Error: the mandatory arguments are missing in model properties file.."
+		exit(1)
+
+	#init Default Values or update from Json.
+	if nnetType == 'CNN':
+		data = initModelCNN(data)
+	elif nnetType == 'RBM':
+		pass
+	else:	
+		print('Unknown nnetType')
+		exit(1)
+
+	return data;
+
+def initModelCNN(data):
 	if not data.has_key('batch_size') or not type(data['batch_size']) is int:
 		data['batch_size']=256
 	if not data.has_key('momentum') or not type(data['momentum']) is float:
@@ -35,7 +60,7 @@ def load_model(input_file):
 			lrate_config['init_error'] = 100
 		data['l_rate']=lrate_config
 
-	return data;
+	return data
 
 
 def checkConfig(data,nnetType):
@@ -50,7 +75,9 @@ def checkConfig(data,nnetType):
 		if isKeysPresents(data,requiredKeys):
 			return False
 	elif nnetType == 'RBM':
-		pass
+		requiredKeys=['rbm_nnet_spec','output_file']
+		if isKeysPresents(data,requiredKeys):
+			return False
 	else :
 		print('Unknown nnet Type')
 		return False
@@ -107,7 +134,13 @@ def load_conv_spec(input_file,batch_size,input_shape):
 	
 		prev_map_number = current_map_number
 	return (conv_configs,layer_configs)	
-		
+
+def load_rbm_spec(input_file,batch_size,input_shape):
+	print 'Loading net properties from ',input_file,' ...'	
+	data = load_json(input_file)
+	layer_configs=data.pop('layers');
+	conv_configs = data;
+	return (conv_configs,layer_configs)			
 
 #if __name__ == '__main__':
 #	#config_list = load_model(sys.argv[1])
