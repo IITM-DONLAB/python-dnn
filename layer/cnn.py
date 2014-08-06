@@ -12,7 +12,12 @@ from pylearn2.sandbox.cuda_convnet.pool import MaxPool
 
 class ConvLayer(object):
 	"""Pool Layer of a convolutional network """
-	 def __init__(self, numpy_rng=None, input = None, input_shape=(3,1,28,28), filter_shape=(2, 1, 5, 5), 
+	def __init__(self, numpy_rng=None,input = None, activation=T.tanh, conv_layer_configs):
+		__init__(numpy_rng=numpy_rng,input = input,input_shape=conv_layer_configs['input_shape'], 
+			filter_shape=conv_layer_configs['filter_shape'], poolsize=conv_layer_configs['poolsize'],
+			activation=activation, flatten = conv_layer_configs['flatten'],use_fast = use_fast);
+	
+	def __init__(self, numpy_rng=None, input = None, input_shape=(3,1,28,28), filter_shape=(2, 1, 5, 5), 
 		poolsize=(1, 1), activation=T.tanh, flatten = False, border_mode = 'valid', 
 		W=None, b=None, use_fast = False):
 	

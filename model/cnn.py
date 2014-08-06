@@ -8,6 +8,8 @@ from layers.cnn import ConvLayer
 from layers.logistic_sgd import LogisticRegression
 from layers.mlp import HiddenLayer
 
+from utils.utils import parse_activation
+
 class ConvLayerConfig(object):
     """Configuration of  convolution layer """
 	def __init__(self, input_shape=(3,1,28,28), filter_shape=(2, 1, 5, 5), update=True 
@@ -23,6 +25,14 @@ class ConvLayerConfig(object):
 
 class CNN(object):
 	""" Instantiation of Convolution neural network ... """
+	def __init__(self, numpy_rng, theano_rng=None,model_configs, conv_configs,conv_layer_configs,hidden_configs):
+		conv_activation = parse_activation(conv_configs['activation']);
+		hidden_activation = parse_activation(hidden_configs['activation']);
+		__init__(self, numpy_rng, theano_rng,conv_layer_configs = conv_layer_configs,
+			batch_size = model_configs['batch_size'], n_outs=model_configs['n_outs'],
+			hidden_layers_sizes=hidden_configs['layers'], conv_activation = conv_activation,
+			hidden_activation = hidden_activation,use_fast = conv_configs['use_fast'],)
+		
 	def __init__(self, numpy_rng, theano_rng=None,batch_size = 256, n_outs=8,
 			sparsity = None, conv_layer_configs = [], hidden_layers_sizes=[500, 500], 
 			conv_activation = T.nnet.sigmoid, hidden_activation = T.nnet.sigmoid,use_fast = False):
@@ -53,9 +63,8 @@ class CNN(object):
 				is_input_layer = False
 
 			config = conv_layer_configs[i]
-			conv_layer = ConvLayer(numpy_rng=numpy_rng, input=input,input_shape = config['input_shape'], 
-				filter_shape = config['filter_shape'], poolsize = config['poolsize'],
-				activation = conv_activation, flatten = config['flatten'], use_fast = use_fast)
+			conv_layer = ConvLayer(numpy_rng=numpy_rng, input=input,conv_layer_configs=config,
+				activation = conv_activation, use_fast = use_fast)
 			
 			self.layers.append(conv_layer)
 			if config['update']==True:	# only few layers of convolution layer are considered for updation

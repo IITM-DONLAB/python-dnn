@@ -100,8 +100,6 @@ from models.cnn import CNN
 	if output_format != 'kaldi':
 		print "Error: the output format only supports Kaldi"
 		exit(1)
-####################################################################################################################################################
-	
  
 	train_dataset, train_dataset_args = read_data_args(train_data_spec)
 	valid_dataset, valid_dataset_args = read_data_args(valid_data_spec)
@@ -118,10 +116,11 @@ from models.cnn import CNN
 			  batch_size = batch_size, n_outs=n_outs,
 			  conv_layer_configs = conv_layer_configs,
 			  hidden_layers_sizes = hidden_layers_sizes,
-			  conv_activation = conv_activation, 
+			  conv_activlogation = conv_activation, 
 			  full_activation = full_activation,
 			  use_fast = use_fast, update_layers = update_layers)
 
+####################################################################################################################################################
 	total_layer_number = len(cnn.layers)
 	if full_ptr_layer_number > 0:
 		_file2nnet(cnn.layers[len(conv_layer_configs):total_layer_number], set_layer_num = full_ptr_layer_number, filename = full_ptr_file,  withfinal=False)
