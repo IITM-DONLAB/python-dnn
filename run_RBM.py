@@ -17,17 +17,16 @@
 
 
 
-from utils.load_conf import load_model,load_mlp_spec,load_data_spec
+from utils.load_conf import load_model,load_rbm_spec,load_data_spec
 
 def runRBM(configFile):
 	model_config = load_model(configFile)
 
 	rbm_config,rbmlayer_config = load_rbm_spec(model_config['rbm_nnet_spec'],model_config['batch_size'],
 				model_config['input_shape'])
-	
 	#mlp_config = load_mlp_spec(model_config['hidden_nnet_spec']);
-	
 	data_spec =  load_data_spec(model_config['data_spec']);
+
 
 
 

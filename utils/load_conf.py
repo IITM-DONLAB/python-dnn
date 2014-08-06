@@ -30,7 +30,7 @@ def load_model(input_file,nnetType=None):
 	if nnetType == 'CNN':
 		data = initModelCNN(data)
 	elif nnetType == 'RBM':
-		pass
+		data = initModelRBM(data)
 	else:	
 		print('Unknown nnetType')
 		exit(1)
@@ -63,6 +63,42 @@ def initModelCNN(data):
 	return data
 
 
+def initModelRBM(data):
+
+	#default values:
+
+	gbrbm_learning_rate = 0.005
+	learning_rate = 0.08
+	batch_size=128
+	epochs=10	
+
+	# momentum; more complicated than dnn 
+	initial_momentum = 0.5	 # initial momentum 
+	final_momentum = 0.9	   # final momentum
+	initial_momentum_epoch = 5 # for how many epochs do we use initial_momentum
+
+	if not data.has_key('batch_size') or not type(data['batch_size']) is int:
+		data['batch_size']=batch_size
+	if not data.has_key('gbrbm_learning_rate') or not type(data['gbrbm_learning_rate']) is float:
+		data['gbrbm_learning_rate'] = gbrbm_learning_rate
+	if not data.has_key('learning_rate') or type(data['learning_rate']) is float:
+		data['learning_rate'] = learning_rate
+	if data.has_key('epoch_number') or not type(data['epoch_number']) is int:
+		data['epoch_number'] = epochs
+	
+	# momentum
+	if data.has_key('initial_momentum') or not type(data['initial_momentum']) is float:
+		data['initial_momentum']=initial_momentum
+	if data.has_key('final_momentum') or not type(data['final_momentum']) is float:
+		data['final_momentum']=final_momentum
+	if data.has_key('initial_momentum_epoch ') or not type(data['initial_momentum_epoch']) is int:
+		data['initial_momentum_epoch']=initial_momentum_epoch
+
+
+	return data
+
+
+
 def checkConfig(data,nnetType):
 	if not data.has_key('data_spec'): 
 		print('Missing Key in JSON :data_spec')
@@ -71,11 +107,16 @@ def checkConfig(data,nnetType):
 		print('Missing Key in JSON :wdir')
 		return False
 	if nnetType == 'CNN':
-		requiredKeys=['conv_output_file','hidden_output_file','conv_nnet_spec','hidden_nnet_spec']
+		
+		requiredKeys=['conv_output_file','hidden_output_file','conv_nnet_spec', \
+		'hidden_nnet_spec','input_shape','n_outs']
+
 		if isKeysPresents(data,requiredKeys):
 			return False
 	elif nnetType == 'RBM':
+		
 		requiredKeys=['rbm_nnet_spec','output_file']
+		
 		if isKeysPresents(data,requiredKeys):
 			return False
 	else :

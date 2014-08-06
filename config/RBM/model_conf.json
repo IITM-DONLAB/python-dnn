@@ -8,40 +8,27 @@
 	"comment" : "valid_data (Mandatory) specify the path of the validation data relative to the working directory",
 	"data_spec" : "config/RBM/data_spec.json",
 	
-	"comment" : "hidden_nnet_spec :: (Mandatory) specify the path of hidden network configuration specification relative to working directory",
-	"hidden_nnet_spec" : "config/RBM/mlp_spec.json",
-	
-	"comment" : "conv_nnet_spec :: (Mandatory) specify the path of RBM network configuration specification relative to working directory",
-	"conv_nnet_spec" : "config/RBM/rbm_spec.json",
+	"comment" : "rbm_nnet_spec:: (Mandatory) specify the path of RBM network configuration specification relative to working directory",
+	"rbm_nnet_spec" : "config/RBM/rbm_spec.json",
 
-	"comment" : "hidden_output_file :: (Mandatory) specify the path of RBM network output file relative to working directory",
-	"hidden_output_file" : "hidden_out.model",
+	"comment" : "output_file :: (Mandatory) specify the path of RBM network output file relative to working directory",
+	"output_file" : "rbm_out.model",
 	
-	"comment" : "conv_output_file :: (Mandatory) specify the path of RBM network output file relative to working directory",
-	"conv_output_file" : "rbm_out.model",
 	
 	"comment" : "input_shape :: (Mandatory) specify the input shape of a given feature vector" ,
 	"input_shape" : [1,29,29],
 	
-	"comment" : "batch_size :: specify the mini batch size while training, default 256",
-	"batch_size" : 256,
+	"comment" : "batch_size :: specify the mini batch size while training, default 128",
+	"batch_size" : 128,
 
-	"comment" : "momentum ::  Specify the momentum factor while training default 0.5",
-	"momentum" : 0.5,
-	
-	"comment" : "l_rate_method :: Two method l_rate method are supported  C: Constant learning rate and E : Exponential decay",
-	"l_rate_method" : "C",	
-	
-	"comment" : "l_rate :: learning rate configuration",
-	"l_rate" : {	
-			"learning_rate" : 0.08,
-			"epoch_num" : 15,
+	"comment" :"TODO",
+	"gbrbm_learning_rate":0.005,
+	"learning_rate":0.08,
+	"epoch_number":10,
+		
+	"comment" : "initial_momentum,final_momentum,initial_momentum_epoch ::  Specify the momentum factor while training default 0.5,0.9,5",
+	"initial_momentum":0.5,
+	"final_momentum":0.9,
+	"initial_momentum_epoch":5
 
-			"start_rate" : 0.08,
-			"scale_by" : 0.5,
-			"min_derror_decay_start" : 0.05,
-			"min_derror_stop" : 0.05,
-			"min_epoch_decay_start" : 15,
-			"init_error" :100
-		}	
 }
