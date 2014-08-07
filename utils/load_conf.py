@@ -1,9 +1,13 @@
-import json,sys
+from json import load as jsonLoad
 
 
 def load_json(input_file):
 	with open(input_file) as data_file:
-		data = json.load(data_file)  
+		data = jsonLoad(data_file)
+		try:
+			data.pop('comment')
+		except KeyError, e:
+			pass
 	return data;
 
 def load_model(input_file,nnetType=None):
@@ -34,6 +38,9 @@ def load_model(input_file,nnetType=None):
 	else:	
 		print('Unknown nnetType')
 		exit(1)
+
+	
+	__debugPrintData__(data,'model');
 
 	return data;
 
@@ -176,12 +183,48 @@ def load_conv_spec(input_file,batch_size,input_shape):
 		prev_map_number = current_map_number
 	return (conv_configs,layer_configs)	
 
-def load_rbm_spec(input_file,batch_size,input_shape):
+def load_rbm_spec(input_file,inputSize=None,outputSize=None):
 	print 'Loading net properties from ',input_file,' ...'	
 	data = load_json(input_file)
-	layer_configs=data.pop('layers');
-	conv_configs = data;
-	return (conv_configs,layer_configs)			
+
+	if not data.has_key('layers') or not type(data['layers']) is list:
+		print("Error: layers is not present (or not a list) in " + str(input_file))
+		exit(1)
+
+	if (not inputSize is None) and inputSize !=data['layers'][0]:
+		print("Error: input dimension should be equal to no of nodes in input layers")
+		exit(1)
+	else:
+		data['n_ins'] = data['layers'][0]
+
+	if (not outputSize is None) and outputSize !=data['layers'][0]:
+		print("Error: input dimension should be equal to no of nodes in input layers")
+		exit(1)
+	else:
+		data['n_outs'] = data['layers'][-1]
+
+
+	if not data.has_key('pretrained_layers') or not type(data['pretrained_layers']) is int:
+		data['pretrained_layers'] = len(data['layers'])
+
+
+	first_layer_gb = True
+	if data.has_key('first_layer_type') and data['first_layer_type'] == 'bb':
+		first_layer_gb = False
+	data['first_layer_gb'] = first_layer_gb
+
+	if not data.has_key('random_seed') or not type(data['random_seed']) is int:
+		data['random_seed'] = None
+
+	__debugPrintData__(data,'rbm');
+	
+	return (data)
+
+
+def __debugPrintData__(data,name=None):
+	from json import dumps
+	print name
+	print dumps(data, indent=4, sort_keys=True)			
 
 #if __name__ == '__main__':
 #	#config_list = load_model(sys.argv[1])
