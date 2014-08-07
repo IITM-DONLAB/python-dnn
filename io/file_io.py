@@ -1,50 +1,128 @@
-import json
+import json,numpy,sys
 
 def write_dataset(options):
-	file_writer = FileWriter(options)
+	file_path = options.pop('path');
+	file_writer = FileWriter(file_path,options);
 	file_writer.write_file_info()
 	return file_writer
 
 
 class FileWriter(object):
-	def __init__(self, options):
-		self.options = options
-		self.filepath = options.pop('path')
-		self.filehandle = open(self.filepath,'w+')
+	def __init__(self,path,header):
+		self.header = header
+		self.filepath = path
+		self.filehandle = open(self.filepath,'wb')
 
 	def write_file_info(self):
     		self.filehandle.write(json.dumps(self.options)+'\n')
 
-	def write_vector(self,vector_array,labels):
-		fmt = self.options['format']
+	def write_data(self,vector_array,labels):
+		featdim= self.options['featdim'];
+		dt={'names': ['d','l'],'formats': [('>f4',featdim),'>i4']}
+		data = numpy.zeros(1,dtype= numpy.dtype(dt))
     		for vector,label in zip(vector_array,labels):
-			flatten_vector = vector.flatten()
-			if self.options['featdim']==len(flatten_vector):
-				data={};data['x']=list(flatten_vector); data['y']=label;
-		        	self.filehandle.write(json.dumps(data)+'\n')
-			#else:
-				#ignoring the feature vector
-		
+			flatten_vector = vector.flatten();
+			if featdim==len(flatten_vector):
+				data['x']=flatten_vector; data['y']=label;
+				data.tofile(self.filehandle); 
+
+		self.filehandle.flush();		
+
+
 def read_dataset(options):
-	file_reader = FileReader(options)
+	file_path = options.pop('path');
+	file_reader = FileReader(file_path,options)
 	file_header = file_reader.read_file_info()
-	return file_reader,file_header
+
+	shared_xy = file_reader.make_shared()
+	shared_x, shared_y = shared_xy
+	shared_y = T.cast(shared_y, 'int32')
+
+	return file_reader,file_header,shared_xy, shared_x, shared_y
 
 class FileReader(object):
-	def __init__(self, options):
-		self.options = options;
-		self.filehandle = open(options['path'],'r');
+	def __init__(self,path,options):
+		self.filepath = path;
+		self.options=options;
+		self.filehandle = open(self.filepath,'rb')
+		
+		# store number of frames, features and labels for each data partition
+	        self.feat = None
+	        self.label = None
+		
+		# markers while reading data
+		self.partition_num = 0
+		self.frame_per_partition = 0
 
 	def read_file_info(self):
-		jsonHeader= self.filehandle.readline();
-		self.file_header = json.loads(jsonHeader);
-		return self.file_header
+		jsonheader = self.filehandle.readline();
+		self.header = json.loads(jsonheader);
+		self.feat_dim = self.header['featdim'];
+		# partitions specifies approximate amount data to be loaded one operation
+		self.frame_per_partition = self.read_opts['partition'] / (self.feat_dim * 4)
+		batch_residual = self.frame_per_partition % self.options['batch_size']
+		self.frame_per_partition = self.frame_per_partition - batch_residual
+		return self.header
+
+	def read_partition_data(self):
+		self.dtype = numpy.dtype({'names': ['d','l'],'formats': [('>f4',featdim),'>f4']})
+		data = numpy.fromfile(self.filehandle,dtype=dt,count=self.frame_per_partition); 
+		self.cur_frame_num = data.__len__();
+		if self.cur_frame_num > 0:
+			self.feat = numpy.asarray(data['d'], dtype = theano.config.floatX)
+			self.label = numpy.asarray(data['l'], dtype = theano.config.floatX)
+		else:
+			self.end_reading = True;	
+		self.partition_num = self.partition_num + 1
+	     
+	def load_next_partition(self, shared_xy):
+		shared_x, shared_y = shared_xy  
+		self.read_partition_data()
+		if self.options['random']:  # randomly shuffle features and labels in the *same* order
+			try: 
+				seed = self.options['random_seed']
+			except KeyError:
+				seed = 18877
+			numpy.random.seed(seed)
+			numpy.random.shuffle(self.feat)
+			numpy.random.seed(seed)
+			numpy.random.shuffle(self.label)
+            
+		shared_x.set_value(self.feat, borrow=True)
+		shared_y.set_value(self.label, borrow=True)
 	
-	def read_pfile_data(self):
-		while True:
-			if self.frame_to_read == 0:
-				break
-	
+	def make_shared(self):
+		if self.feat is None:
+			read_partition_data()
+
+		if self.options['random']:  # randomly shuffle features and labels in the *same* order
+			try: 
+				seed = self.options['random_seed']
+			except KeyError:
+				seed = 18877
+			numpy.random.seed(seed)
+			numpy.random.shuffle(self.feat)
+			numpy.random.seed(seed)
+			numpy.random.shuffle(self.label)
+
+		shared_x = theano.shared(self.feat, name = 'x', borrow = True)
+		shared_y = theano.shared(self.label, name = 'y', borrow = True)
+		return shared_x, shared_y
+
+	# reopen file with the same filename
+	def reopen_file(self):
+		self.file_read = open(self.pfile_path)
+		initialize_read();
+
+	def is_finish(self):
+		return self.end_reading
+
+	def initialize_read(self):
+		self.file_read.seek(0,0);
+		self.read_file_info()
+		self.end_reading = False
+		self.partition_num = 0
+
 '''
 def read_data_args(data_spec):
 	elements = data_spec.split(",")
@@ -161,7 +239,7 @@ class StremFileReader(FileReader):
 			if self.frame_to_read == 0:
 				break
 			frameNum_this_partition = min(self.frame_to_read, self.frame_per_partition)
-			partition_array = numpy.fromfile(self.file_read, self.dtype, frameNum_this_partition)
+			partition_array = numpy.fromfile(self.file_read, self.dtype, n)
 			feat_mat = numpy.asarray(partition_array['d'], dtype = theano.config.floatX)
 			label_vec = numpy.asarray(partition_array['l'], dtype = theano.config.floatX)
 			self.feat_mats.append(feat_mat)

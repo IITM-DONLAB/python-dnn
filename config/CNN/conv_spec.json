@@ -7,14 +7,14 @@
 			"num_filters" : 100,
 			"poolsize" :  [2,2],
 			"flatten" : false,
-			"upddate" : true
+			"update" : true
 		},
 		{
 			"convmat_dim" : [4,4],
 			"num_filters" : 200,
 			"poolsize" :  [2,2],
 			"flatten" : true,
-			"upddate" : true
+			"update" : true
 		}
 	],
 

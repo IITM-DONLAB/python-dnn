@@ -2,7 +2,6 @@
 	"validation": {
 		"path" : "val.dat",
 		"partition" : 2,
-		"stream" : true,
 		"random" : true,
 		"random_seed" : 123
 	},
@@ -10,7 +9,6 @@
 	"training" : {
 		"path" : "train.dat",
 		"partition" : 2,
-		"stream" : true,
 		"random" : true,
 		"random_seed" : 123
 	}
