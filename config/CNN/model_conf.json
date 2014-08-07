@@ -21,7 +21,7 @@
 	"conv_output_file" : "conv_out.model",
 	
 	"comment" : "input_shape :: (Mandatory) specify the input shape of a given feature vector" ,
-	"input_shape" : [1,29,29],
+	"input_shape" : [3,28,28],
 	
 	"comment" : "batch_size :: specify the mini batch size while training, default 256",
 	"batch_size" : 256,

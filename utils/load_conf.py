@@ -1,13 +1,12 @@
 import json,sys
 
-
 def load_json(input_file):
 	with open(input_file) as data_file:
 		data = json.load(data_file)  
 	return data;
 
 def load_model(input_file,nnetType=None):
-	print 'Loading model properties from ',input_file,' ...'
+	print('Loading model properties from ',input_file,' ...')
 	data = load_json(input_file)
 
 	#checking nnetType
@@ -15,15 +14,15 @@ def load_model(input_file,nnetType=None):
 		try:
 			nnetType=data['nnetType']
 		except KeyError, e:
-			print "Error: 'nnetType' is missing in model properties file.."
+			print("Error: 'nnetType' is missing in model properties file..")
 			exit(1)
 	else :
 		if data.has_key('nnetType') and nnetType!=data['nnetType']:
-			print "Error: 'nnetType' is not Matching.."
+			print ("Error: 'nnetType' is not Matching..")
 			exit(1)
 
 	if checkConfig(data,nnetType):
-		print "Error: the mandatory arguments are missing in model properties file.."
+		print("Error: the mandatory arguments are missing in model properties file..")
 		exit(1)
 
 	#init Default Values or update from Json.
@@ -107,7 +106,6 @@ def checkConfig(data,nnetType):
 		print('Missing Key in JSON :wdir')
 		return False
 	if nnetType == 'CNN':
-		
 		requiredKeys=['conv_output_file','hidden_output_file','conv_nnet_spec', \
 		'hidden_nnet_spec','input_shape','n_outs']
 

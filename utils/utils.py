@@ -15,6 +15,21 @@ def parse_arguments(arg_elements):
         args[key] = arg_elements[2*i+1]
     return args
 
+def dimshuffle(a,shuffle):
+	len = shuffle.__len__();
+	ishuffle = [0]*len;
+	for index,dim in zip(xrange(len),shuffle):
+		ishuffle[dim]=index
+	shuffle = ishuffle;
+	index=0;
+	while(index<len):
+		if index==shuffle[index]:
+			index=index+1;
+		else:
+			swapwith = shuffle[index];
+			a=a.swapaxes(index,swapwith);
+			shuffle[index],shuffle[swapwith]=shuffle[swapwith],shuffle[index]
+	return a
 
 '''
 #older code
