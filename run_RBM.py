@@ -16,17 +16,32 @@
 # limitations under the License.
 
 
+#lib imports
+import numpy
+import theano
+import theano.tensor as T
+from theano.tensor.shared_randomstreams import RandomStreams
 
+#module imports
 from utils.load_conf import load_model,load_rbm_spec,load_data_spec
+from models.srbm import SRBM
 
 def runRBM(configFile):
 	model_config = load_model(configFile)
 
-	rbm_config,rbmlayer_config = load_rbm_spec(model_config['rbm_nnet_spec'],model_config['batch_size'],
-				model_config['input_shape'])
+	rbm_config = load_rbm_spec(model_config['rbm_nnet_spec'])
 	#mlp_config = load_mlp_spec(model_config['hidden_nnet_spec']);
 	data_spec =  load_data_spec(model_config['data_spec']);
 
+
+	#generating Random
+	numpy_rng = numpy.random.RandomState(rbm_config['random_seed'])
+	theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
+
+
+	srbm = SRBM(numpy_rng=numpy_rng, theano_rng = theano_rng, n_ins=rbm_config['n_ins'],
+              hidden_layers_sizes=rbm_config['layers'],
+              n_outs=rbm_config['n_outs'], first_layer_gb = rbm_config['first_layer_gb'])
 
 
 

@@ -1,26 +1,17 @@
 {
 
-   "comment" : "layers :: convolution layer configuration",
-   "layers": [
-		{
-			"convmat_dim" : [5,5],
-			"num_filters" : 100,
-			"poolsize" :  [2,2],
-			"flatten" : false,
-			"upddate" : true
-		},
-		{
-			"convmat_dim" : [4,4],
-			"num_filters" : 200,
-			"poolsize" :  [2,2],
-			"flatten" : true,
-			"upddate" : true
-		}
-	],
+   "comment" : "layers :: RBM layer configuration (No: of Nodes)",
+   "layers": [ 330,1024,1024,1024,1024,1901 ],
 
    "comment" : "activation :: sigmoid or tanh",
    "activation" : "tanh",
 
-  "comment" : "use_fast :: To use pylearn2 library for faster computation or not",
-  "use_fast" : false
+   "comment" : "pretrained_layers:number of layers to be pre-trained",
+   "pretrained_layers" : 5,
+
+  "comment" : "first_layer_type::type for the first layer; either 'bb' (Bernoulli-Bernoulli) or 'gb' (Gaussian-Bernoulli)",
+  "first_layer_type" : "gb",
+
+  "comment" : "random_seed::",
+  "random_seed" : 89677
 }
