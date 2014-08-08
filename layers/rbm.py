@@ -103,8 +103,9 @@ class RBM(object):
         pre_sigmoid_h1, h1_mean, h1_sample = self.sample_h_given_v(v0_sample)
         pre_sigmoid_v1, v1_mean, v1_sample = self.sample_v_given_h(h1_sample)
         return [pre_sigmoid_h1, h1_mean, h1_sample, pre_sigmoid_v1, v1_mean, v1_sample]
-        
-    def get_cost_updates(self, batch_size = 128, lr = 0.0001, momentum=0.5, weight_cost=0.00001, persistent=None, k = 1):
+
+#    def get_cost_updates(self, batch_size = 128, lr = 0.0001, momentum=0.5, weight_cost=0.00001, persistent=None, k=1):        
+    def get_cost_updates(self, batch_size = 128, lr = 0.0001, momentum=0.5, weight_cost=0.00001, persistent=None):
         
         x, hp_data, h_data = self.sample_h_given_v(self.input)
         v_rec, v_rec_sigm, v_rec_sample = self.sample_v_given_h(h_data)
@@ -154,8 +155,9 @@ class GBRBM(RBM):
                          dtype = theano.config.floatX) + pre_sigmoid_v1
 
         return [pre_sigmoid_v1, v1_mean, v1_sample]
-    
-    def get_cost_updates(self, batch_size = 128, lr = 0.0001, momentum=0.5, weight_cost=0.00001, persistent=None, k = 1):
+
+#    def get_cost_updates(self, batch_size = 128, lr = 0.0001, momentum=0.5, weight_cost=0.00001, persistent=None, k = 1):    
+    def get_cost_updates(self, batch_size = 128, lr = 0.0001, momentum=0.5, weight_cost=0.00001, persistent=None):
         
         x, hp_data, h_data = self.sample_h_given_v(self.input)
         v_rec, z, t = self.sample_v_given_h(h_data)

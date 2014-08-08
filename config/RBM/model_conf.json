@@ -15,7 +15,7 @@
 	"output_file" : "rbm_out.model",
 	
 	
-	"comment" : "input_shape :: (Mandatory) specify the input shape of a given feature vector" ,
+	"comment" : "input_shape :: specify the input shape of a given feature vector" ,
 	"input_shape" : [1,29,29],
 	
 	"comment" : "batch_size :: specify the mini batch size while training, default 128",

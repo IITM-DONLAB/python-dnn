@@ -26,7 +26,8 @@ class SRBM(object):
         if not theano_rng:
             theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
         # allocate symbolic variables for the data
-        self.x = T.matrix('x')
+        #self.x = T.matrix('x')
+        #self.x = T.ftensor4('x') 
         self.y = T.ivector('y')
 
         for i in xrange(self.n_layers):
@@ -76,7 +77,8 @@ class SRBM(object):
         self.sigmoid_layers.append(self.logLayer)
         self.params.extend(self.logLayer.params)
 
-    def pretraining_functions(self, train_set_x, batch_size, k , weight_cost):
+#    def pretraining_functions(self, train_set_x, batch_size, weight_cost):
+    def pretraining_functions(self, train_set_x, batch_size, weight_cost):
 
         index = T.lscalar('index')  
         momentum = T.scalar('momentum')
@@ -91,7 +93,7 @@ class SRBM(object):
         for rbm in self.rbm_layers:
             r_cost, fe_cost, updates = rbm.get_cost_updates(batch_size, learning_rate,
                                                             momentum, weight_cost,
-                                                            persistent=None, k = k)
+                                                            persistent=None)
             # compile the theano function
             fn = theano.function(inputs=[index,
                               theano.Param(learning_rate, default=0.0001),
