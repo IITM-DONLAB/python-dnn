@@ -10,7 +10,7 @@ def load_json(input_file):
 	return data;
 
 def load_model(input_file,nnetType=None):
-	print('Loading model properties from ',input_file,' ...')
+	print 'Loading model properties from ',input_file,' ...'
 	data = load_json(input_file)
 
 	#checking nnetType
@@ -39,8 +39,7 @@ def load_model(input_file,nnetType=None):
 		exit(1)
 
 	
-	__debugPrintData__(data,'model');
-
+	#__debugPrintData__(data,'model');
 	return data;
 
 def initModelCNN(data):

@@ -7,6 +7,7 @@ from theano.tensor.nnet import conv
 from layers.cnn import ConvLayer
 from layers.logistic_sgd import LogisticRegression
 from layers.mlp import HiddenLayer
+from  theano.compat.python2x import OrderedDict
 
 '''
 class ConvLayerConfig(object):
@@ -37,7 +38,7 @@ class CNN(object):
 		if not theano_rng:	#if theano range not passed creating new random stream object
 			theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
 
-		self.x = T.matrix('x')  
+		self.x = T.ftensor4('x')  
 		self.y = T.ivector('y')
 
 		self.conv_layer_num = len(conv_layer_configs) 	#counting number of convolution layers
@@ -104,7 +105,7 @@ class CNN(object):
 		gparams = T.grad(self.finetune_cost, self.params)
 
 		# compute list of fine-tuning updates
-        	updates = {}
+        	updates = OrderedDict()
 
 		for dparam, gparam in zip(self.delta_params, gparams):
 			updates[dparam] = momentum * dparam - gparam*learning_rate
@@ -112,12 +113,12 @@ class CNN(object):
 		for dparam, param in zip(self.delta_params, self.params):
 			updates[param] = param + updates[dparam]
 		
-		train_fn = theano.function(inputs=[index, theano.Param(learning_rate, default = 0.0001),
+		train_fn = theano.function(inputs=[index, theano.Param(learning_rate, default = 0.001),
 				theano.Param(momentum, default = 0.5)],outputs=self.errors, updates=updates,
 				givens={self.x: train_set_x[index * batch_size:(index + 1) * batch_size],
 					self.y: train_set_y[index * batch_size:(index + 1) * batch_size]})
 
-		valid_fn = theano.function(inputs=[index, theano.Param(learning_rate, default = 0.0001),
+		valid_fn = theano.function(inputs=[index, theano.Param(learning_rate, default = 0.001),
 				theano.Param(momentum, default = 0.5)],outputs=self.errors, updates=updates,
 				givens={self.x: valid_set_x[index * batch_size:(index + 1) * batch_size],
 					self.y: valid_set_y[index * batch_size:(index + 1) * batch_size]})

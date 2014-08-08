@@ -16,7 +16,7 @@
 # limitations under the License.
 
 import cPickle, gzip, os, time
-from model.cnn import CNN;
+from models.cnn import CNN;
 import numpy
 
 import theano
@@ -34,11 +34,14 @@ from utils.utils import parse_activation
 def runCNN(configFile):
 	model_configs = load_model(configFile,'CNN')
 
-	# learning rate
+	# learning rate, batch-size and momentum
 	if model_configs['l_rate_method'] =='E':
 		lrate = LearningRateExpDecay(model_configs['l_rate'])
 	else:
 		lrate =  LearningRateConstant(model_configs['l_rate'])
+	batch_size = model_configs['batch_size'];
+	momentum = model_configs['momentum']
+
 
 	conv_configs,conv_layer_configs = load_conv_spec(model_configs['conv_nnet_spec'],model_configs['batch_size'],
 				model_configs['input_shape'])
@@ -56,33 +59,39 @@ def runCNN(configFile):
 	print('> ... building the model')
 	conv_activation = parse_activation(conv_configs['activation']);
 	hidden_activation = parse_activation(mlp_configs['activation']);
-
-	cnn = CNN(numpy_rng,theano_rng,conv_layer_configs = conv_layer_configs, batch_size = model_configs['batch_size'],
+	
+	cnn = CNN(numpy_rng,theano_rng,conv_layer_configs = conv_layer_configs, batch_size = batch_size,
 		n_outs=model_configs['n_outs'],hidden_layers_sizes=mlp_configs['layers'], conv_activation = conv_activation,
 		hidden_activation = hidden_activation,use_fast = conv_configs['use_fast'])
 
+	print('> ... getting the finetuning functions')
+	train_fn, valid_fn = cnn.build_finetune_functions((train_x, train_y),
+			 (valid_x, valid_y), batch_size=model_configs['batch_size'])
 
-	#print('> ... getting the finetuning functions')
-	#train_fn, valid_fn = cnn.build_finetune_functions((train_x, train_y),
-	#		 (valid_x, valid_y), batch_size=model_configs['batch_size'])
-
-	#start_time = time.clock()
-	#while (lrate.get_rate() != 0):
-	#	train_error = []
-	#	while (not train_sets.is_finish()):
-	#		train_sets.load_next_partition(train_xy)
-	#		for batch_index in xrange(train_sets.cur_frame_num / batch_size):  # loop over mini-batches
-	#			train_error.append(train_fn(index=batch_index, learning_rate = lrate.get_rate(), momentum = momentum))
-	#	train_sets.initialize_read()
-	#log('> epoch %d, training error %f' % (lrate.epoch, numpy.mean(train_error)))
+	epoch = 0
+	start_time = time.clock()
+	while (lrate.get_rate() != 0):
+		train_error = []
+		while not train_sets.is_finish():
+			train_sets.make_partition_shared(train_xy)
+			for batch_index in xrange(train_sets.cur_frame_num / batch_size):  # loop over mini-batches
+				train_error.append(train_fn(index=batch_index, learning_rate = lrate.get_rate(), momentum = momentum))
+				print '>>>> training batch %d error %f' % (batch_index, numpy.mean(train_error))
+			train_sets.read_next_partition_data()
 	
-	#valid_error = []
-	#while (not valid_sets.is_finish()):
-	#		valid_sets.load_next_partition(valid_xy)
-	#		for batch_index in xrange(valid_sets.cur_frame_num / batch_size):  # loop over mini-batches
-	#		valid_error.append(valid_fn(index=batch_index))
-	#	valid_sets.initialize_read()
-	#log('> epoch %d, lrate %f, validation error %f' % (lrate.epoch, lrate.get_rate(), numpy.mean(valid_error)))
+		print '> epoch %d, training error %f' % (lrate.epoch, numpy.mean(train_error))
+		train_sets.initialize_read()
+	
+	
+	valid_error = []
+	while (not valid_sets.is_finish()):
+		valid_sets.make_partition_shared(valid_xy)
+		for batch_index in xrange(valid_sets.cur_frame_num / batch_size):  # loop over mini-batches
+			valid_error.append(valid_fn(index=batch_index))
+			print '>>>> validation batch %d error %f' % (batch_index, numpy.mean(train_error))
+		valid_sets.read_next_partition_data()
+	print '> epoch %d, lrate %f, validation error %f' % (lrate.epoch, lrate.get_rate(), numpy.mean(valid_error))
+	valid_sets.initialize_read()
 
 	
 

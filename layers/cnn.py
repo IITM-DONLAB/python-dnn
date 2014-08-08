@@ -16,7 +16,7 @@ class ConvLayer(object):
 			flatten = False, border_mode = 'valid', W=None, b=None, use_fast = False):
 	
 		assert input_shape[1] == filter_shape[1]
-		self.input = input.reshape(input_shape)
+		self.input = input#.reshape(input_shape)
 	
 		self.input_shape = input_shape
 		self.filter_shape = filter_shape

@@ -21,7 +21,7 @@ class FileWriter(object):
 
 	def write_data(self,vector_array,labels):
 		featdim= self.header['featdim'];
-		dt={'names': ['d','l'],'formats': [('>f4',featdim),'>i4']}
+		dt={'names': ['d','l'],'formats': [('>f2',featdim),'>i2']}
 		data = numpy.zeros(1,dtype= numpy.dtype(dt))
     		for vector,label in zip(vector_array,labels):
 			flatten_vector = vector.flatten();
@@ -37,7 +37,7 @@ def read_dataset(options):
 	file_reader = FileReader(file_path,options)
 	file_header = file_reader.read_file_info()
 
-	shared_xy = file_reader.make_shared()
+	shared_xy = file_reader.create_shared()
 	shared_x, shared_y = shared_xy
 	shared_y = T.cast(shared_y, 'int32')
 
@@ -52,6 +52,7 @@ class FileReader(object):
 		# store number of frames, features and labels for each data partition
 	        self.feat = None
 	        self.label = None
+		self.end_reading = False
 		
 		# markers while reading data
 		self.partition_num = 0
@@ -65,24 +66,27 @@ class FileReader(object):
 		self.frame_per_partition = self.options['partition'] *1000*1000/ (self.feat_dim * 4)
 		batch_residual = self.frame_per_partition % self.options['batch_size']
 		self.frame_per_partition = self.frame_per_partition - batch_residual
-		self.dtype = numpy.dtype({'names': ['d','l'],'formats': [('>f4',self.feat_dim),'>f4']})
+		self.dtype = numpy.dtype({'names': ['d','l'],'formats': [('>f2',self.feat_dim),'>i2']})
 		return self.header
 
-	def read_partition_data(self):
+	def read_next_partition_data(self):
 		data = numpy.fromfile(self.filehandle,dtype=self.dtype,count=self.frame_per_partition);
 		self.cur_frame_num = data.__len__();
 		if self.cur_frame_num > 0:
+			self.feat = numpy.asarray(data['d'], dtype = theano.config.floatX)
+			self.label = numpy.asarray(data['l'], dtype = theano.config.floatX)
+			self.partition_num = self.partition_num + 1
 			shape = [self.cur_frame_num];
 			shape.extend(self.header['input_shape']);
-			self.feat = numpy.asarray(data['d'], dtype = theano.config.floatX)
-			self.label = numpy.asarray(data['l'], dtype = theano.config.floatX)			
+			self.feat = self.feat.reshape(shape);
+			self.feat = dimshuffle(self.feat,self.options['dim_shuffle'])
 		else:
+			self.feat = None
 			self.end_reading = True;	
-		self.partition_num = self.partition_num + 1
+
 	     
-	def load_next_partition(self, shared_xy):
+	def make_partition_shared(self, shared_xy):
 		shared_x, shared_y = shared_xy  
-		self.read_partition_data()
 		if self.options['random']:  # randomly shuffle features and labels in the *same* order
 			try: 
 				seed = self.options['random_seed']
@@ -92,25 +96,13 @@ class FileReader(object):
 			numpy.random.shuffle(self.feat)	
 			numpy.random.seed(seed)
 			numpy.random.shuffle(self.label)
-			self.feat = self.feat.reshape(shape);
-			self.feat = dimshuffle(self.feat,self.options['dim_shuffle'])
-            
+            	print 'shape of the data.. ',self.feat.shape
 		shared_x.set_value(self.feat, borrow=True)
 		shared_y.set_value(self.label, borrow=True)
 	
-	def make_shared(self):
+	def create_shared(self):
 		if self.feat is None:
-			self.read_partition_data()
-
-		if self.options['random']:  # randomly shuffle features and labels in the *same* order
-			try: 
-				seed = self.options['random_seed']
-			except KeyError:
-				seed = 18877
-			numpy.random.seed(seed)
-			numpy.random.shuffle(self.feat)
-			numpy.random.seed(seed)
-			numpy.random.shuffle(self.label)
+			self.read_next_partition_data()
 
 		shared_x = theano.shared(self.feat, name = 'x', borrow = True)
 		shared_y = theano.shared(self.label, name = 'y', borrow = True)
@@ -118,15 +110,17 @@ class FileReader(object):
 
 	# reopen file with the same filename
 	def reopen_file(self):
-		self.file_read = open(self.pfile_path)
+		self.filehandle = open(self.file_path)
 		initialize_read();
 
 	def is_finish(self):
 		return self.end_reading
 
-	def initialize_read(self):
-		self.file_read.seek(0,0);
-		self.read_file_info()
+	def initialize_read(self):		
 		self.end_reading = False
 		self.partition_num = 0
+		self.feat=None
+		self.filehandle.seek(0,0);
+		self.read_file_info()
+		self.read_next_partition_data()
 

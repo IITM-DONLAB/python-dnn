@@ -4,7 +4,7 @@
 		"partition" : 200,
 		"random" : true,
 		"random_seed" : 123,
-		"dim_shuffle" : [2,1,0],
+		"dim_shuffle" : [0,3,2,1],
 		"batch_size": 256
 	},
 
@@ -13,7 +13,7 @@
 		"partition" : 200,
 		"random" : true,
 		"random_seed" : 123,
-		"dim_shuffle" : [2,1,0],
+		"dim_shuffle" : [0,3,2,1],
 		"batch_size": 256
 	}
 }
