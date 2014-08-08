@@ -44,8 +44,6 @@ def runRBM(configFile):
               n_outs=rbm_config['n_outs'], first_layer_gb = rbm_config['first_layer_gb'])
 
 
-
-
 if __name__ == '__main__':
     import sys
     runRBM(sys.argv[1])
