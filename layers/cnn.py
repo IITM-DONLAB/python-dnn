@@ -13,7 +13,7 @@ from theano.sandbox.cuda.basic_ops import gpu_contiguous
 class ConvLayer(object):
 	"""Pool Layer of a convolutional network """
 	def __init__(self, numpy_rng, input, input_shape, filter_shape, poolsize, activation, 
-			flatten = False, border_mode = 'valid', W=None, b=None, use_fast = False):
+			W=None, b=None, flatten = False, border_mode = 'valid', use_fast = False):
 	
 		assert input_shape[1] == filter_shape[1]
 		self.input = input#.reshape(input_shape)
