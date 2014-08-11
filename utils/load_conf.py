@@ -1,5 +1,8 @@
 from json import load as jsonLoad
 
+import logging
+logger = logging.getLogger(__name__)
+
 def load_json(input_file):
 	with open(input_file) as data_file:
 		data = jsonLoad(data_file)
@@ -10,7 +13,7 @@ def load_json(input_file):
 	return data;
 
 def load_model(input_file,nnetType=None):
-	print 'Loading model properties from ',input_file,' ...'
+	logger.info("Loading model properties from %s ",input_file)
 	data = load_json(input_file)
 
 	#checking nnetType
@@ -18,15 +21,15 @@ def load_model(input_file,nnetType=None):
 		try:
 			nnetType=data['nnetType']
 		except KeyError, e:
-			print("Error: 'nnetType' is missing in model properties file..")
+			logger.critical(" 'nnetType' is missing in model properties file..")
 			exit(1)
 	else :
 		if data.has_key('nnetType') and nnetType!=data['nnetType']:
-			print ("Error: 'nnetType' is not Matching..")
+			logger.critical(" 'nnetType' is not Matching..")
 			exit(1)
 
 	if checkConfig(data,nnetType):
-		print("Error: the mandatory arguments are missing in model properties file..")
+		logger.critical(" the mandatory arguments are missing in model properties file..")
 		exit(1)
 
 	#init Default Values or update from Json.
@@ -35,7 +38,7 @@ def load_model(input_file,nnetType=None):
 	elif nnetType == 'RBM':
 		data = initModelRBM(data)
 	else:	
-		print('Unknown nnetType')
+		logger.error('Unknown nnetType')
 		exit(1)
 
 	
@@ -106,10 +109,10 @@ def initModelRBM(data):
 
 def checkConfig(data,nnetType):
 	if not data.has_key('data_spec'): 
-		print('Missing Key in JSON :data_spec')
+		logger.error('Missing Key in JSON :data_spec')
 		return False
 	if not data.has_key('wdir'):
-		print('Missing Key in JSON :wdir')
+		logger.error('Missing Key in JSON :wdir')
 		return False
 	if nnetType == 'CNN':
 		requiredKeys=['conv_output_file','hidden_output_file','conv_nnet_spec', \
@@ -124,28 +127,28 @@ def checkConfig(data,nnetType):
 		if isKeysPresents(data,requiredKeys):
 			return False
 	else :
-		print('Unknown nnet Type')
+		logger.error('Unknown nnet Type')
 		return False
 	return True
 
 def isKeysPresents(data,requiredKeys):
 	for key in requiredKeys:
 		if not data.has_key(key):
-			print('Missing Key in JSON :'+str(key))
+			logger.error('Missing Key in JSON :'+str(key))
 			return False 
 	return True
 	
 
 def load_data_spec(input_file):
-	print 'Loading data specification properties from ',input_file,' ...'
+	logger.info("Loading data specification properties from %s..",input_file)
 	return load_json(input_file);
 
 def load_mlp_spec(input_file):
-	print 'Loading mlp properties from ',input_file,' ...'
+	logger.info("Loading mlp properties from %s ...",input_file)
 	return load_json(input_file);
 
 def load_conv_spec(input_file,batch_size,input_shape):
-	print 'Loading convnet properties from ',input_file,' ...'	
+	logger.info("Loading convnet properties from %s ...",input_file)	
 	data = load_json(input_file)  
 	
 	layer_configs=data.pop('layers');
@@ -169,7 +172,7 @@ def load_conv_spec(input_file,batch_size,input_shape):
 		
 		layer_configs[layer_index]['output_shape'] = [batch_size,current_map_number];
 		if not len(layer_configs[layer_index]['input_shape'][2:]) == len(layer_configs[layer_index]['convmat_dim']):
-			print 'Input shape and convolution matrix dimension are not matching on layer ',layer_index+1
+			logger.error("Input shape and convolution matrix dimension are not matching on layer %d ",layer_index+1)
 		input_shape=[current_map_number];
 		for inp,wdim,pool in zip(layer_configs[layer_index]['input_shape'][2:],layer_configs[layer_index]['convmat_dim'],
 				layer_configs[layer_index]['poolsize']):
@@ -181,21 +184,21 @@ def load_conv_spec(input_file,batch_size,input_shape):
 	return (conv_configs,layer_configs)	
 
 def load_rbm_spec(input_file,inputSize=None,outputSize=None):
-	print 'Loading net properties from ',input_file,' ...'	
+	logger.info("Loading net properties from %s ..",input_file)	
 	data = load_json(input_file)
 
 	if not data.has_key('layers') or not type(data['layers']) is list:
-		print("Error: layers is not present (or not a list) in " + str(input_file))
+		logger.critical(" layers is not present (or not a list) in " + str(input_file))
 		exit(1)
 
 	if (not inputSize is None) and inputSize !=data['layers'][0]:
-		print("Error: input dimension should be equal to no of nodes in input layers")
+		logger.critical(" input dimension should be equal to no of nodes in input layers")
 		exit(1)
 	else:
 		data['n_ins'] = data['layers'][0]
 
 	if (not outputSize is None) and outputSize !=data['layers'][0]:
-		print("Error: input dimension should be equal to no of nodes in input layers")
+		logger.critical(" input dimension should be equal to no of nodes in input layers")
 		exit(1)
 	else:
 		data['n_outs'] = data['layers'][-1]
@@ -213,7 +216,7 @@ def load_rbm_spec(input_file,inputSize=None,outputSize=None):
 	if not data.has_key('random_seed') or not type(data['random_seed']) is int:
 		data['random_seed'] = None
 
-	__debugPrintData__(data,'rbm');
+	#__debugPrintData__(data,'rbm');
 	
 	return (data)
 

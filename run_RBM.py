@@ -25,6 +25,11 @@ from theano.tensor.shared_randomstreams import RandomStreams
 #module imports
 from utils.load_conf import load_model,load_rbm_spec,load_data_spec
 from models.srbm import SRBM
+from io_modules.file_io import read_dataset
+from io_modules import setLogger
+
+import logging
+logger = logging.getLogger(__name__)
 
 def runRBM(configFile):
 	model_config = load_model(configFile)
@@ -43,7 +48,18 @@ def runRBM(configFile):
               hidden_layers_sizes=rbm_config['layers'],
               n_outs=rbm_config['n_outs'], first_layer_gb = rbm_config['first_layer_gb'])
 
+	train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
+
+
+	logger.info('> ... getting the pretraining functions')
+	pretraining_fns = srbm.pretraining_functions(train_set_x=train_x,
+                                                 batch_size=model_config['batch_size'],
+                                                 weight_cost = 0.0002)
+
+	logger.info('> ... pre-training the model')
+	#start_time = time.clock()
 
 if __name__ == '__main__':
     import sys
+    setLogger();
     runRBM(sys.argv[1])
