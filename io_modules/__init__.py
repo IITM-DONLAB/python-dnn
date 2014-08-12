@@ -9,7 +9,7 @@ def setLogger(level="INFO",stderr=True,name=None,logFile='python-dnn.log'):
 		# Send the logs to stderr
 		stream_handler = logging.StreamHandler()
 		# Format the log output and include the log level's name and the time it was generated
-		formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+		formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s')
 		# Use that Formatter on handler
 		stream_handler.setFormatter(formatter)
 		# Add the handler to it

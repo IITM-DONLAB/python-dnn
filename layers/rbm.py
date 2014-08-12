@@ -2,6 +2,7 @@ import numpy, theano
 import theano.tensor as T
 
 from theano.sandbox.rng_mrg import MRG_RandomStreams as RandomStreams
+from collections import OrderedDict
 
 class RBM(object):
     """Bernoulli-bernoulli restricted Boltzmann machine (RBM)  """
@@ -112,7 +113,7 @@ class RBM(object):
         a, hp_rec, b = self.sample_h_given_v(v_rec_sigm) 
                 
         # gradient of parameters
-        updates={}
+        updates=OrderedDict()
         updates[self.delta_W] = momentum * self.delta_W + lr * (1.0/batch_size) * (T.dot(self.input.T, hp_data) - T.dot(v_rec_sigm.T, hp_rec)) - lr * weight_cost * self.W
         updates[self.delta_hbias] = momentum * self.delta_hbias + lr * (1.0/batch_size) * (T.sum(h_data, axis=0) - T.sum(hp_rec, axis=0))
         updates[self.delta_vbias] = momentum * self.delta_vbias + lr * (1.0/batch_size) * (T.sum(self.input, axis=0) - T.sum(v_rec_sigm, axis=0))
@@ -124,7 +125,6 @@ class RBM(object):
         cost = T.mean(self.free_energy(self.input)) - T.mean(self.free_energy(v_rec_sample))
         # reconstruction cost
         monitoring_cost = T.mean(T.sqr(self.input-v_rec_sigm))
-        
         return monitoring_cost, cost, updates
 
     def is_gbrbm(self):
@@ -163,7 +163,7 @@ class GBRBM(RBM):
         v_rec, z, t = self.sample_v_given_h(h_data)
         a, hp_rec, b = self.sample_h_given_v(v_rec) #hid rec 
                 
-        updates={}
+        updates=OrderedDict()
         
         updates[self.delta_W] = momentum * self.delta_W + lr * (1.0/batch_size) * (T.dot(self.input.T, hp_data) - T.dot(v_rec.T, hp_rec)) - lr * weight_cost * self.W
         updates[self.delta_hbias] = momentum * self.delta_hbias + lr * (1.0/batch_size) * (T.sum(h_data, axis=0) - T.sum(hp_rec, axis=0))

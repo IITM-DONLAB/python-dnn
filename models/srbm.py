@@ -17,6 +17,8 @@ class SRBM(object):
                  first_layer_gb = True):
         """ Stacked RBMs for DNN Pre-training """
 
+        #theano.config.compute_test_value = 'warn'
+
         self.sigmoid_layers = []
         self.rbm_layers = []
         self.params = []
@@ -26,9 +28,11 @@ class SRBM(object):
         if not theano_rng:
             theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
         # allocate symbolic variables for the data
-        #self.x = T.matrix('x')
+        self.x = T.matrix('x')
+        #self.x.tag.test_value = numpy.random.rand(100, 330)
         #self.x = T.ftensor4('x') 
         self.y = T.ivector('y')
+        #self.y.tag.test_value = numpy.random.rand(100,1)
 
         for i in xrange(self.n_layers):
             # the size of the input is either the number of hidden units of

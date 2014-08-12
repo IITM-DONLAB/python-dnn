@@ -17,13 +17,13 @@ class FileWriter(object):
 		self.filehandle = open(self.filepath,'wb')
 
 	def write_file_info(self):
-    		self.filehandle.write(json.dumps(self.header)+'\n')
+			self.filehandle.write(json.dumps(self.header)+'\n')
 
 	def write_data(self,vector_array,labels):
 		featdim= self.header['featdim'];
 		dt={'names': ['d','l'],'formats': [('>f2',featdim),'>i2']}
 		data = numpy.zeros(1,dtype= numpy.dtype(dt))
-    		for vector,label in zip(vector_array,labels):
+		for vector,label in zip(vector_array,labels):
 			flatten_vector = vector.flatten();
 			if featdim==len(flatten_vector):
 				data['d']=flatten_vector; data['l']=label;
@@ -50,8 +50,8 @@ class FileReader(object):
 		self.filehandle = open(self.filepath,'rb')
 		
 		# store number of frames, features and labels for each data partition
-	        self.feat = None
-	        self.label = None
+		self.feat = None
+		self.label = None
 		self.end_reading = False
 		
 		# markers while reading data
@@ -76,15 +76,19 @@ class FileReader(object):
 			self.feat = numpy.asarray(data['d'], dtype = theano.config.floatX)
 			self.label = numpy.asarray(data['l'], dtype = theano.config.floatX)
 			self.partition_num = self.partition_num + 1
-			shape = [self.cur_frame_num];
-			shape.extend(self.header['input_shape']);
-			self.feat = self.feat.reshape(shape);
-			self.feat = dimshuffle(self.feat,self.options['dim_shuffle'])
+			if not self.options['flatten'] : 
+				shape = [self.cur_frame_num];
+				shape.extend(self.header['input_shape']);
+				self.feat = self.feat.reshape(shape);
+				self.feat = dimshuffle(self.feat,self.options['dim_shuffle'])
+#			else :
+#				self.feat = self.feat.flatten(); 
 		else:
 			self.feat = None
-			self.end_reading = True;	
+			self.end_reading = True;
 
-	     
+
+		 
 	def make_partition_shared(self, shared_xy):
 		shared_x, shared_y = shared_xy  
 		if self.options['random']:  # randomly shuffle features and labels in the *same* order
@@ -96,7 +100,7 @@ class FileReader(object):
 			numpy.random.shuffle(self.feat)	
 			numpy.random.seed(seed)
 			numpy.random.shuffle(self.label)
-            	print 'shape of the data.. ',self.feat.shape
+			#print 'shape of the data.. ',self.feat.shape
 		shared_x.set_value(self.feat, borrow=True)
 		shared_y.set_value(self.label, borrow=True)
 	
