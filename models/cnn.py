@@ -25,11 +25,12 @@ class ConvLayerConfig(object):
 
 class CNN(object):
 	""" Instantiation of Convolution neural network ... """
-	def __init__(self, numpy_rng, theano_rng,batch_size, n_outs,conv_layer_configs, hidden_layers_sizes, 
+	def __init__(self, numpy_rng, theano_rng, batch_size, n_outs,conv_layer_configs, hidden_layers_sizes, 
 			use_fast=False,conv_activation = T.nnet.sigmoid,hidden_activation = T.nnet.sigmoid):
 
 		self.layers = []
 		self.params = []
+
 		self.delta_params = []
 		#self.sparsity = sparsity
 		#self.sparsity_weight = sparsity_weight
@@ -57,7 +58,6 @@ class CNN(object):
 			conv_layer = ConvLayer(numpy_rng=numpy_rng, input=input,input_shape=config['input_shape'],
 				filter_shape=config['filter_shape'],poolsize=config['poolsize'],
 				flatten = config['flatten'],activation = conv_activation, use_fast = use_fast)
-			
 			self.layers.append(conv_layer)
 			if config['update']==True:	# only few layers of convolution layer are considered for updation
 				self.params.extend(conv_layer.params)
@@ -76,6 +76,7 @@ class CNN(object):
 			sigmoid_layer = HiddenLayer(rng=numpy_rng, input=layer_input,n_in=input_size, 
 						n_out = hidden_layers_sizes[i], activation=hidden_activation)
 			self.layers.append(sigmoid_layer)
+
 			if config['update']==True:	# only few layers of hidden layer are considered for updation
                 		self.params.extend(sigmoid_layer.params)
                 		self.delta_params.extend(sigmoid_layer.delta_params)

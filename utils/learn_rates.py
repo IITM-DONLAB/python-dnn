@@ -1,5 +1,10 @@
 class LearningRate(object):
-
+	@staticmethod
+	def get_instance(method,configs):
+		if(method=='C'):
+			return LearningRateConstant(configs);
+		else:
+			return LearningRateExpDecay(configs);
 	def __init__(self):
 		'''constructor'''	
 		
@@ -43,12 +48,10 @@ class LearningRateExpDecay(LearningRate):
 		self.min_derror_decay_start = kwargs['min_derror_decay_start']
 		self.min_derror_stop = kwargs['min_derror_stop']
 		self.lowest_error = kwargs['init_error']
-		
+		self.min_epoch_decay_start = kwargs['min_epoch_decay_start']
 		self.epoch = 1
 		self.decay = decay
 		self.zero_rate = zero_rate
-
-		self.min_epoch_decay_start = min_epoch_decay_start
 
 
 	def get_rate(self):
