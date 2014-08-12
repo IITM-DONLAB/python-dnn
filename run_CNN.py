@@ -15,7 +15,7 @@
 # See the Apache 2 License for the specific language governing permissions and
 # limitations under the License.
 
-import cPickle, gzip, os, time
+import cPickle, gzip, os, time,sys
 from models.cnn import CNN;
 import numpy
 
@@ -91,8 +91,7 @@ def runCNN(configFile):
 
 	
 	_cnn2file(cnn.layers[0:cnn.conv_layer_num], filename=model_configs['conv_output_file'],activation=conv_configs['activation']);
-	_nnet2file(cnn.layers[conv_layer_num:], filename=model_configs['hidden_output_file'],activation=mlp_configs['activation']);
+	_nnet2file(cnn.layers[cnn.conv_layer_num:], filename=model_configs['hidden_output_file'],activation=mlp_configs['activation']);
 
 if __name__ == '__main__':
-	import sys
 	runCNN(sys.argv[1])

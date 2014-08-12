@@ -33,12 +33,12 @@
 	"n_outs" : 10,
 	
 	"comment" : "l_rate_method :: Two method l_rate method are supported  C: Constant learning rate and E : Exponential decay",
-	"l_rate_method" : "E",	
+	"l_rate_method" : "C",	
 	
 	"comment" : "l_rate :: learning rate configuration",
 	"l_rate" : {	
 			"learning_rate" : 0.08,
-			"epoch_num" : 15,
+			"epoch_num" : 0,
 
 			"start_rate" : 0.08,
 			"scale_by" : 0.5,

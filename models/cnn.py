@@ -44,6 +44,7 @@ class CNN(object):
 
 		self.conv_layer_num = len(conv_layer_configs) 	#counting number of convolution layers
         	self.hidden_layer_num = len(hidden_layers_sizes)
+		self.conv_layers = []
 		
 		print 'Building convolution layers....'
 		for i in xrange(self.conv_layer_num):		# construct the convolution layer
@@ -59,6 +60,7 @@ class CNN(object):
 				filter_shape=config['filter_shape'],poolsize=config['poolsize'],
 				flatten = config['flatten'],activation = conv_activation, use_fast = use_fast)
 			self.layers.append(conv_layer)
+			self.conv_layers.append(conv_layer)
 			if config['update']==True:	# only few layers of convolution layer are considered for updation
 				self.params.extend(conv_layer.params)
 				self.delta_params.extend(conv_layer.delta_params)
@@ -91,6 +93,12 @@ class CNN(object):
 		self.finetune_cost = self.logLayer.negative_log_likelihood(self.y)
 
 		self.errors = self.logLayer.errors(self.y)
+
+	"Getting CNN Feats Outputs"
+	def build_out_function(self):
+		feat = T.tensor4('feat')
+		out_da = theano.function([feat], self.conv_layers[-1].output, updates = None, givens={self.x:feat}, on_unused_input='warn')
+        	return out_da
 	
 	"Building fine tuning operation "
 	def build_finetune_functions(self, train_shared_xy, valid_shared_xy, batch_size):

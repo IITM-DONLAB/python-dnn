@@ -1,5 +1,6 @@
-import json,numpy,sys
-
+import json,sys,theano
+import numpy as np
+from StringIO import StringIO
 # convert an array to a string
 def array_2_string(array):
 	str_out = StringIO()

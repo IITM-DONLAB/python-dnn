@@ -15,5 +15,14 @@
 		"random_seed" : 123,
 		"dim_shuffle" : [0,3,2,1],
 		"batch_size": 256
+	},
+
+	"testing" : {
+		"path" : "data/test.dat",
+		"partition" : 200,
+		"random" : true,
+		"random_seed" : 123,
+		"dim_shuffle" : [0,3,2,1],
+		"batch_size": 256
 	}
 }
