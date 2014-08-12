@@ -90,8 +90,8 @@ def runCNN(configFile):
 		lrate.get_next_rate(current_error = 100 * numpy.mean(valid_error))
 
 	
-	_cnn2file(cnn.layers[0:cnn.conv_layer_num], filename=model_conf['conv_output_file'],activation=conv_configs['activation']);
-	_nnet2file(cnn.layers[conv_layer_num:], filename=model_conf['hidden_output_file'],activation=mlp_configs['activation']);
+	_cnn2file(cnn.layers[0:cnn.conv_layer_num], filename=model_configs['conv_output_file'],activation=conv_configs['activation']);
+	_nnet2file(cnn.layers[conv_layer_num:], filename=model_configs['hidden_output_file'],activation=mlp_configs['activation']);
 
 if __name__ == '__main__':
 	import sys
