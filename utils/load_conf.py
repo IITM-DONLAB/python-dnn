@@ -205,11 +205,14 @@ def load_rbm_spec(input_file,inputSize=None,outputSize=None):
 		exit(1)
 	else:
 		data['n_outs'] = data['layers'][-1]
+	#sethiddenlayers as layers.
+	data['layers'] = data['layers'][1:-1];
 
 
 	if not data.has_key('pretrained_layers') or not type(data['pretrained_layers']) is int:
 		data['pretrained_layers'] = len(data['layers'])
-
+	elif data['pretrained_layers'] > len(data['layers']):
+		data['pretrained_layers'] = len(data['layers'])
 
 	first_layer_gb = True
 	if data.has_key('first_layer_type') and data['first_layer_type'] == 'bb':

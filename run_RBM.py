@@ -35,9 +35,7 @@ logger = logging.getLogger(__name__)
 
 def runRBM(configFile):
     model_config = load_model(configFile)
-
     rbm_config = load_rbm_spec(model_config['rbm_nnet_spec'])
-    #mlp_config = load_mlp_spec(model_config['hidden_nnet_spec']);
     data_spec =  load_data_spec(model_config['data_spec']);
 
 
