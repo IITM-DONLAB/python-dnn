@@ -98,7 +98,7 @@ def runRBM(configFile):
             	train_sets.make_partition_shared(train_xy)
                 #train_sets.load_next_partition(train_xy)
                 for batch_index in xrange(train_sets.cur_frame_num / batch_size):  # loop over mini-batches
-                    logger.info("Training For epoch %d and batch %d",epoch,batch_index)
+                    #logger.info("Training For epoch %d and batch %d",epoch,batch_index)
                     [reconstruction_cost, free_energy_cost] = pretraining_fns[i](index=batch_index,
                                                                              lr=pretrain_lr,
                                                                              momentum=momentum)
@@ -112,7 +112,7 @@ def runRBM(configFile):
     #_nnet2file(srbm.sigmoid_layers, filename=output_file, withfinal=True)
 
     end_time = time.clock()
-
+    import os
     logger.info('The code for file ' + os.path.split(__file__)[1] +
                       ' ran for %.2fm' % ((end_time - start_time) / 60.))
 
