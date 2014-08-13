@@ -26,7 +26,7 @@ from theano.tensor.shared_randomstreams import RandomStreams
 
 #module imports
 from utils.load_conf import load_model,load_rbm_spec,load_data_spec
-from models.srbm import SRBM
+from models.dbn import DBN
 from io_modules.file_io import read_dataset
 from io_modules import setLogger
 
@@ -44,7 +44,7 @@ def runRBM(configFile):
     theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
 
 
-    srbm = SRBM(numpy_rng=numpy_rng, theano_rng = theano_rng, n_ins=rbm_config['n_ins'],
+    dbn = DBN(numpy_rng=numpy_rng, theano_rng = theano_rng, n_ins=rbm_config['n_ins'],
               hidden_layers_sizes=rbm_config['layers'],
               n_outs=rbm_config['n_outs'], first_layer_gb = rbm_config['first_layer_gb'])
 
@@ -59,10 +59,10 @@ def runRBM(configFile):
     	#current_nnet = wdir + 'nnet.ptr.current'
         logger.info('Initializing model from ' + str(current_nnet) + '....')
         # load model
-        #_file2nnet(srbm.sigmoid_layers, set_layer_num = keep_layer_num, filename = current_nnet, withfinal=False)
+        #_file2nnet(dbn.sigmoid_layers, set_layer_num = keep_layer_num, filename = current_nnet, withfinal=False)
 
     logger.info('Getting the pretraining functions....')
-    pretraining_fns = srbm.pretraining_functions(train_set_x=train_x,
+    pretraining_fns = dbn.pretraining_functions(train_set_x=train_x,
                                                  batch_size=model_config['batch_size'],
                                                  weight_cost = 0.0002)
 
@@ -80,7 +80,7 @@ def runRBM(configFile):
 
     ## Pre-train layer-wise
     for i in range(keep_layer_num, nPreTrainLayers):
-        if (srbm.rbm_layers[i].is_gbrbm()):
+        if (dbn.rbm_layers[i].is_gbrbm()):
             pretrain_lr = model_config['gbrbm_learning_rate']
         else:
             pretrain_lr = model_config['learning_rate']
@@ -107,7 +107,7 @@ def runRBM(configFile):
             logger.info('Training layer %i, epoch %d, r_cost %f, fe_cost %f' % (i, epoch, numpy.mean(r_c), numpy.mean(fe_c)))
 
     # save the pretrained nnet to file
-    #_nnet2file(srbm.sigmoid_layers, filename=output_file, withfinal=True)
+    #_nnet2file(dbn.sigmoid_layers, filename=output_file, withfinal=True)
 
     end_time = time.clock()
     import os
