@@ -1,6 +1,5 @@
 """
 """
-
 import numpy
 
 import theano
@@ -257,3 +256,4 @@ class DBN(object):
             return [test_score_i(i) for i in xrange(n_test_batches)]
 
         return train_fn, valid_score, test_score
+
