@@ -40,70 +40,9 @@ def load_model(input_file,nnetType=None):
 	else:	
 		logger.error('Unknown nnetType')
 		exit(1)
-
 	
 	#__debugPrintData__(data,'model');
 	return data;
-
-def initModelCNN(data):
-	if not data.has_key('batch_size') or not type(data['batch_size']) is int:
-		data['batch_size']=256
-	if not data.has_key('momentum') or not type(data['momentum']) is float:
-		data['momentum']=0.5
-	
-	if not data.has_key('l_rate_method'):
-		data['l_rate_method']="C"
-	
-	if not data.has_key('l_rate'):
-		lrate_config=dict()
-		if data['l_rate_method'] == "C":
-			lrate_config['learning_rate'] = 0.08
-			lrate_config['epoch_num'] = 15
-		else:
-			lrate_config['start_rate'] = 0.08
-			lrate_config['scale_by'] = 0.08
-			lrate_config['min_derror_decay_start'] = 0.05
-			lrate_config['min_derror_stop'] = 0.05
-			lrate_config['min_epoch_decay_start'] = 15
-			lrate_config['init_error'] = 100
-		data['l_rate']=lrate_config
-
-	return data
-
-
-def initModelRBM(data):
-
-	#default values:
-
-	gbrbm_learning_rate = 0.005
-	learning_rate = 0.08
-	batch_size=128
-	epochs=10	
-
-	# momentum; more complicated than dnn 
-	initial_momentum = 0.5	 # initial momentum 
-	final_momentum = 0.9	   # final momentum
-	initial_momentum_epoch = 5 # for how many epochs do we use initial_momentum
-
-	if not data.has_key('batch_size') or not type(data['batch_size']) is int:
-		data['batch_size']=batch_size
-	if not data.has_key('gbrbm_learning_rate') or not type(data['gbrbm_learning_rate']) is float:
-		data['gbrbm_learning_rate'] = gbrbm_learning_rate
-	if not data.has_key('learning_rate') or type(data['learning_rate']) is float:
-		data['learning_rate'] = learning_rate
-	if data.has_key('epoch_number') or not type(data['epoch_number']) is int:
-		data['epoch_number'] = epochs
-	
-	# momentum
-	if data.has_key('initial_momentum') or not type(data['initial_momentum']) is float:
-		data['initial_momentum']=initial_momentum
-	if data.has_key('final_momentum') or not type(data['final_momentum']) is float:
-		data['final_momentum']=final_momentum
-	if data.has_key('initial_momentum_epoch ') or not type(data['initial_momentum_epoch']) is int:
-		data['initial_momentum_epoch']=initial_momentum_epoch
-
-
-	return data
 
 
 
@@ -150,6 +89,35 @@ def load_mlp_spec(input_file):
 	logger.info("Loading mlp properties from %s ...",input_file)
 	return load_json(input_file);
 
+
+#############################################################################
+#CNN
+#############################################################################
+def initModelCNN(data):
+	if not data.has_key('batch_size') or not type(data['batch_size']) is int:
+		data['batch_size']=256
+	if not data.has_key('momentum') or not type(data['momentum']) is float:
+		data['momentum']=0.5
+	
+	if not data.has_key('l_rate_method'):
+		data['l_rate_method']="C"
+	
+	if not data.has_key('l_rate'):
+		lrate_config=dict()
+		if data['l_rate_method'] == "C":
+			lrate_config['learning_rate'] = 0.08
+			lrate_config['epoch_num'] = 15
+		else:
+			lrate_config['start_rate'] = 0.08
+			lrate_config['scale_by'] = 0.08
+			lrate_config['min_derror_decay_start'] = 0.05
+			lrate_config['min_derror_stop'] = 0.05
+			lrate_config['min_epoch_decay_start'] = 15
+			lrate_config['init_error'] = 100
+		data['l_rate']=lrate_config
+
+	return data
+
 def load_conv_spec(input_file,batch_size,input_shape):
 	logger.info("Loading convnet properties from %s ...",input_file)	
 	data = load_json(input_file)  
@@ -185,6 +153,12 @@ def load_conv_spec(input_file,batch_size,input_shape):
 	
 		prev_map_number = current_map_number
 	return (conv_configs,layer_configs)	
+
+#############################################################################
+#DBN/RBM
+#############################################################################
+
+
 
 def load_rbm_spec(input_file,inputSize=None,outputSize=None):
 	logger.info("Loading net properties from %s ..",input_file)	
@@ -227,6 +201,44 @@ def load_rbm_spec(input_file,inputSize=None,outputSize=None):
 	return (data)
 
 
+
+def initModelRBM(data):
+
+	#default values:
+
+	gbrbm_learning_rate = 0.005
+	learning_rate = 0.08
+	batch_size=128
+	epochs=10	
+
+	# momentum; more complicated than dnn 
+	initial_momentum = 0.5	 # initial momentum 
+	final_momentum = 0.9	   # final momentum
+	initial_momentum_epoch = 5 # for how many epochs do we use initial_momentum
+
+	if not data.has_key('batch_size') or not type(data['batch_size']) is int:
+		data['batch_size']=batch_size
+	if not data.has_key('gbrbm_learning_rate') or not type(data['gbrbm_learning_rate']) is float:
+		data['gbrbm_learning_rate'] = gbrbm_learning_rate
+	if not data.has_key('learning_rate') or type(data['learning_rate']) is float:
+		data['learning_rate'] = learning_rate
+	if data.has_key('epoch_number') or not type(data['epoch_number']) is int:
+		data['epoch_number'] = epochs
+	
+	# momentum
+	if data.has_key('initial_momentum') or not type(data['initial_momentum']) is float:
+		data['initial_momentum']=initial_momentum
+	if data.has_key('final_momentum') or not type(data['final_momentum']) is float:
+		data['final_momentum']=final_momentum
+	if data.has_key('initial_momentum_epoch ') or not type(data['initial_momentum_epoch']) is int:
+		data['initial_momentum_epoch']=initial_momentum_epoch
+
+
+	return data
+
+
+
+##############################################################################################
 def __debugPrintData__(data,name=None):
 	from json import dumps
 	print name
