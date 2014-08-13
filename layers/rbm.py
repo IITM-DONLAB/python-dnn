@@ -106,8 +106,10 @@ class RBM(object):
         return [pre_sigmoid_h1, h1_mean, h1_sample, pre_sigmoid_v1, v1_mean, v1_sample]
 
 #    def get_cost_updates(self, batch_size = 128, lr = 0.0001, momentum=0.5, weight_cost=0.00001, persistent=None, k=1):        
-    def get_cost_updates(self, batch_size = 128, lr = 0.0001, momentum=0.5, weight_cost=0.00001, persistent=None):
-        
+    def get_cost_updates(self, batch_size = 128, lr = 0.0001, momentum=0.5, weight_cost=0.00001):
+        """
+        get the cost and the gradient corresponding to one step of CD-k (k=1)
+        """
         x, hp_data, h_data = self.sample_h_given_v(self.input)
         v_rec, v_rec_sigm, v_rec_sample = self.sample_v_given_h(h_data)
         a, hp_rec, b = self.sample_h_given_v(v_rec_sigm) 
@@ -157,7 +159,7 @@ class GBRBM(RBM):
         return [pre_sigmoid_v1, v1_mean, v1_sample]
 
 #    def get_cost_updates(self, batch_size = 128, lr = 0.0001, momentum=0.5, weight_cost=0.00001, persistent=None, k = 1):    
-    def get_cost_updates(self, batch_size = 128, lr = 0.0001, momentum=0.5, weight_cost=0.00001, persistent=None):
+    def get_cost_updates(self, batch_size = 128, lr = 0.0001, momentum=0.5, weight_cost=0.00001):
         
         x, hp_data, h_data = self.sample_h_given_v(self.input)
         v_rec, z, t = self.sample_v_given_h(h_data)

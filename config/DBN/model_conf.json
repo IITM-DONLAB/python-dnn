@@ -6,10 +6,10 @@
 	"wdir" : "wdir",
 
 	"comment" : "valid_data (Mandatory) specify the path of the validation data relative to the working directory",
-	"data_spec" : "config/RBM/data_spec.json",
+	"data_spec" : "config/DBN/data_spec.json",
 	
 	"comment" : "rbm_nnet_spec:: (Mandatory) specify the path of RBM network configuration specification relative to working directory",
-	"rbm_nnet_spec" : "config/RBM/rbm_spec.json",
+	"rbm_nnet_spec" : "config/DBN/rbm_spec.json",
 
 	"comment" : "output_file :: (Mandatory) specify the path of RBM network output file relative to working directory",
 	"output_file" : "rbm_out.model",
