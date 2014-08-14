@@ -1,0 +1,32 @@
+{	
+	"comment" : "nnetType :: (Mandatory) specify Type of Network (CNN,SDA) ",
+	"nnetType" : "SDA",
+
+	"comment" : "train_data :: (Mandatory) specify the working directory containing data configuration and output ",
+	"wdir" : "wdir",
+
+	"comment" : "valid_data (Mandatory) specify the path of the validation data relative to the working directory",
+	"data_spec" : "config/SDA/data_spec.json",
+	
+	"comment" : "sda_nnet_spec:: (Mandatory) specify the path of SDA network configuration specification relative to working directory",
+	"sda_nnet_spec" : "config/SDA/sda_spec.json",
+
+	"comment" : "output_file :: (Mandatory) specify the path of SDA network output file relative to working directory",
+	"output_file" : "sda_out.model",
+	
+	"comment" : "batch_size :: specify the mini batch size while training, default 128",
+	"batch_size" : 128,
+
+	"comment" :"pretraining_epochs: number of epoch to do pretraining",
+	"pretraining_epochs":10,
+
+	"comment" :"maximal number of iterations ot run the optimizer",
+	"training_epochs":1000,
+
+	"comment" :"learning rate to be used during pre-training",
+	"pretrain_lr":0.08,
+		
+	"comment" : "finetune_lr::  learning rate used in the finetune stage (factor for the stochastic gradient)",
+	"finetune_lr":0.1
+
+}
