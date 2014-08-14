@@ -1,0 +1,19 @@
+{
+	"validation": {
+		"path" : "data/val.dat",
+		"partition" : 200,
+		"random" : true,
+		"random_seed" : 123,
+		"flatten": true,
+		"batch_size": 256
+	},
+
+	"training" : {
+		"path" : "data/train.dat",
+		"partition" : 200,
+		"random" : true,
+		"random_seed" : 123,
+		"flatten": true,
+		"batch_size": 256
+	}
+}

@@ -1,89 +1,100 @@
-import cPickle
-import gzip
-import os
-import sys
+#!/usr/bin/env python2.7
+# Copyright 2014    G.K SUDHARSHAN <sudharpun90@gmail.comIIT Madras
+# Copyright 2014    Abil N George<mail@abilng.inIIT Madras
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+# WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+# MERCHANTABLITY OR NON-INFRINGEMENT.
+# See the Apache 2 License for the specific language governing permissions and
+# limitations under the License.
+
+
+#lib imports
 import time
 
-from layers.sda import SDA
+import numpy
+import theano
 
-def runSdA():
-    """
-    Demonstrates how to train and test a stochastic denoising autoencoder.
-
-    This is demonstrated on MNIST.
-
-    :type learning_rate: float
-    :param learning_rate: learning rate used in the finetune stage
-    (factor for the stochastic gradient)
-
-    :type pretraining_epochs: int
-    :param pretraining_epochs: number of epoch to do pretraining
-
-    :type pretrain_lr: float
-    :param pretrain_lr: learning rate to be used during pre-training
-
-    :type n_iter: int
-    :param n_iter: maximal number of iterations ot run the optimizer
-
-    :type dataset: string
-    :param dataset: path the the pickled dataset
-
-    """
+#module imports
+from utils.load_conf import load_model,load_sda_spec,load_data_spec
+from io_modules.file_io import read_dataset
+from io_modules import setLogger
+from models.sda import SDA
 
 
-    finetune_lr=0.1
-    pretraining_epochs=15,
-    pretrain_lr=0.001
-    training_epochs=1000,
-    dataset='mnist.pkl.gz'
-    batch_size=1
+import logging
+logger = logging.getLogger(__name__)
 
-    datasets = load_data(dataset)
+def runSdA(configFile):
 
-    train_set_x, train_set_y = datasets[0]
-    valid_set_x, valid_set_y = datasets[1]
-    test_set_x, test_set_y = datasets[2]
+    model_config = load_model(configFile)
+    sda_config = load_sda_spec(model_config['sda_nnet_spec'])
+    data_spec =  load_data_spec(model_config['data_spec']);
 
-    # compute number of minibatches for training, validation and testing
-    n_train_batches = train_set_x.get_value(borrow=True).shape[0]
-    n_train_batches /= batch_size
+
+    train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
 
     # numpy random generator
-    numpy_rng = numpy.random.RandomState(89677)
-    print '... building the model'
+    numpy_rng = numpy.random.RandomState(sda_config['random_seed'])
+    #theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
+
+    logger.info('building the model')
     # construct the stacked denoising autoencoder class
-    sda = SDA(numpy_rng=numpy_rng, n_ins=28 * 28,
-              hidden_layers_sizes=[1000, 1000, 1000],
-              n_outs=10)
+    sda = SDA(numpy_rng=numpy_rng, n_ins=sda_config['n_ins'],
+              hidden_layers_sizes=sda_config['hidden_layers'],
+              n_outs=sda_config['n_outs'])
+
+
+
+    batch_size = model_config['batch_size'];
+    finetune_lr = model_config['finetune_lr']
+    pretraining_epochs= model_config['pretraining_epochs']
+    pretrain_lr = model_config['pretrain_lr']
+    training_epochs = model_config['training_epochs']
+
+
+    corruption_levels =sda_config['corruption_levels']
 
     #########################
     # PRETRAINING THE MODEL #
     #########################
-    print '... getting the pretraining functions'
-    pretraining_fns = sda.pretraining_functions(train_set_x=train_set_x,
+    logger.info('Getting the pretraining functions....')
+    pretraining_fns = sda.pretraining_functions(train_set_x=train_x,
                                                 batch_size=batch_size)
 
-    print '... pre-training the model'
+
+    logger.info('Pre-training the model ...')
     start_time = time.clock()
     ## Pre-train layer-wise
-    corruption_levels = [.1, .2, .3]
     for i in xrange(sda.n_layers):
-        # go through pretraining epochs
+         # go through pretraining epochs
         for epoch in xrange(pretraining_epochs):
             # go through the training set
-            c = []
-            for batch_index in xrange(n_train_batches):
-                c.append(pretraining_fns[i](index=batch_index,
-                         corruption=corruption_levels[i],
-                         lr=pretrain_lr))
-            print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
-            print numpy.mean(c)
+            c = []  # keep record of cost
+            while not train_sets.is_finish():
+                train_sets.make_partition_shared(train_xy)
+                
+                for batch_index in xrange(train_sets.cur_frame_num / batch_size):  # loop over mini-batches
+                    #logger.info("Training For epoch %d and batch %d",epoch,batch_index)
+                    curcost = pretraining_fns[i](index=batch_index,
+                        corruption=corruption_levels[i],lr=pretrain_lr)
+                    c.append(curcost)
+                train_sets.read_next_partition_data()
+            train_sets.initialize_read()
+            logger.info("Pre-training layer %i, epoch %d, cost", i, epoch)
+
 
     end_time = time.clock()
-
-    print >> sys.stderr, ('The pretraining code for file ' +
-                          os.path.split(__file__)[1] +
-                          ' ran for %.2fm' % ((end_time - start_time) / 60.))
+    import os
+    logger.info('The code for file ' + os.path.split(__file__)[1] +
+                      ' ran for %.2fm' % ((end_time - start_time) / 60.))
 
     """
 
@@ -169,4 +180,5 @@ def runSdA():
 if __name__ == '__main__':
     import sys
     setLogger();
-    runSdA(sys.argv[0])
+    logger.info('Stating....');
+    runSdA(sys.argv[1])

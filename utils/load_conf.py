@@ -37,6 +37,8 @@ def load_model(input_file,nnetType=None):
 		data = initModelCNN(data)
 	elif nnetType == 'RBM':
 		data = initModelRBM(data)
+	elif nnetType == 'SDA':
+		data = initModelSDA(data)
 	else:	
 		logger.error('Unknown nnetType')
 		exit(1)
@@ -56,18 +58,17 @@ def checkConfig(data,nnetType):
 	if nnetType == 'CNN':
 		requiredKeys=['conv_output_file','hidden_output_file','conv_nnet_spec', \
 		'hidden_nnet_spec','input_shape','n_outs']
-
-		if isKeysPresents(data,requiredKeys):
-			return False
 	elif nnetType == 'RBM':
-		
 		requiredKeys=['rbm_nnet_spec','output_file']
-		
-		if isKeysPresents(data,requiredKeys):
-			return False
+	elif nnetType == 'SDA':
+		requiredKeys = ['sda_nnet_spec','output_file']
 	else :
 		logger.error('Unknown nnet Type')
 		return False
+
+	if isKeysPresents(data,requiredKeys):
+		return False
+
 	return True
 
 def isKeysPresents(data,requiredKeys):
@@ -160,33 +161,27 @@ def load_conv_spec(input_file,batch_size,input_shape):
 
 
 
-def load_rbm_spec(input_file,inputSize=None,outputSize=None):
+def load_rbm_spec(input_file):
 	logger.info("Loading net properties from %s ..",input_file)	
 	data = load_json(input_file)
 
-	if not data.has_key('layers') or not type(data['layers']) is list:
-		logger.critical(" layers is not present (or not a list) in " + str(input_file))
+	if not data.has_key('hidden_layers') or not type(data['hidden_layers']) is list:
+		logger.critical(" hidden_layers is not present (or not a list) in " + str(input_file))
 		exit(1)
 
-	if (not inputSize is None) and inputSize !=data['layers'][0]:
-		logger.critical(" input dimension should be equal to no of nodes in input layers")
+	if not data.has_key('n_ins') or not type(data['n_ins']) is int:
+		logger.critical(" n_ins is not present (or not a int) in " + str(input_file))
 		exit(1)
-	else:
-		data['n_ins'] = data['layers'][0]
 
-	if (not outputSize is None) and outputSize !=data['layers'][0]:
-		logger.critical(" input dimension should be equal to no of nodes in input layers")
+	if not data.has_key('n_outs') or not type(data['n_outs']) is int:
+		logger.critical(" n_outs is not present (or not a int) in " + str(input_file))
 		exit(1)
-	else:
-		data['n_outs'] = data['layers'][-1]
-	#sethiddenlayers as layers.
-	data['layers'] = data['layers'][1:-1];
 
 
 	if not data.has_key('pretrained_layers') or not type(data['pretrained_layers']) is int:
-		data['pretrained_layers'] = len(data['layers'])
-	elif data['pretrained_layers'] > len(data['layers']):
-		data['pretrained_layers'] = len(data['layers'])
+		data['pretrained_layers'] = len(data['hidden_layers'])
+	elif data['pretrained_layers'] > (len(data['hidden_layers'])):
+		data['pretrained_layers'] = len(data['hidden_layers'])
 
 	first_layer_gb = True
 	if data.has_key('first_layer_type') and data['first_layer_type'] == 'bb':
@@ -222,8 +217,8 @@ def initModelRBM(data):
 		data['gbrbm_learning_rate'] = gbrbm_learning_rate
 	if not data.has_key('learning_rate') or type(data['learning_rate']) is float:
 		data['learning_rate'] = learning_rate
-	if data.has_key('epoch_number') or not type(data['epoch_number']) is int:
-		data['epoch_number'] = epochs
+	if not data.has_key('pretraining_epochs') or not type(data['pretraining_epochs']) is int:
+		data['pretraining_epochs'] = epochs
 	
 	# momentum
 	if data.has_key('initial_momentum') or not type(data['initial_momentum']) is float:
@@ -235,6 +230,61 @@ def initModelRBM(data):
 
 
 	return data
+
+#############################################################################################
+#		SDA
+#############################################################################################
+def initModelSDA(data):
+
+	finetune_lr=0.1
+	pretraining_epochs=15
+	pretrain_lr=0.08
+	training_epochs=1000
+	batch_size=1
+
+	if not data.has_key('batch_size') or not type(data['batch_size']) is int:
+		data['batch_size']=batch_size
+	if not data.has_key('finetune_lr') or type(data['finetune_lr']) is float:
+		data['finetune_lr'] = finetune_lr
+	if not data.has_key('pretrain_lr') or type(data['pretrain_lr']) is float:
+		data['pretrain_lr'] = pretrain_lr
+	if not data.has_key('pretraining_epochs') or type(data['pretraining_epochs']) is int:
+		data['pretraining_epochs'] = pretraining_epochs
+	if not data.has_key('training_epochs') or type(data['training_epochs']) is int:
+		data['training_epochs'] = training_epochs
+
+	return data
+
+
+def load_sda_spec(input_file):
+	logger.info("Loading net properties from %s ..",input_file)	
+	data = load_json(input_file)
+
+	if not data.has_key('hidden_layers') or not type(data['hidden_layers']) is list:
+		logger.critical(" hidden_layers is not present (or not a list) in " + str(input_file))
+		exit(1)
+	if not data.has_key('n_ins') or not type(data['n_ins']) is int:
+		logger.critical(" n_ins is not present (or not a int) in " + str(input_file))
+		exit(1)
+	if not data.has_key('n_outs') or not type(data['n_outs']) is int:
+		logger.critical(" n_outs is not present (or not a int) in " + str(input_file))
+		exit(1)
+
+
+	if not data.has_key('corruption_levels') or not type(data['corruption_levels']) is list:
+		logger.critical(" corruption_levels is not present (or not a list) in " + str(input_file))
+		exit(1)
+	elif len(data['corruption_levels']) != len(data['hidden_layers']):
+		logger.critical(" corruption_levels not correct size(should be same of hidden_layers) in " \
+			+ str(input_file))
+		exit(1)		
+
+	if not data.has_key('random_seed') or not type(data['random_seed']) is int:
+		data['random_seed'] = None
+
+
+	return data
+
 
 
 

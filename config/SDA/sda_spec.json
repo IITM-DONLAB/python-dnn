@@ -1,0 +1,22 @@
+{
+
+  "comment" : "hidden_layers :: RBM layer configuration (No: of Nodes)",
+  "hidden_layers": [ 2352,1024,1024,1024,1024,1901 ],
+
+  "comment":"",
+  "corruption_levels": [0.1,0.2,0.2,0.2,0.2,0.3],
+
+  "comment": "",
+  "n_ins":2352,
+
+  "comment":"",
+  "n_outs":200,
+
+  "comment" : "activation :: sigmoid or tanh",
+  "activation" : "tanh",
+
+
+
+  "comment" : "random_seed::",
+  "random_seed" : 89677
+}
