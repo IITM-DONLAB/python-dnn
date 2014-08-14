@@ -1,16 +1,9 @@
 """
 """
-import cPickle
-import gzip
-import os
-import sys
-import time
-
 import numpy
 
 import theano
 import theano.tensor as T
-from theano.tensor.shared_randomstreams import RandomStreams
 
 from layers.logistic_sgd import LogisticRegression
 from layers.mlp import HiddenLayer
@@ -263,3 +256,4 @@ class DBN(object):
             return [test_score_i(i) for i in xrange(n_test_batches)]
 
         return train_fn, valid_score, test_score
+

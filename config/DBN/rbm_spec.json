@@ -1,0 +1,23 @@
+{
+
+  "comment" : "layers :: RBM layer configuration (No: of Nodes)",
+  "hidden_layers": [ 2350,1024,1024,1024,1024,1901 ],
+
+  "comment": "",
+  "n_ins":2352,
+
+  "comment":"",
+  "n_outs":200,
+
+  "comment" : "activation :: sigmoid or tanh",
+  "activation" : "tanh",
+
+  "comment" : "pretrained_layers:number of layers to be pre-trained",
+  "pretrained_layers" : 5,
+
+  "comment" : "first_layer_type::type for the first layer; either 'bb' (Bernoulli-Bernoulli) or 'gb' (Gaussian-Bernoulli)",
+  "first_layer_type" : "gb",
+
+  "comment" : "random_seed::",
+  "random_seed" : 89677
+}

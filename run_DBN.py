@@ -21,7 +21,6 @@ import time
 
 import numpy
 import theano
-import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
 
 #module imports
@@ -45,7 +44,7 @@ def runRBM(configFile):
 
 
     dbn = DBN(numpy_rng=numpy_rng, theano_rng = theano_rng, n_ins=rbm_config['n_ins'],
-              hidden_layers_sizes=rbm_config['layers'],
+              hidden_layers_sizes=rbm_config['hidden_layers'],
               n_outs=rbm_config['n_outs'], first_layer_gb = rbm_config['first_layer_gb'])
 
     train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
@@ -70,7 +69,7 @@ def runRBM(configFile):
     start_time = time.clock()
 
     batch_size = model_config['batch_size'];
-    epochs = model_config['epoch_number']
+    pretrainingEpochs = model_config['pretraining_epochs']
     nPreTrainLayers = rbm_config['pretrained_layers']
     
     initialMomentum = model_config['initial_momentum']
@@ -86,7 +85,7 @@ def runRBM(configFile):
             pretrain_lr = model_config['learning_rate']
         # go through pretraining epochs
         momentum = initialMomentum
-        for epoch in xrange(epochs):
+        for epoch in xrange(pretrainingEpochs):
             # go through the training set
             if (epoch > initMomentumEpochs):
                 momentum = finalMomentum
