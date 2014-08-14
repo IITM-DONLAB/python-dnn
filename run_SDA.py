@@ -88,7 +88,7 @@ def runSdA(configFile):
                     c.append(curcost)
                 train_sets.read_next_partition_data()
             train_sets.initialize_read()
-            logger.info("Pre-training layer %i, epoch %d, cost", i, epoch)
+            logger.info("Pre-training layer %i, epoch %d, cost %f", i, epoch,numpy.mean(c))
 
 
     end_time = time.clock()
