@@ -136,6 +136,7 @@ class SDA(object):
             # the visible biases in the dA are parameters of those
             # dA, but not the SdA
             self.params.extend(sigmoid_layer.params)
+            self.delta_params.extend(sigmoid_layer.delta_params)
 
             # Construct a denoising autoencoder that shared weights with this
             # layer
@@ -154,6 +155,7 @@ class SDA(object):
                          n_in=hidden_layers_sizes[-1], n_out=n_outs)
 
         self.params.extend(self.logLayer.params)
+        self.delta_params.extend(self.logLayer.delta_params)
         # construct a function that implements one step of finetunining
 
         # compute the cost for second phase of training,
@@ -177,10 +179,6 @@ class SDA(object):
 
         :type batch_size: int
         :param batch_size: size of a [mini]batch
-
-        :type learning_rate: float
-        :param learning_rate: learning rate used during training for any of
-                              the dA layers
         '''
 
         # index to a [mini]batch
@@ -214,13 +212,32 @@ class SDA(object):
 
     #"Building fine tuning operation "
     def build_finetune_functions(self, train_shared_xy, valid_shared_xy, batch_size):
+        '''Generates a function `train` that implements one step of
+        finetuning, a function `validate` that computes the error on 
+        a batch from the validation set, and a function `test` that 
+        computes the error on a batch from the testing set 
+
+        :type train_shared_xy: pairs of theano.tensor.TensorType
+        :param train_shared_xy: It is a list that contain all the train dataset, 
+            pair is formed of two Theano variables, one for the datapoints,
+            the other for the labels
+
+        :type valid_shared_xy: pairs of theano.tensor.TensorType
+        :param valid_shared_xy: It is a list that contain all the valid dataset, 
+            pair is formed of two Theano variables, one for the datapoints,
+            the other for the labels
+
+        :type batch_size: int
+        :param batch_size: size of a minibatch
+
+        '''
 
         (train_set_x, train_set_y) = train_shared_xy
         (valid_set_x, valid_set_y) = valid_shared_xy
 
         index = T.lscalar('index')  # index to a [mini]batch
-        learning_rate = T.fscalar('learning_rate')
-        momentum = T.fscalar('momentum')
+        learning_rate = T.scalar('learning_rate',dtype=theano.config.floatX)
+        momentum = T.scalar('momentum',dtype=theano.config.floatX)
 
         # compute the gradients with respect to the model parameters
         gparams = T.grad(self.finetune_cost, self.params)
@@ -233,15 +250,22 @@ class SDA(object):
 
         for dparam, param in zip(self.delta_params, self.params):
             updates[param] = param + updates[dparam]
-    
-        train_fn = theano.function(inputs=[index, theano.Param(learning_rate, default = 0.001),
-            theano.Param(momentum, default = 0.5)],outputs=self.errors, updates=updates,
-              givens={self.x: train_set_x[index * batch_size:(index + 1) * batch_size],
-              self.y: train_set_y[index * batch_size:(index + 1) * batch_size]})
+        
+        train_inputs = [index, theano.Param(learning_rate, default = 0.001),
+            theano.Param(momentum, default = 0.5)]
 
-        valid_fn = theano.function(inputs=[index, theano.Param(learning_rate, default = 0.001),
-            theano.Param(momentum, default = 0.5)],outputs=self.errors, updates=updates,
-              givens={self.x: valid_set_x[index * batch_size:(index + 1) * batch_size],
-              self.y: valid_set_y[index * batch_size:(index + 1) * batch_size]})
+        train_fn = theano.function(inputs=train_inputs,
+            outputs=self.errors,
+            updates=updates,
+            givens={
+                self.x: train_set_x[index * batch_size:(index + 1) * batch_size],
+                self.y: train_set_y[index * batch_size:(index + 1) * batch_size]},
+            allow_input_downcast=True);
+
+        valid_fn = theano.function(inputs=[index],
+            outputs=self.errors,
+            givens={
+                self.x: valid_set_x[index * batch_size:(index + 1) * batch_size],
+                self.y: valid_set_y[index * batch_size:(index + 1) * batch_size]})
 
         return train_fn, valid_fn

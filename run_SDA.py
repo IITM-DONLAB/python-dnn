@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
-# Copyright 2014    G.K SUDHARSHAN <sudharpun90@gmail.comIIT Madras
-# Copyright 2014    Abil N George<mail@abilng.inIIT Madras
+# Copyright 2014    G.K SUDHARSHAN <sudharpun90@gmail.com> IIT Madras
+# Copyright 2014    Abil N George<mail@abilng.in> IIT Madras
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import theano
 from utils.load_conf import load_model,load_sda_spec,load_data_spec
 from io_modules.file_io import read_dataset
 from io_modules import setLogger
+from utils.learn_rates import LearningRate
 from models.sda import SDA
 
 
@@ -73,7 +74,7 @@ def runSdA(configFile):
     logger.info('Pre-training the model ...')
     start_time = time.clock()
     ## Pre-train layer-wise
-    """
+    
     for i in xrange(sda.n_layers):
          # go through pretraining epochs
         for epoch in xrange(pretraining_epochs):
@@ -91,7 +92,6 @@ def runSdA(configFile):
             train_sets.initialize_read()
             logger.info("Pre-training layer %i, epoch %d, cost %f", i, epoch,numpy.mean(c))
 
-    """
     end_time = time.clock()
     logger.info('The PreTraing ran for %.2fm' % ((end_time - start_time) / 60.))
 
@@ -135,8 +135,8 @@ def runSdA(configFile):
     logger.info('Finetunning the model..');
     
     #TODO include param in config
-    model_configs['l_rate_method']="C"
-    model_configs['l_rate'] = { 
+    model_config['l_rate_method']="C"
+    model_config['l_rate'] = { 
             "learning_rate" : 0.08,
             "epoch_num" : 0,
             "start_rate" : 0.08,
@@ -146,7 +146,9 @@ def runSdA(configFile):
             "min_epoch_decay_start" : 15,
             "init_error" :100
         }
-    lrate = LearningRate.get_instance(model_configs['l_rate_method'],model_configs['l_rate']);   
+    momentum = 0.9
+
+    lrate = LearningRate.get_instance(model_config['l_rate_method'],model_config['l_rate']);   
     start_time = time.clock()
 
     logger.debug('training_epochs = %d',training_epochs);
@@ -155,23 +157,16 @@ def runSdA(configFile):
         while not train_sets.is_finish():
             train_sets.make_partition_shared(train_xy)
             for batch_index in xrange(train_sets.cur_frame_num / batch_size):  # loop over mini-batches
-                train_error.append(train_fn(index=batch_index, learning_rate = lrate.get_rate(), momentum = momentum))
+                train_error.append(train_fn(index=batch_index,
+                    learning_rate = lrate.get_rate(), momentum = momentum))
                 logger.info('Training batch %d error %f',batch_index, numpy.mean(train_error))
             train_sets.read_next_partition_data()
         logger.info(' epoch %d, training error %f',lrate.epoch, numpy.mean(train_error));
         train_sets.initialize_read()
     
     
-        valid_error = []
-        while (not valid_sets.is_finish()):
-            valid_sets.make_partition_shared(valid_xy)
-            for batch_index in xrange(valid_sets.cur_frame_num / batch_size):  # loop over mini-batches
-                valid_error.append(valid_fn(index=batch_index))
-                logger.info('Validation batch %d error %f',batch_index, numpy.mean(train_error))
-            valid_sets.read_next_partition_data()
-        logger.info('Epoch %d, lrate %f, validation error %f',lrate.epoch, lrate.get_rate(), numpy.mean(valid_error))
-        valid_sets.initialize_read()
-        lrate.get_next_rate(current_error = 100 * numpy.mean(valid_error))
+        valid_error = valid_score()
+        lrate.get_next_rate(current_error = 100 * valid_error)
 
     end_time = time.clock()
     logger.info('The Fine tunning ran for %.2fm' % ((end_time - start_time) / 60.))
