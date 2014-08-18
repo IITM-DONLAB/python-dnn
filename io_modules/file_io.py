@@ -33,7 +33,7 @@ class FileWriter(object):
 
 
 def read_dataset(options):
-	file_path = options.pop('path');
+	file_path = options['path'];
 	file_reader = FileReader(file_path,options)
 	file_header = file_reader.read_file_info()
 
