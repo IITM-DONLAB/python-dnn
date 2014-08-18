@@ -31,7 +31,7 @@
 """
 
 import numpy
-
+from collections import OrderedDict
 import theano
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
@@ -83,6 +83,7 @@ class SDA(object):
         self.sigmoid_layers = []
         self.dA_layers = []
         self.params = []
+        self.delta_params = []
         self.n_layers = len(hidden_layers_sizes)
 
         assert self.n_layers > 0
@@ -135,6 +136,7 @@ class SDA(object):
             # the visible biases in the dA are parameters of those
             # dA, but not the SdA
             self.params.extend(sigmoid_layer.params)
+            self.delta_params.extend(sigmoid_layer.delta_params)
 
             # Construct a denoising autoencoder that shared weights with this
             # layer
@@ -153,6 +155,7 @@ class SDA(object):
                          n_in=hidden_layers_sizes[-1], n_out=n_outs)
 
         self.params.extend(self.logLayer.params)
+        self.delta_params.extend(self.logLayer.delta_params)
         # construct a function that implements one step of finetunining
 
         # compute the cost for second phase of training,
@@ -163,23 +166,19 @@ class SDA(object):
         # minibatch given by self.x and self.y
         self.errors = self.logLayer.errors(self.y)
 
-    def pretraining_functions(self, train_set_x, batch_size):
+    def pretraining_functions(self, train_x, batch_size):
         ''' Generates a list of functions, each of them implementing one
         step in trainnig the dA corresponding to the layer with same index.
         The function will require as input the minibatch index, and to train
         a dA you just need to iterate, calling the corresponding function on
         all minibatch indexes.
 
-        :type train_set_x: theano.tensor.TensorType
-        :param train_set_x: Shared variable that contains all datapoints used
+        :type train_x: theano.tensor.TensorType
+        :param train_x: Shared variable that contains all datapoints used
                             for training the dA
 
         :type batch_size: int
         :param batch_size: size of a [mini]batch
-
-        :type learning_rate: float
-        :param learning_rate: learning rate used during training for any of
-                              the dA layers
         '''
 
         # index to a [mini]batch
@@ -187,7 +186,7 @@ class SDA(object):
         corruption_level = T.scalar('corruption')  # % of corruption to use
         learning_rate = T.scalar('lr')  # learning rate to use
         # number of batches
-        n_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
+        n_batches = train_x.get_value(borrow=True).shape[0] / batch_size
         # begining of a batch, given `index`
         batch_begin = index * batch_size
         # ending of a batch given `index`
@@ -204,85 +203,69 @@ class SDA(object):
                               theano.Param(learning_rate, default=0.1)],
                                  outputs=cost,
                                  updates=updates,
-                                 givens={self.x: train_set_x[batch_begin:
+                                 givens={self.x: train_x[batch_begin:
                                                              batch_end]})
             # append `fn` to the list of functions
             pretrain_fns.append(fn)
 
         return pretrain_fns
 
-    def build_finetune_functions(self, datasets, batch_size, learning_rate):
+    #"Building fine tuning operation "
+    def build_finetune_functions(self, train_shared_xy, valid_shared_xy, batch_size):
         '''Generates a function `train` that implements one step of
-        finetuning, a function `validate` that computes the error on
-        a batch from the validation set, and a function `test` that
-        computes the error on a batch from the testing set
+        finetuning, a function `validate` that computes the error on 
+        a batch from the validation set, and a function `test` that 
+        computes the error on a batch from the testing set 
 
-        :type datasets: list of pairs of theano.tensor.TensorType
-        :param datasets: It is a list that contain all the datasets;
-                         the has to contain three pairs, `train`,
-                         `valid`, `test` in this order, where each pair
-                         is formed of two Theano variables, one for the
-                         datapoints, the other for the labels
+        :type train_shared_xy: pairs of theano.tensor.TensorType
+        :param train_shared_xy: It is a list that contain all the train dataset, 
+            pair is formed of two Theano variables, one for the datapoints,
+            the other for the labels
+
+        :type valid_shared_xy: pairs of theano.tensor.TensorType
+        :param valid_shared_xy: It is a list that contain all the valid dataset, 
+            pair is formed of two Theano variables, one for the datapoints,
+            the other for the labels
 
         :type batch_size: int
         :param batch_size: size of a minibatch
 
-        :type learning_rate: float
-        :param learning_rate: learning rate used during finetune stage
         '''
 
-        (train_set_x, train_set_y) = datasets[0]
-        (valid_set_x, valid_set_y) = datasets[1]
-        (test_set_x, test_set_y) = datasets[2]
-
-        # compute number of minibatches for training, validation and testing
-        n_valid_batches = valid_set_x.get_value(borrow=True).shape[0]
-        n_valid_batches /= batch_size
-        n_test_batches = test_set_x.get_value(borrow=True).shape[0]
-        n_test_batches /= batch_size
+        (train_set_x, train_set_y) = train_shared_xy
+        (valid_set_x, valid_set_y) = valid_shared_xy
 
         index = T.lscalar('index')  # index to a [mini]batch
+        learning_rate = T.scalar('learning_rate',dtype=theano.config.floatX)
+        momentum = T.scalar('momentum',dtype=theano.config.floatX)
 
         # compute the gradients with respect to the model parameters
         gparams = T.grad(self.finetune_cost, self.params)
 
         # compute list of fine-tuning updates
-        updates = []
-        for param, gparam in zip(self.params, gparams):
-            updates.append((param, param - gparam * learning_rate))
+        updates = OrderedDict()
 
-        train_fn = theano.function(inputs=[index],
-              outputs=self.finetune_cost,
-              updates=updates,
-              givens={
-                self.x: train_set_x[index * batch_size:
-                                    (index + 1) * batch_size],
-                self.y: train_set_y[index * batch_size:
-                                    (index + 1) * batch_size]},
-              name='train')
+        for dparam, gparam in zip(self.delta_params, gparams):
+            updates[dparam] = momentum * dparam - gparam*learning_rate
 
-        test_score_i = theano.function([index], self.errors,
-                 givens={
-                   self.x: test_set_x[index * batch_size:
-                                      (index + 1) * batch_size],
-                   self.y: test_set_y[index * batch_size:
-                                      (index + 1) * batch_size]},
-                      name='test')
+        for dparam, param in zip(self.delta_params, self.params):
+            updates[param] = param + updates[dparam]
+        
+        train_inputs = [index, theano.Param(learning_rate, default = 0.001),
+            theano.Param(momentum, default = 0.5)]
 
-        valid_score_i = theano.function([index], self.errors,
-              givens={
-                 self.x: valid_set_x[index * batch_size:
-                                     (index + 1) * batch_size],
-                 self.y: valid_set_y[index * batch_size:
-                                     (index + 1) * batch_size]},
-                      name='valid')
+        train_fn = theano.function(inputs=train_inputs,
+            outputs=self.errors,
+            updates=updates,
+            givens={
+                self.x: train_set_x[index * batch_size:(index + 1) * batch_size],
+                self.y: train_set_y[index * batch_size:(index + 1) * batch_size]},
+            allow_input_downcast=True);
 
-        # Create a function that scans the entire validation set
-        def valid_score():
-            return [valid_score_i(i) for i in xrange(n_valid_batches)]
+        valid_fn = theano.function(inputs=[index],
+            outputs=self.errors,
+            givens={
+                self.x: valid_set_x[index * batch_size:(index + 1) * batch_size],
+                self.y: valid_set_y[index * batch_size:(index + 1) * batch_size]})
 
-        # Create a function that scans the entire test set
-        def test_score():
-            return [test_score_i(i) for i in xrange(n_test_batches)]
-
-        return train_fn, valid_score, test_score
+        return train_fn, valid_fn

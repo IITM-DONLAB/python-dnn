@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
-# Copyright 2014    G.K SUDHARSHAN <sudharpun90@gmail.comIIT Madras
-# Copyright 2014    Abil N George<mail@abilng.inIIT Madras
+# Copyright 2014    G.K SUDHARSHAN <sudharpun90@gmail.com> IIT Madras
+# Copyright 2014    Abil N George<mail@abilng.in> IIT Madras
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import theano
 from utils.load_conf import load_model,load_sda_spec,load_data_spec
 from io_modules.file_io import read_dataset
 from io_modules import setLogger
+from utils.learn_rates import LearningRate
 from models.sda import SDA
 
 
@@ -66,13 +67,14 @@ def runSdA(configFile):
     # PRETRAINING THE MODEL #
     #########################
     logger.info('Getting the pretraining functions....')
-    pretraining_fns = sda.pretraining_functions(train_set_x=train_x,
+    pretraining_fns = sda.pretraining_functions(train_x=train_x,
                                                 batch_size=batch_size)
 
 
     logger.info('Pre-training the model ...')
     start_time = time.clock()
     ## Pre-train layer-wise
+    
     for i in xrange(sda.n_layers):
          # go through pretraining epochs
         for epoch in xrange(pretraining_epochs):
@@ -90,95 +92,94 @@ def runSdA(configFile):
             train_sets.initialize_read()
             logger.info("Pre-training layer %i, epoch %d, cost %f", i, epoch,numpy.mean(c))
 
-
     end_time = time.clock()
-    import os
-    logger.info('The code for file ' + os.path.split(__file__)[1] +
-                      ' ran for %.2fm' % ((end_time - start_time) / 60.))
+    logger.info('The PreTraing ran for %.2fm' % ((end_time - start_time) / 60.))
 
-    """
+    
 
     ########################
     # FINETUNING THE MODEL #
     ########################
 
+    try:
+        valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'])        
+    except KeyError, e:
+        #raise e
+        logger.info("No validation set:Skiping Fine tunning");
+        logger.info("Finshed")
+        return
+
+
     # get the training, validation and testing function for the model
-    print '... getting the finetuning functions'
-    train_fn, validate_model, test_model = sda.build_finetune_functions(
-                datasets=datasets, batch_size=batch_size,
-                learning_rate=finetune_lr)
+    #, test_model
+    logger.info('Getting the finetuning functions')
+    #train_fn, validate_fn = sda.build_finetune_functions(
+    #            train_x=train_x,train_y=train_y,valid_x=valid_x,valid_y=valid_y,
+    #            batch_size=batch_size)
+    train_fn, validate_fn = sda.build_finetune_functions((train_x, train_y),
+             (valid_x, valid_y), batch_size=batch_size)
 
-    print '... finetunning the model'
-    # early-stopping parameters
-    patience = 10 * n_train_batches  # look as this many examples regardless
-    patience_increase = 2.  # wait this much longer when a new best is
-                            # found
-    improvement_threshold = 0.995  # a relative improvement of this much is
-                                   # considered significant
-    validation_frequency = min(n_train_batches, patience / 2)
-                                  # go through this many
-                                  # minibatche before checking the network
-                                  # on the validation set; in this case we
-                                  # check every epoch
+    def valid_score():
+	valid_error = [] 
+        while not valid_sets.is_finish():
+            valid_sets.make_partition_shared(valid_xy)
+            n_valid_batches= valid_sets.cur_frame_num / batch_size;
+            validation_losses = [validate_fn(i) for i in xrange(n_valid_batches)]
+            valid_error.append(validation_losses)
+            valid_sets.read_next_partition_data()
+            logger.debug("Valid Error (upto curr part) = %f",numpy.mean(valid_error))
+        valid_sets.initialize_read();
+        return numpy.mean(valid_error);
 
-    best_params = None
-    best_validation_loss = numpy.inf
-    test_score = 0.
+
+    
+    logger.info('Finetunning the model..');
+    
+    #TODO include param in config
+    model_config['l_rate_method']="C"
+    model_config['l_rate'] = { 
+            "learning_rate" : 0.08,
+            "epoch_num" : 0,
+            "start_rate" : 0.08,
+            "scale_by" : 0.5,
+            "min_derror_decay_start" : 0.05,
+            "min_derror_stop" : 0.05,
+            "min_epoch_decay_start" : 15,
+            "init_error" :100
+        }
+    momentum = 0.9
+
+    lrate = LearningRate.get_instance(model_config['l_rate_method'],model_config['l_rate']);   
+    best_validation_loss=float('Inf')
     start_time = time.clock()
 
-    done_looping = False
-    epoch = 0
+    logger.debug('training_epochs = %d',training_epochs);
+    while (lrate.get_rate() != 0):
+        train_error = []
+        while not train_sets.is_finish():
+            train_sets.make_partition_shared(train_xy)
+            for batch_index in xrange(train_sets.cur_frame_num / batch_size):  # loop over mini-batches
+                train_error.append(train_fn(index=batch_index,
+                    learning_rate = lrate.get_rate(), momentum = momentum))
+                logger.info('Training batch %d error %f',batch_index, numpy.mean(train_error))
+            train_sets.read_next_partition_data()
+        logger.info(' epoch %d, training error %f',lrate.epoch, numpy.mean(train_error));
+        train_sets.initialize_read()
 
-    while (epoch < training_epochs) and (not done_looping):
-        epoch = epoch + 1
-        for minibatch_index in xrange(n_train_batches):
-            minibatch_avg_cost = train_fn(minibatch_index)
-            iter = (epoch - 1) * n_train_batches + minibatch_index
-
-            if (iter + 1) % validation_frequency == 0:
-                validation_losses = validate_model()
-                this_validation_loss = numpy.mean(validation_losses)
-                print('epoch %i, minibatch %i/%i, validation error %f %%' %
-                      (epoch, minibatch_index + 1, n_train_batches,
-                       this_validation_loss * 100.))
-
-                # if we got the best validation score until now
-                if this_validation_loss < best_validation_loss:
-
-                    #improve patience if loss improvement is good enough
-                    if (this_validation_loss < best_validation_loss *
-                        improvement_threshold):
-                        patience = max(patience, iter * patience_increase)
-
-                    # save best validation score and iteration number
-                    best_validation_loss = this_validation_loss
-                    best_iter = iter
-
-                    # test it on the test set
-                    test_losses = test_model()
-                    test_score = numpy.mean(test_losses)
-                    print(('     epoch %i, minibatch %i/%i, test error of '
-                           'best model %f %%') %
-                          (epoch, minibatch_index + 1, n_train_batches,
-                           test_score * 100.))
-
-            if patience <= iter:
-                done_looping = True
-                break
+        valid_error = valid_score()
+        if valid_error < best_validation_loss:
+            best_validation_loss=valid_error
+        lrate.get_next_rate(current_error = 100 * valid_error)
 
     end_time = time.clock()
-    print(('Optimization complete with best validation score of %f %%,'
-           'with test performance %f %%') %
-                 (best_validation_loss * 100., test_score * 100.))
-    print >> sys.stderr, ('The training code for file ' +
-                          os.path.split(__file__)[1] +
-                          ' ran for %.2fm' % ((end_time - start_time) / 60.))
+    logger.info('The Fine tunning ran for %.2fm' % ((end_time - start_time) / 60.))
+    logger.info('Optimization complete with best validation score of %f %%',best_validation_loss * 100)
 
-    """
+
 
 
 if __name__ == '__main__':
     import sys
-    setLogger();
+    setLogger(level="DEBUG");
     logger.info('Stating....');
     runSdA(sys.argv[1])
