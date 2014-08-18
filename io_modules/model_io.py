@@ -1,6 +1,10 @@
 import json,sys,theano
 import numpy as np
 from StringIO import StringIO
+
+import logging
+logger = logging.getLogger(__name__)
+
 # convert an array to a string
 def array_2_string(array):
 	str_out = StringIO()
@@ -37,6 +41,7 @@ def _nnet2file(layers, set_layer_num = -1, filename='nnet.out', activation='sigm
 	with open(filename, 'wb') as fp:
 		json.dump(nnet_dict, fp, indent=2, sort_keys = True)
 		fp.flush() 
+	logger.info('Dummped the neural_net model in %s',(filename))
 
 def _file2nnet(layers, set_layer_num = -1, filename='nnet.in', activation='sigmoid', withfinal=True, factor=1.0):
 	n_layers = len(layers)
@@ -57,6 +62,7 @@ def _file2nnet(layers, set_layer_num = -1, filename='nnet.in', activation='sigmo
 		layers[-1].params[0].set_value(np.asarray(string_2_array(nnet_dict[dict_key]), dtype=theano.config.floatX))
 		dict_key = 'logreg b'
 		layers[-1].params[1].set_value(np.asarray(string_2_array(nnet_dict[dict_key]), dtype=theano.config.floatX))
+	logger.info('Loaded the neural_net model in %s',(filename))
 
 def _cnn2file(conv_layers, filename='nnet.out', activation='sigmoid', withfinal=True, input_factor = 1.0, factor=1.0):
 	n_layers = len(conv_layers)
@@ -79,6 +85,7 @@ def _cnn2file(conv_layers, filename='nnet.out', activation='sigmoid', withfinal=
 	with open(filename, 'wb') as fp:
 		json.dump(nnet_dict, fp, indent=2, sort_keys = True)
 		fp.flush()
+	logger.info('Dumped the conv_net model in %s',(filename))
 
 def _file2cnn(conv_layers, filename='nnet.in', activation='sigmoid', withfinal=True, factor=1.0):
 	n_layers = len(conv_layers)
@@ -100,3 +107,4 @@ def _file2cnn(conv_layers, filename='nnet.in', activation='sigmoid', withfinal=T
 
 		dict_a = 'b ' + str(i)
 		conv_layer.b.set_value(np.asarray(string_2_array(nnet_dict[dict_a]), dtype=theano.config.floatX))
+	logger.info('Loaded the conv_net model in %s',(filename))

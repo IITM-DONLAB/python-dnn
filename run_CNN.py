@@ -75,7 +75,7 @@ def runCNN(configFile):
 			train_sets.make_partition_shared(train_xy)
 			for batch_index in xrange(train_sets.cur_frame_num / batch_size):  # loop over mini-batches
 				train_error.append(train_fn(index=batch_index, learning_rate = lrate.get_rate(), momentum = momentum))
-				logger.info('>>>> training batch %d error %f' % (batch_index, numpy.mean(train_error)))
+				logger.debug('>>>> training batch %d error %f' % (batch_index, numpy.mean(train_error)))
 			train_sets.read_next_partition_data()
 		logger.info('> epoch %d, training error %f' % (lrate.epoch, numpy.mean(train_error)))
 		train_sets.initialize_read()
@@ -86,7 +86,7 @@ def runCNN(configFile):
 			valid_sets.make_partition_shared(valid_xy)
 			for batch_index in xrange(valid_sets.cur_frame_num / batch_size):  # loop over mini-batches
 				valid_error.append(valid_fn(index=batch_index))
-				logger.info('>>>> validation batch %d error %f' % (batch_index, numpy.mean(train_error)))
+				logger.debug('>>>> validation batch %d error %f' % (batch_index, numpy.mean(train_error)))
 			valid_sets.read_next_partition_data()
 		logger.info('> epoch %d, lrate %f, validation error %f' % (lrate.epoch, lrate.get_rate(), numpy.mean(valid_error)))
 		valid_sets.initialize_read()
@@ -95,7 +95,7 @@ def runCNN(configFile):
 	
 	_cnn2file(cnn.layers[0:cnn.conv_layer_num], filename=model_configs['conv_output_file'],activation=conv_configs['activation']);
 	_nnet2file(cnn.layers[cnn.conv_layer_num:], filename=model_configs['hidden_output_file'],activation=mlp_configs['activation']);
-
+	
 if __name__ == '__main__':
 	setLogger();
 	runCNN(sys.argv[1])

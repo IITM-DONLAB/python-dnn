@@ -38,7 +38,7 @@
 	"comment" : "l_rate :: learning rate configuration",
 	"l_rate" : {	
 			"learning_rate" : 0.08,
-			"epoch_num" : 0,
+			"epoch_num" : 10,
 
 			"start_rate" : 0.08,
 			"scale_by" : 0.5,

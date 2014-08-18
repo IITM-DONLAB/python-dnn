@@ -14,7 +14,6 @@ def read_dataset(options):
 	shared_xy = file_reader.create_shared()
 	shared_x, shared_y = shared_xy
 	shared_y = T.cast(shared_y, 'int32')
-
 	return file_reader,shared_xy, shared_x, shared_y
 
 
@@ -37,8 +36,10 @@ class FileReader(object):
 		file_reader = None;
 		if options['reader_type']=='NP':
 			file_reader = NPFileReader(filepath,options);
-		elif options['reader_type']=='T':
-			file_reader = TFileReader(filepath,options);
+		elif options['reader_type']=='T1':
+			file_reader = T1FileReader(filepath,options);
+		elif options['reader_type']=='T2':
+			file_reader = T2FileReader(filepath,options);
 		return file_reader
 	'''Reads the file header information'''	
 	def read_file_info(self):
@@ -121,8 +122,8 @@ class TDFileReader(FileReader):
 		if self.frames_remaining == 0:
 			self.end_reading = True;
 
-class TFileReader(FileReader):
-	''' Reads the data stored in as Simple Text File'''
+class T2FileReader(FileReader):
+	''' Reads the data stored in as Simple Text File With Two level header structure'''
 	def __init__(self,path,options):
 		self.filepath = path;
 		self.options=options;
@@ -162,28 +163,33 @@ class TFileReader(FileReader):
 		self.cur_frame_num = 0
 		self.feat = []
 		self.label = []
-		print "Reading partition...",self.cur_frame_num , self.frames_per_partition,self.classes 
-		while self.cur_frame_num < self.frames_per_partition:
+		none_cnt = 0
+		
+		while self.cur_frame_num < self.frames_per_partition and none_cnt < self.classes :
 			if self.childhandles[self.last_class_idx] is None:
 				data_file = self.filehandles[self.last_class_idx].readline().strip();
-				self.options['label']= self.last_class_idx
-				self.childhandles[self.last_class_idx] = TDFileReader(data_file,self.options)
-				self.childhandles[self.last_class_idx].read_file_info()
-			
-			self.childhandles[self.last_class_idx].read_next_partition_data(already_read=self.frame_per_partition-self.frames_per_class)
-			
-			if self.childhandles[self.last_class_idx].cur_frame_num > 0:
-				self.feat = numpy.append(self.feat,self.childhandles[self.last_class_idx].feat)
-				self.label = numpy.append(self.label,self.childhandles[self.last_class_idx].label)
-				self.cur_frame_num += self.childhandles[self.last_class_idx].cur_frame_num
+				if data_file != '':
+					self.options['label']= self.last_class_idx
+					self.childhandles[self.last_class_idx] = TDFileReader(data_file,self.options)
+					self.childhandles[self.last_class_idx].read_file_info()
+					
+			if not self.childhandles[self.last_class_idx] is None:
+				none_cnt = 0
+				self.childhandles[self.last_class_idx].read_next_partition_data(already_read=self.frames_per_partition-self.frames_per_class)
+				if self.childhandles[self.last_class_idx].cur_frame_num > 0:
+					self.feat = numpy.append(self.feat,self.childhandles[self.last_class_idx].feat)
+					self.label = numpy.append(self.label,self.childhandles[self.last_class_idx].label)
+					self.cur_frame_num += self.childhandles[self.last_class_idx].cur_frame_num
 
-			if self.childhandles[self.last_class_idx].is_finish():
-				self.childhandles[self.last_class_idx] = None
-				
+				if self.childhandles[self.last_class_idx].is_finish():
+					self.childhandles[self.last_class_idx] = None
+			else:
+				none_cnt+=1
+	
 			self.last_class_idx = (self.last_class_idx + 1)	% self.classes
 			
-		logger.debug('Partition %d has %d' % (self.partition_num,self.cur_frame_num));
 		if self.cur_frame_num >  0:
+			logger.debug('Datapath %s %d partition has %d frames' % (self.filepath,self.partition_num,self.cur_frame_num));
 			self.feat = self.feat.reshape([self.cur_frame_num,self.feat_dim])
 			self.feat = numpy.asarray(self.feat, dtype = theano.config.floatX)
 			self.partition_num = self.partition_num + 1
@@ -196,6 +202,76 @@ class TFileReader(FileReader):
 		else:
 			self.end_reading = True
 
+class T1FileReader(FileReader):
+	''' Reads the data stored in as Simple Text File With One level header structure'''
+	def __init__(self,path,options):
+		self.filepath = path;
+		self.options=options;
+		self.filehandle = open(self.filepath,'rb')
+		
+	def read_file_info(self):
+		# initializes multiple class handles 
+		self.filehandles = [];
+		self.last_class_idx = 0;
+		
+		header = self.filehandle.readline();
+		self.header = header.split()
+		self.feat_dim = int(self.header[0]);
+		self.classes = long(self.header[1])
+		batch_size = self.options['batch_size']
+		
+		# partitions specifies approximate amount data to be loaded one operation
+		self.frames_per_partition = self.options['partition'] *1000*1000/ (self.feat_dim * 4)
+		batch_residual = self.frames_per_partition% batch_size
+		self.frames_per_partition= self.frames_per_partition- batch_residual
+		
+		#load filehandle for all classes
+		for i in xrange(0,self.classes):
+			data_file = self.filehandle.readline().strip();
+			self.options['label']= i;
+			self.filehandles.append(TDFileReader(data_file,self.options));
+			self.filehandles[-1].read_file_info();
+			
+		if self.frames_per_partition < self.classes:
+			logger.critical('Number of frames per partition must be greater than the number of classes, \
+				Please increase the partition size');
+		self.frames_per_class = self.frames_per_partition/self.classes
+		
+		return self.header
+		
+	def read_next_partition_data(self):
+		self.cur_frame_num = 0
+		self.feat = []
+		self.label = []
+		none_cnt = 0
+		while self.cur_frame_num < self.frames_per_partition and none_cnt < self.classes :
+			if not self.filehandles[self.last_class_idx] is None:
+				none_cnt = 0
+				self.filehandles[self.last_class_idx].read_next_partition_data(already_read=self.frames_per_partition-self.frames_per_class)
+				if self.filehandles[self.last_class_idx].cur_frame_num > 0:
+					self.feat = numpy.append(self.feat,self.filehandles[self.last_class_idx].feat)
+					self.label = numpy.append(self.label,self.filehandles[self.last_class_idx].label)
+					self.cur_frame_num += self.filehandles[self.last_class_idx].cur_frame_num
+
+				if self.filehandles[self.last_class_idx].is_finish():
+					self.filehandles[self.last_class_idx] = None
+			else:
+				none_cnt = none_cnt+1;
+			self.last_class_idx = (self.last_class_idx + 1)	% self.classes
+			
+		if self.cur_frame_num >  0:
+			logger.debug('Datapath %s %d partition has %d frames' % (self.filepath,self.partition_num,self.cur_frame_num));
+			self.feat = self.feat.reshape([self.cur_frame_num,self.feat_dim])
+			self.feat = numpy.asarray(self.feat, dtype = theano.config.floatX)
+			self.partition_num = self.partition_num + 1
+			
+			if not self.options['keep_flatten'] :	#reshape the vector if needed
+				shape = [self.cur_frame_num];
+				shape.extend(self.options['input_shape']);
+				self.feat = self.feat.reshape(shape);
+				self.feat = dimshuffle(self.feat,self.options['dim_shuffle'])
+		else:
+			self.end_reading = True
 		
 class NPFileReader(FileReader):
 	''' Reads the data stored in as Numpy Array'''
