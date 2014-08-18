@@ -21,4 +21,9 @@ def setLogger(level="INFO",stderr=True,name=None,logFile='python-dnn.log'):
 		logger.addHandler(file_handler)
 
 	# Set the level which determines what you see
-	logger.setLevel(logging.INFO)
+	if level == "INFO":
+		logger.setLevel(logging.INFO)
+	elif level=="DEBUG":
+		logger.setLevel(logging.DEBUG)
+	else:
+		logger.setLevel(logging.ERROR)

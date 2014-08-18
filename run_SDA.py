@@ -102,7 +102,7 @@ def runSdA(configFile):
     ########################
 
     try:
-        vaild_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'])        
+        valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'])        
     except KeyError, e:
         #raise e
         logger.info("No validation set:Skiping Fine tunning");
@@ -113,14 +113,26 @@ def runSdA(configFile):
     # get the training, validation and testing function for the model
     #, test_model
     logger.info('Getting the finetuning functions')
-    train_fn, validate_model = sda.build_finetune_functions(
+    train_fn, validate_fn = sda.build_finetune_functions(
                 train_x=train_x,train_y=train_y,valid_x=valid_x,valid_y=valid_y,
                 batch_size=batch_size,learning_rate=finetune_lr)
+
+    def valid_score():
+        valid_error = []
+        while not valid_sets.is_finish():
+            valid_sets.make_partition_shared(valid_xy)
+            n_valid_batches= valid_sets.cur_frame_num / batch_size;
+            validation_losses = [validate_fn(i) for i in xrange(n_valid_batches)]
+            valid_error.append(validation_losses)
+            train_sets.read_next_partition_data()
+        valid_sets.initialize_read();
+        return numpy.mean(valid_error)
+
 
     
     logger.info('Finetunning the model..');
     
-#############################TODO#######################
+    #TODO include param in config
     # early-stopping parameters
     patience_increase = 2.  # wait this much longer when a new best is
                             # found
@@ -136,6 +148,7 @@ def runSdA(configFile):
     done_looping = False
     epoch = 0
 
+    logger.debug('training_epochs = %d',training_epochs);
 
     while (epoch < training_epochs) and (not done_looping):
         epoch = epoch + 1
@@ -152,11 +165,9 @@ def runSdA(configFile):
                 iter = (epoch - 1) * n_train_batches + minibatch_index
 
                 if (iter + 1) % validation_frequency == 0:
-                    validation_losses = validate_model()
-                    this_validation_loss = numpy.mean(validation_losses)
-                    print('epoch %i, minibatch %i/%i, validation error %f %%' %
-                          (epoch, minibatch_index + 1, n_train_batches,
-                           this_validation_loss * 100.))
+                    this_validation_loss = validate_model()
+                    logger.info('epoch %i, minibatch %i/%i, validation error %f %%',
+                          epoch, minibatch_index + 1, n_train_batches,this_validation_loss * 100.)
 
                     # if we got the best validation score until now
                     if this_validation_loss < best_validation_loss:
@@ -185,6 +196,6 @@ def runSdA(configFile):
 
 if __name__ == '__main__':
     import sys
-    setLogger();
+    setLogger(level="DEBUG");
     logger.info('Stating....');
     runSdA(sys.argv[1])
