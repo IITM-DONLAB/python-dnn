@@ -1,33 +1,36 @@
 {
 	"validation": {
 		"path" : "data/val.dat",
-		"partition" : 200,
+		"partition" : 2,
 		"random" : true,
 		"random_seed" : 123,
-		"dim_shuffle" : [0,3,2,1],
-		"batch_size": 256,
+		"input_shape" : [1,10,5],
+		"dim_shuffle" : [0,1,2,3],
+		"batch_size": 8,
 		"keep_flatten" : false,
 		"reader_type" : "T"
 	},
 
 	"training" : {
 		"path" : "data/train.dat",
-		"partition" : 200,
+		"partition" : 2,
 		"random" : true,
 		"random_seed" : 123,
-		"dim_shuffle" : [0,3,2,1],
-		"batch_size": 256,
+		"input_shape" : [1,10,5],
+		"dim_shuffle" : [0,1,2,3],
+		"batch_size": 8,
 		"keep_flatten" : false,
 		"reader_type" : "T"
 	},
 
 	"testing" : {
 		"path" : "data/test.dat",
-		"partition" : 200,
+		"partition" : 2,
 		"random" : true,
 		"random_seed" : 123,
-		"dim_shuffle" : [0,3,2,1],
-		"batch_size": 256,
+		"input_shape" : [1,10,5],
+		"dim_shuffle" : [0,1,2,3],
+		"batch_size": 8,
 		"keep_flatten" : false,
 		"reader_type" : "T"
 	}

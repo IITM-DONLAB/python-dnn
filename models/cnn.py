@@ -9,19 +9,8 @@ from layers.logistic_sgd import LogisticRegression
 from layers.mlp import HiddenLayer
 from  theano.compat.python2x import OrderedDict
 
-'''
-class ConvLayerConfig(object):
-    """Configuration of  convolution layer """
-	def __init__(self, input_shape=(3,1,28,28), filter_shape=(2, 1, 5, 5), update=True 
-			poolsize=(1, 1), activation=T.tanh, output_shape=(3,1,28,28), flatten = False):
-		self.input_shape = input_shape
-		self.filter_shape = filter_shape
-		self.poolsize = pool_size
-		self.output_shape = output_shape
-		self.flatten = flatten
-		self.update = update
-
-'''
+import logging
+logger = logging.getLogger(__name__)
 
 class CNN(object):
 	""" Instantiation of Convolution neural network ... """
@@ -46,7 +35,7 @@ class CNN(object):
         	self.hidden_layer_num = len(hidden_layers_sizes)
 		self.conv_layers = []
 		
-		print 'Building convolution layers....'
+		logger.info('Building convolution layers....')
 		for i in xrange(self.conv_layer_num):		# construct the convolution layer
 			if i == 0:  				#is_input layer
 				input = self.x
@@ -68,7 +57,7 @@ class CNN(object):
 		
 		self.conv_output_dim = config['output_shape'][1] * config['output_shape'][2] * config['output_shape'][3]
 
-		print 'Building Hidden layers....'
+		logger.info('Building Hidden layers....')
 		for i in xrange(self.hidden_layer_num):		# construct the hidden layer
 			if i == 0:				# is first sigmoidla layer
 				input_size = self.conv_output_dim
@@ -83,7 +72,7 @@ class CNN(object):
                 		self.params.extend(sigmoid_layer.params)
                 		self.delta_params.extend(sigmoid_layer.delta_params)
            
-		print 'Building last logistic layer ....'
+		logger.info('Building last logistic layer ....')
 		self.logLayer = LogisticRegression(input=self.layers[-1].output,n_in=hidden_layers_sizes[-1],n_out=n_outs)
 		
 		self.layers.append(self.logLayer)

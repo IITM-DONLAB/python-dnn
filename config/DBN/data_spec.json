@@ -4,7 +4,7 @@
 		"partition" : 200,
 		"random" : true,
 		"random_seed" : 123,
-		"flatten": true,
+		"keep_flatten": true,
 		"batch_size": 256
 	},
 
@@ -13,7 +13,7 @@
 		"partition" : 200,
 		"random" : true,
 		"random_seed" : 123,
-		"flatten": true,
+		"keep_flatten": true,
 		"batch_size": 256
 	}
 }

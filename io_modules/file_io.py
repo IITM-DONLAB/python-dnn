@@ -127,4 +127,3 @@ class FileReader(object):
 		self.filehandle.seek(0,0);
 		self.read_file_info()
 		self.read_next_partition_data()
-
