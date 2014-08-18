@@ -116,18 +116,19 @@ def runSdA(configFile):
     #train_fn, validate_fn = sda.build_finetune_functions(
     #            train_x=train_x,train_y=train_y,valid_x=valid_x,valid_y=valid_y,
     #            batch_size=batch_size)
-    train_fn, valid_fn = sda.build_finetune_functions((train_x, train_y),
+    train_fn, validate_fn = sda.build_finetune_functions((train_x, train_y),
              (valid_x, valid_y), batch_size=batch_size)
-    def valid_score():                                                                                                                                            
-        valid_error = []                                                                                                                                          
-        while not valid_sets.is_finish():                                                                                                                         
-            valid_sets.make_partition_shared(valid_xy)                                                                                                            
-            n_valid_batches= valid_sets.cur_frame_num / batch_size;                                                                                               
-            validation_losses = [validate_fn(i) for i in xrange(n_valid_batches)]                                                                                 
-            valid_error.append(validation_losses)                                                                                                                 
-            valid_sets.read_next_partition_data()                                                                                                                 
-            logger.debug("Valid Error (upto curr part) = %f",numpy.mean(valid_error))                                                                             
-        valid_sets.initialize_read();                                                                                                                             
+
+    def valid_score():
+	valid_error = [] 
+        while not valid_sets.is_finish():
+            valid_sets.make_partition_shared(valid_xy)
+            n_valid_batches= valid_sets.cur_frame_num / batch_size;
+            validation_losses = [validate_fn(i) for i in xrange(n_valid_batches)]
+            valid_error.append(validation_losses)
+            valid_sets.read_next_partition_data()
+            logger.debug("Valid Error (upto curr part) = %f",numpy.mean(valid_error))
+        valid_sets.initialize_read();
         return numpy.mean(valid_error);
 
 
@@ -149,6 +150,7 @@ def runSdA(configFile):
     momentum = 0.9
 
     lrate = LearningRate.get_instance(model_config['l_rate_method'],model_config['l_rate']);   
+    best_validation_loss=float('Inf')
     start_time = time.clock()
 
     logger.debug('training_epochs = %d',training_epochs);
@@ -163,9 +165,10 @@ def runSdA(configFile):
             train_sets.read_next_partition_data()
         logger.info(' epoch %d, training error %f',lrate.epoch, numpy.mean(train_error));
         train_sets.initialize_read()
-    
-    
+
         valid_error = valid_score()
+        if valid_error < best_validation_loss:
+            best_validation_loss=valid_error
         lrate.get_next_rate(current_error = 100 * valid_error)
 
     end_time = time.clock()
