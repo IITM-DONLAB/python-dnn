@@ -23,7 +23,8 @@ from theano.tensor.shared_randomstreams import RandomStreams
 
 from io_modules.model_io import _nnet2file, _file2nnet, _cnn2file, _file2cnn
 from utils.load_conf import load_model, load_conv_spec,load_mlp_spec,load_data_spec 
-from io_modules.file_io import read_dataset
+from io_modules.file_reader import read_dataset
+from io_modules.file_writer import write_dataset
 
 from models.cnn import CNN
 from utils.utils import parse_activation
@@ -51,11 +52,17 @@ def runCNNFeat(configFile):
 
 	data_spec =  load_data_spec(model_configs['data_spec']);
 	test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing'])
+	
+	export_path = model_configs['export_path'];
+	export_configs['featdim'] = test_sets.feat_dim
+	export_configs['classes'] = model_configs['n_outs'];
+	
+	exporter = write_dataset(export_configs);
 	while (not test_sets.is_finish()):
 		for batch_index in xrange(test_sets.cur_frame_num/batch_size):
 			s_idx = batch_index*batch_size; e_idx= min(test_sets.cur_frame_num ,s_idx+batch_size);
 			data = out_function(test_sets.feat[s_idx:e_idx])
-			print data
+			exporter.write_data(data,test_sets.label)
 		test_sets.read_next_partition_data()
 				
 #######################################################################################################################################################

@@ -7,8 +7,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 def read_dataset(options):
-	file_path = options.pop('path');
-	file_reader = FileReader.get_instance(file_path,options)
+	filepath = options['base_dir'] + os.sep + options.pop('filename');
+	
+	file_reader = FileReader.get_instance(filepath,options)
 	file_header = file_reader.read_file_info()
 
 	shared_xy = file_reader.create_shared()
@@ -28,8 +29,8 @@ class FileReader(object):
 	# markers while reading data
 	partition_num = 0
 	frame_per_partition = 0
-	frames_remaining = 0
 	end_reading = False
+	feat_dim = 0;
 	
 	@staticmethod
 	def get_instance(filepath,options):
@@ -97,7 +98,11 @@ class TDFileReader(FileReader):
 		header = self.filehandle.readline();
 		self.header = header.split()
 		self.feat_dim = int(self.header[0]);
-		self.frames_remaining = long(self.header[1])
+		
+		self.header = {}
+		self.header['featdim'] = self.feat_dim
+		
+		#self.frames_remaining = long(self.header[1])
 		# partitions specifies approximate amount data to be loaded one operation
 		self.frames_per_partition= self.options['partition'] *1000*1000/ (self.feat_dim * 4)
 		batch_residual = self.frames_per_partition% self.options['batch_size']
@@ -107,11 +112,14 @@ class TDFileReader(FileReader):
 	def read_next_partition_data(self,already_read=0):
 		self.feat=[]
 		self.cur_frame_num = 0
-		while self.frames_remaining > 0 and self.cur_frame_num < self.frames_per_partition-already_read:
+	
+		while  self.cur_frame_num < self.frames_per_partition-already_read:
 			values = self.filehandle.readline().split()
+			if values.__len__()==0: #No more values available in the data file
+				self.end_reading = True;
+				break;
 			fvalues = [float(value) for value in values];
 			self.feat = numpy.append(self.feat,fvalues)
-			self.frames_remaining -=1
 			self.cur_frame_num += 1
 		
 		if self.cur_frame_num >  0:
@@ -119,8 +127,7 @@ class TDFileReader(FileReader):
 			self.label = numpy.asarray([self.lbl]*self.cur_frame_num , dtype = theano.config.floatX)
 			self.partition_num = self.partition_num + 1
 
-		if self.frames_remaining == 0:
-			self.end_reading = True;
+			
 
 class T2FileReader(FileReader):
 	''' Reads the data stored in as Simple Text File With Two level header structure'''
@@ -139,6 +146,11 @@ class T2FileReader(FileReader):
 		self.header = header.split()
 		self.feat_dim = int(self.header[0]);
 		self.classes = long(self.header[1])
+		
+		self.header = {}
+		self.header['featdim'] = self.feat_dim
+		self.header['classes'] = self.classes
+		
 		batch_size = self.options['batch_size']
 		
 		# partitions specifies approximate amount data to be loaded one operation
@@ -218,6 +230,9 @@ class T1FileReader(FileReader):
 		self.header = header.split()
 		self.feat_dim = int(self.header[0]);
 		self.classes = long(self.header[1])
+		
+		self.header = {};
+		self.header['featdim'] = self.feat_dim
 		batch_size = self.options['batch_size']
 		
 		# partitions specifies approximate amount data to be loaded one operation
@@ -263,7 +278,7 @@ class T1FileReader(FileReader):
 			logger.debug('Datapath %s %d partition has %d frames' % (self.filepath,self.partition_num,self.cur_frame_num));
 			self.feat = self.feat.reshape([self.cur_frame_num,self.feat_dim])
 			self.feat = numpy.asarray(self.feat, dtype = theano.config.floatX)
-			self.partition_num = self.partition_num + 1
+			self.partition_num = selget_instancef.partition_num + 1
 			
 			if not self.options['keep_flatten'] :	#reshape the vector if needed
 				shape = [self.cur_frame_num];

@@ -86,6 +86,7 @@ def load_data_spec(input_file):
 		data['flatten']=False
 	return data
 
+
 def load_mlp_spec(input_file):
 	logger.info("Loading mlp properties from %s ...",input_file)
 	return load_json(input_file);

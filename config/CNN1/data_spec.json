@@ -1,6 +1,7 @@
 {
 	"validation": {
-		"path" : "data/TFILE/val.dat",
+		"base_path" : "data/TFILE",
+		"filename" : "val.dat",
 		"partition" : 0.002,
 		"random" : true,
 		"random_seed" : 123,
@@ -12,7 +13,8 @@
 	},
 
 	"training" : {
-		"path" : "data/TFILE/train.dat",
+		"path" : "data/TFILE",
+		"filename" : "train.dat",
 		"partition" : 0.002,
 		"random" : true,
 		"random_seed" : 123,
@@ -24,7 +26,8 @@
 	},
 
 	"testing" : {
-		"path" : "data/TFILE/test.dat",
+		"path" : "data/TFILE",
+		"filename" : "train.dat",
 		"partition" : 0.002,
 		"random" : true,
 		"random_seed" : 123,

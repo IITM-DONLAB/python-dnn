@@ -46,5 +46,6 @@
 			"min_derror_stop" : 0.05,
 			"min_epoch_decay_start" : 15,
 			"init_error" :100
-		}	
+	},
+	"export_path" : "data/export"
 }
