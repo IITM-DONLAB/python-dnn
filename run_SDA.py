@@ -137,8 +137,8 @@ def runSdA(configFile):
     logger.info('Finetunning the model..');
     
     #TODO include param in config
-    model_config['l_rate_method']="C"
-    model_config['l_rate'] = { 
+    model_config['finetune_l_rate_method']="C"
+    model_config['finetune_l_rate'] = { 
             "learning_rate" : 0.08,
             "epoch_num" : 0,
             "start_rate" : 0.08,
@@ -150,7 +150,7 @@ def runSdA(configFile):
         }
     momentum = 0.9
 
-    lrate = LearningRate.get_instance(model_config['l_rate_method'],model_config['l_rate']);   
+    lrate = LearningRate.get_instance(model_config['finetune_l_rate_method'],model_config['finetune_l_rate']);   
     best_validation_loss=float('Inf')
     start_time = time.clock()
 
@@ -177,10 +177,9 @@ def runSdA(configFile):
     logger.info('The Fine tunning ran for %.2fm' % ((end_time - start_time) / 60.))
     logger.info('Optimization complete with best validation score of %f %%',best_validation_loss * 100)
 
-    print data_spec
     #"""
     try:
-        test_sets, test_xy, test_x, test_y = read_dataset(data_spec['validation'])        
+        test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing'])        
     except KeyError, e:
         #raise e
         logger.info("No testing set:Skiping Testing");
@@ -193,15 +192,15 @@ def runSdA(configFile):
     test_fn = sda.build_test_function((test_x, test_y), batch_size=batch_size)
 
     def test():
-        test_error = []
-        test_output =[]
+        test_error  = []
+        test_output = numpy.array([],int);
         while not test_sets.is_finish():
             test_sets.make_partition_shared(test_xy)
             n_test_batches= test_sets.cur_frame_num / batch_size;
             for i in xrange(n_test_batches):
                 pred, err = test_fn(i)
                 test_error.append(err)
-                test_output.append(pred)
+                test_output=numpy.append(test_output,pred)
             test_sets.read_next_partition_data()
             logger.debug("Test Error (upto curr part) = %f",numpy.mean(test_error))
         test_sets.initialize_read();
@@ -211,7 +210,7 @@ def runSdA(configFile):
     test_pred,test_loss=test()
     logger.info('Optimization complete with best Test score of %f %%',test_loss * 100)
 
-    print test_pred
+    #print test_pred
 
 if __name__ == '__main__':
     import sys
