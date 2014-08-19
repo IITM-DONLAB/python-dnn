@@ -86,6 +86,7 @@ class SDA(object):
         self.delta_params = []
         self.n_layers = len(hidden_layers_sizes)
 
+
         assert self.n_layers > 0
 
         if not theano_rng:
@@ -165,6 +166,9 @@ class SDA(object):
         # symbolic variable that points to the number of errors made on the
         # minibatch given by self.x and self.y
         self.errors = self.logLayer.errors(self.y)
+
+        self.output = self.logLayer.prediction();
+        self.features = []
 
     def pretraining_functions(self, train_x, batch_size):
         ''' Generates a list of functions, each of them implementing one
@@ -273,7 +277,7 @@ class SDA(object):
         (test_set_x, test_set_y) = test_shared_xy
         index = T.lscalar('index')  # index to a [mini]batch
         test_fn = theano.function(inputs=[index],
-            outputs=self.errors,
+            outputs=[self.output ,self.errors],
             givens={
                 self.x: test_set_x[index * batch_size:(index + 1) * batch_size],
                 self.y: test_set_y[index * batch_size:(index + 1) * batch_size]})

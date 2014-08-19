@@ -74,7 +74,7 @@ def runSdA(configFile):
     logger.info('Pre-training the model ...')
     start_time = time.clock()
     ## Pre-train layer-wise
-    
+    #"""    
     for i in xrange(sda.n_layers):
          # go through pretraining epochs
         for epoch in xrange(pretraining_epochs):
@@ -95,7 +95,7 @@ def runSdA(configFile):
     end_time = time.clock()
     logger.info('The PreTraing ran for %.2fm' % ((end_time - start_time) / 60.))
 
-    
+    #"""    
 
     ########################
     # FINETUNING THE MODEL #
@@ -118,7 +118,8 @@ def runSdA(configFile):
     #            batch_size=batch_size)
     train_fn, validate_fn = sda.build_finetune_functions((train_x, train_y),
              (valid_x, valid_y), batch_size=batch_size)
-
+    
+    #"""
     def valid_score():
 	valid_error = [] 
         while not valid_sets.is_finish():
@@ -177,11 +178,11 @@ def runSdA(configFile):
     logger.info('Optimization complete with best validation score of %f %%',best_validation_loss * 100)
 
     print data_spec
-
+    #"""
     try:
-        test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing'])        
+        test_sets, test_xy, test_x, test_y = read_dataset(data_spec['validation'])        
     except KeyError, e:
-        raise e
+        #raise e
         logger.info("No testing set:Skiping Testing");
         logger.info("Finshed")
         return
@@ -191,21 +192,26 @@ def runSdA(configFile):
     logger.info('Getting the Test function')
     test_fn = sda.build_test_function((test_x, test_y), batch_size=batch_size)
 
-    def test_score():
-	test_error = [] 
+    def test():
+        test_error = []
+        test_output =[]
         while not test_sets.is_finish():
             test_sets.make_partition_shared(test_xy)
             n_test_batches= test_sets.cur_frame_num / batch_size;
-            test_losses = [test_fn(i) for i in xrange(n_test_batches)]
-            test_error.append(test_losses)
+            for i in xrange(n_test_batches):
+                pred, err = test_fn(i)
+                test_error.append(err)
+                test_output.append(pred)
             test_sets.read_next_partition_data()
             logger.debug("Test Error (upto curr part) = %f",numpy.mean(test_error))
         test_sets.initialize_read();
-        return numpy.mean(test_error);
+        return test_output,numpy.mean(test_error);
    
     logger.info('Starting Testing');
-    test_loss=test_score()
-    logger.info('Optimization complete with best validation score of %f %%',test_loss * 100)
+    test_pred,test_loss=test()
+    logger.info('Optimization complete with best Test score of %f %%',test_loss * 100)
+
+    print test_pred
 
 if __name__ == '__main__':
     import sys

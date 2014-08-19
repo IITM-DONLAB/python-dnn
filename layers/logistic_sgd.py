@@ -43,4 +43,6 @@ class LogisticRegression(object):
 			return T.mean(T.neq(self.y_pred, y))
 		else:
 			raise NotImplementedError()
-
+	
+	def prediction(self):
+		return self.y_pred;
