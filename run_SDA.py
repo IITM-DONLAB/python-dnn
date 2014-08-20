@@ -57,6 +57,19 @@ def preTraining(layers,epochs,pretrainfns,train_sets,train_xy,corruptions,lr,bat
 
 
 def fineTunning(train_fn,validate_fn,train_sets,train_xy,valid_sets,valid_xy,lrate,momentum,batch_size):
+
+    def valid_score():
+        valid_error = [] 
+        while not valid_sets.is_finish():
+            valid_sets.make_partition_shared(valid_xy)
+            n_valid_batches= valid_sets.cur_frame_num / batch_size;
+            validation_losses = [validate_fn(i) for i in xrange(n_valid_batches)]
+            valid_error.append(validation_losses)
+            valid_sets.read_next_partition_data()
+            logger.debug("Valid Error (upto curr part) = %f",numpy.mean(valid_error))
+        valid_sets.initialize_read();
+        return numpy.mean(valid_error);
+
     best_validation_loss=float('Inf')
     while (lrate.get_rate() != 0):
         train_error = []
@@ -77,19 +90,6 @@ def fineTunning(train_fn,validate_fn,train_sets,train_xy,valid_sets,valid_xy,lra
         lrate.get_next_rate(current_error = 100 * valid_error)
 
     logger.info('Best validation error %f',best_validation_loss)
-
-    def valid_score():
-        valid_error = [] 
-        while not valid_sets.is_finish():
-            valid_sets.make_partition_shared(valid_xy)
-            n_valid_batches= valid_sets.cur_frame_num / batch_size;
-            validation_losses = [validate_fn(i) for i in xrange(n_valid_batches)]
-            valid_error.append(validation_losses)
-            valid_sets.read_next_partition_data()
-            logger.debug("Valid Error (upto curr part) = %f",numpy.mean(valid_error))
-        valid_sets.initialize_read();
-        return numpy.mean(valid_error);
-
     return best_validation_loss
 
 def testing(test_fn,test_sets,test_xy,batch_size):
@@ -227,7 +227,7 @@ def runSdA(configFile):
 
 
 if __name__ == '__main__':
-    setLogger(level="DEBUG");
+    setLogger(level="INFO");
     logger.info('Stating....');
     runSdA(sys.argv[1]);
     sys.exit(0)
