@@ -86,7 +86,6 @@ class SDA(object):
         self.delta_params = []
         self.n_layers = len(hidden_layers_sizes)
 
-
         assert self.n_layers > 0
 
         if not theano_rng:
@@ -168,7 +167,7 @@ class SDA(object):
         self.errors = self.logLayer.errors(self.y)
 
         self.output = self.logLayer.prediction();
-        self.features = []
+        self.features = self.sigmoid_layers[-1].output;
 
     def pretraining_functions(self, train_x, batch_size):
         ''' Generates a list of functions, each of them implementing one
@@ -283,6 +282,9 @@ class SDA(object):
                 self.y: test_set_y[index * batch_size:(index + 1) * batch_size]})
         return test_fn
     
-    def getFeatures(self,test_set_x):
-        pass
+    def getFeaturesFunction(self):
+        in_x = T.matrix('in_x');
+        fn = theano.function(inputs=[in_x],outputs=[self.features],
+            givens={self.x: in_x},name='features')#,on_unused_input='warn')
+        return fn
         #TODO

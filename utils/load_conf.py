@@ -242,7 +242,6 @@ def initModelSDA(data):
 	finetune_lr=0.1
 	pretraining_epochs=15
 	pretrain_lr=0.08
-	training_epochs=1000
 	batch_size=1
 
 	if not data.has_key('batch_size') or not type(data['batch_size']) is int:
@@ -253,9 +252,7 @@ def initModelSDA(data):
 		data['pretrain_lr'] = pretrain_lr
 	if not data.has_key('pretraining_epochs') or type(data['pretraining_epochs']) is int:
 		data['pretraining_epochs'] = pretraining_epochs
-	if not data.has_key('training_epochs') or type(data['training_epochs']) is int:
-		data['training_epochs'] = training_epochs
-
+	
 	return data
 
 
