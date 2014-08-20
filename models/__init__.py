@@ -1,7 +1,10 @@
-
+#import numpy
+from collections import OrderedDict
+import theano
+import theano.tensor as T
 
 class nnet(object):
-	"""Abstract class for all Network Models"""
+        """Abstract class for all Network Models"""
 	def __init__(self):
 		self.finetune_cost = None
 		self.params = [];
@@ -26,7 +29,8 @@ class nnet(object):
 
 	#"Building fine tuning operation "
 	def build_finetune_functions(self, train_shared_xy, valid_shared_xy, batch_size):
-		'''Generates a function `train` that implements one step of
+		"""
+                Generates a function `train` that implements one step of
 		finetuning and a function `validate` that computes the error on 
 		a batch from the validation set 
 
@@ -43,7 +47,12 @@ class nnet(object):
 		:type batch_size: int
 		:param batch_size: size of a minibatch
 
-		'''
+                :returns (theano.function,theano.function)
+                * A function for training takes minibatch_index,learning_rate,momentum 
+                which updates weights,and return error rate
+                * A function for validation takes minibatch_indexand return error rate
+		
+                """
 
 		(train_set_x, train_set_y) = train_shared_xy
 		(valid_set_x, valid_set_y) = valid_shared_xy
@@ -84,6 +93,21 @@ class nnet(object):
 		return train_fn, valid_fn
 
 	def build_test_function(self,test_shared_xy,batch_size):
+                """
+                Get Fuction for testing
+
+                :type test_shared_xy: pairs of theano.tensor.TensorType
+		:param test_shared_xy: It is a list that contain all the test dataset, 
+			pair is formed of two Theano variables, one for the datapoints,
+			the other for the labels
+
+		:type batch_size: int
+		:param batch_size: size of a minibatch
+                
+                :returns theano.function
+                 A function which takes index to minibatch and Generates Label Array and error
+
+                """
 		(test_set_x, test_set_y) = test_shared_xy
 		index = T.lscalar('index')  # index to a [mini]batch
 		test_fn = theano.function(inputs=[index],
@@ -94,7 +118,14 @@ class nnet(object):
 		return test_fn
 	
 	def getFeaturesFunction(self):
-		in_x = T.matrix('in_x');
+                """
+                Get Function for extracting Feature/Bottle neck
+                
+                :returns theano.function
+                A function takes input features 
+                """
+		#in_x = T.matrix('in_x');
+                in_x = x.type('in_x');
 		fn = theano.function(inputs=[in_x],outputs=[self.features],
 			givens={self.x: in_x},name='features')#,on_unused_input='warn')
 		return fn

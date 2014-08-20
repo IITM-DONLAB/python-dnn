@@ -81,7 +81,8 @@ class SDA(nnet):
         :param corruption_levels: amount of corruption to use for each
                                   layer
         """
-
+        super(SDA, self).__init__()
+        
         self.sigmoid_layers = []
         self.dA_layers = []
         self.n_layers = len(hidden_layers_sizes)

@@ -37,15 +37,18 @@ def preTraining(train_sets,train_xy,pretraining_fns,model_config,rbm_config):
     batch_size = model_config['batch_size'];
     pretrainingEpochs = model_config['pretraining_epochs']
     nPreTrainLayers = rbm_config['pretrained_layers']
+
+    keep_layer_num=model_config['keep_layer_num']
     
     initialMomentum = model_config['initial_momentum']
     initMomentumEpochs = model_config['initial_momentum_epoch']
     finalMomentum = model_config['final_momentum']
 
+    first_layer_gb = rbm_config['first_layer_gb']
 
     ## Pre-train layer-wise
     for i in range(keep_layer_num, nPreTrainLayers):
-        if (dbn.rbm_layers[i].is_gbrbm()):
+        if (first_layer_gb):
             pretrain_lr = model_config['gbrbm_learning_rate']
         else:
             pretrain_lr = model_config['learning_rate']
@@ -90,10 +93,8 @@ def runRBM(configFile):
     train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
 
 
-    keep_layer_num=0
+    keep_layer_num=model_config['keep_layer_num']
     
-
-
     if keep_layer_num > 0:
     	#current_nnet = wdir + 'nnet.ptr.current'
         logger.info('Initializing model from ' + str(current_nnet) + '....')

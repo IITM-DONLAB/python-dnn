@@ -207,7 +207,8 @@ def initModelRBM(data):
 	gbrbm_learning_rate = 0.005
 	learning_rate = 0.08
 	batch_size=128
-	epochs=10	
+	epochs=10
+        keep_layer_num=0	
 
 	# momentum; more complicated than dnn 
 	initial_momentum = 0.5	 # initial momentum 
@@ -222,6 +223,8 @@ def initModelRBM(data):
 		data['learning_rate'] = learning_rate
 	if not data.has_key('pretraining_epochs') or not type(data['pretraining_epochs']) is int:
 		data['pretraining_epochs'] = epochs
+	if not data.has_key('keep_layer_num') or not type(data['keep_layer_num']) is int:
+                data['keep_layer_num'] = keep_layer_num
 	
 	# momentum
 	if data.has_key('initial_momentum') or not type(data['initial_momentum']) is float:

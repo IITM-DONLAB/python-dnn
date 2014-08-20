@@ -49,7 +49,7 @@ class DBN(nnet):
         :param first_layer_gb: wether first layer is gausian-bernolli or 
                                 bernolli-bernolli
         """
-
+        super(DBN, self).__init__()
         self.sigmoid_layers = []
         self.rbm_layers = []
         self.n_layers = len(hidden_layers_sizes)
