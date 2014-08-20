@@ -9,18 +9,19 @@ from layers.logistic_sgd import LogisticRegression
 from layers.mlp import HiddenLayer
 from  theano.compat.python2x import OrderedDict
 
+from models import nnet
+
 import logging
 logger = logging.getLogger(__name__)
 
-class CNN(object):
+class CNN(nnet):
 	""" Instantiation of Convolution neural network ... """
 	def __init__(self, numpy_rng, theano_rng, batch_size, n_outs,conv_layer_configs, hidden_layers_sizes, 
 			use_fast=False,conv_activation = T.nnet.sigmoid,hidden_activation = T.nnet.sigmoid):
 
+		super(CNN, self).__init__()
 		self.layers = []
-		self.params = []
 
-		self.delta_params = []
 		#self.sparsity = sparsity
 		#self.sparsity_weight = sparsity_weight
 		#self.sparse_layer = sparse_layer
