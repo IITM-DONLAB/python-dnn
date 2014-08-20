@@ -25,6 +25,26 @@
 	"comment" : "initial_momentum,final_momentum,initial_momentum_epoch ::  Specify the momentum factor while training default 0.5,0.9,5",
 	"initial_momentum":0.5,
 	"final_momentum":0.9,
-	"initial_momentum_epoch":5
+	"initial_momentum_epoch":5,
+
+	"comment" : "finetune_method::  Two methods are supported  C: Constant learning rate and E : Exponential decay",
+	"finetune_method":"C",
+
+	"comment" : "finetune_rate :: learning rate configuration",
+	"finetune_rate" : {	
+		"learning_rate" : 0.08,
+		"epoch_num" : 10,
+
+		"start_rate" : 0.08,
+		"scale_by" : 0.5,
+		"min_derror_decay_start" : 0.05,
+		"min_derror_stop" : 0.05,
+		"min_epoch_decay_start" : 15,
+		"init_error" :100
+	},
+
+	"comment" : "finetune_momentum ::  Specify the momentum factor while finetuning",
+	"finetune_momentum": 0.5
+
 
 }

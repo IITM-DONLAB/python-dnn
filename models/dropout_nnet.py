@@ -28,7 +28,9 @@ from theano.tensor.shared_randomstreams import RandomStreams
 from layers.logistic_sgd import LogisticRegression
 from layers.mlp import HiddenLayer, DropoutHiddenLayer, _dropout_from_layer
 
-class DNN_Dropout(object):
+from models import nnet
+
+class DNN_Dropout(nnet):
 
     def __init__(self, numpy_rng, theano_rng=None, n_ins=784,
                  hidden_layers_sizes=[500, 500], n_outs=10,
@@ -38,10 +40,10 @@ class DNN_Dropout(object):
                  do_maxout = False, pool_size = 1,
                  max_col_norm = None, l1_reg = None, l2_reg = None):
 
+        super(DNN_Dropout, self).__init__()
+
         self.sigmoid_layers = []
         self.dropout_layers = []
-        self.params = []
-        self.delta_params   = []
         self.n_layers = len(hidden_layers_sizes)
 
         self.max_col_norm = max_col_norm

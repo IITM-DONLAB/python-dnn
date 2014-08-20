@@ -40,8 +40,10 @@ from layers.logistic_sgd import LogisticRegression
 from layers.mlp import HiddenLayer
 from layers.dA import dA
 
+from models import nnet
 
-class SDA(object):
+
+class SDA(nnet):
     """Stacked denoising auto-encoder class (SdA)
 
     A stacked denoising autoencoder model is obtained by stacking several
@@ -79,11 +81,10 @@ class SDA(object):
         :param corruption_levels: amount of corruption to use for each
                                   layer
         """
-
+        super(SDA, self).__init__()
+        
         self.sigmoid_layers = []
         self.dA_layers = []
-        self.params = []
-        self.delta_params = []
         self.n_layers = len(hidden_layers_sizes)
 
         assert self.n_layers > 0
@@ -166,6 +167,9 @@ class SDA(object):
         # minibatch given by self.x and self.y
         self.errors = self.logLayer.errors(self.y)
 
+        self.output = self.logLayer.prediction();
+        self.features = self.sigmoid_layers[-1].output;
+
     def pretraining_functions(self, train_x, batch_size):
         ''' Generates a list of functions, each of them implementing one
         step in trainnig the dA corresponding to the layer with same index.
@@ -209,76 +213,3 @@ class SDA(object):
             pretrain_fns.append(fn)
 
         return pretrain_fns
-
-    #"Building fine tuning operation "
-    def build_finetune_functions(self, train_shared_xy, valid_shared_xy, batch_size):
-        '''Generates a function `train` that implements one step of
-        finetuning and a function `validate` that computes the error on 
-        a batch from the validation set 
-
-        :type train_shared_xy: pairs of theano.tensor.TensorType
-        :param train_shared_xy: It is a list that contain all the train dataset, 
-            pair is formed of two Theano variables, one for the datapoints,
-            the other for the labels
-
-        :type valid_shared_xy: pairs of theano.tensor.TensorType
-        :param valid_shared_xy: It is a list that contain all the valid dataset, 
-            pair is formed of two Theano variables, one for the datapoints,
-            the other for the labels
-
-        :type batch_size: int
-        :param batch_size: size of a minibatch
-
-        '''
-
-        (train_set_x, train_set_y) = train_shared_xy
-        (valid_set_x, valid_set_y) = valid_shared_xy
-
-        index = T.lscalar('index')  # index to a [mini]batch
-        learning_rate = T.scalar('learning_rate',dtype=theano.config.floatX)
-        momentum = T.scalar('momentum',dtype=theano.config.floatX)
-
-        # compute the gradients with respect to the model parameters
-        gparams = T.grad(self.finetune_cost, self.params)
-
-        # compute list of fine-tuning updates
-        updates = OrderedDict()
-
-        for dparam, gparam in zip(self.delta_params, gparams):
-            updates[dparam] = momentum * dparam - gparam*learning_rate
-
-        for dparam, param in zip(self.delta_params, self.params):
-            updates[param] = param + updates[dparam]
-        
-        train_inputs = [index, theano.Param(learning_rate, default = 0.001),
-            theano.Param(momentum, default = 0.5)]
-
-        train_fn = theano.function(inputs=train_inputs,
-            outputs=self.errors,
-            updates=updates,
-            givens={
-                self.x: train_set_x[index * batch_size:(index + 1) * batch_size],
-                self.y: train_set_y[index * batch_size:(index + 1) * batch_size]},
-            allow_input_downcast=True);
-
-        valid_fn = theano.function(inputs=[index],
-            outputs=self.errors,
-            givens={
-                self.x: valid_set_x[index * batch_size:(index + 1) * batch_size],
-                self.y: valid_set_y[index * batch_size:(index + 1) * batch_size]})
-
-        return train_fn, valid_fn
-
-    def build_test_function(self,test_shared_xy,batch_size):
-        (test_set_x, test_set_y) = test_shared_xy
-        index = T.lscalar('index')  # index to a [mini]batch
-        test_fn = theano.function(inputs=[index],
-            outputs=self.errors,
-            givens={
-                self.x: test_set_x[index * batch_size:(index + 1) * batch_size],
-                self.y: test_set_y[index * batch_size:(index + 1) * batch_size]})
-        return test_fn
-    
-    def getFeatures(self,test_set_x):
-        pass
-        #TODO

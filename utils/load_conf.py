@@ -82,11 +82,11 @@ def isKeysPresents(data,requiredKeys):
 def load_data_spec(input_file):
 	logger.info("Loading data specification properties from %s..",input_file)
 	data = load_json(input_file);
-        for x in ['training','testing','validation']:
-                if not data.has_key(x):
-                        continue;
-                if not data[x].has_key('flatten') or not type(data[x]['flatten']) is bool:
-                        data[x]['flatten']=False
+	for x in ['training','testing','validation']:
+		if not data.has_key(x):
+			continue;
+		if not data[x].has_key('keep_flatten') or not type(data[x]['keep_flatten']) is bool:
+			data[x]['keep_flatten']=False
 	return data
 
 def load_mlp_spec(input_file):
@@ -207,7 +207,8 @@ def initModelRBM(data):
 	gbrbm_learning_rate = 0.005
 	learning_rate = 0.08
 	batch_size=128
-	epochs=10	
+	epochs=10
+        keep_layer_num=0	
 
 	# momentum; more complicated than dnn 
 	initial_momentum = 0.5	 # initial momentum 
@@ -222,6 +223,8 @@ def initModelRBM(data):
 		data['learning_rate'] = learning_rate
 	if not data.has_key('pretraining_epochs') or not type(data['pretraining_epochs']) is int:
 		data['pretraining_epochs'] = epochs
+	if not data.has_key('keep_layer_num') or not type(data['keep_layer_num']) is int:
+                data['keep_layer_num'] = keep_layer_num
 	
 	# momentum
 	if data.has_key('initial_momentum') or not type(data['initial_momentum']) is float:
@@ -242,7 +245,6 @@ def initModelSDA(data):
 	finetune_lr=0.1
 	pretraining_epochs=15
 	pretrain_lr=0.08
-	training_epochs=1000
 	batch_size=1
 
 	if not data.has_key('batch_size') or not type(data['batch_size']) is int:
@@ -253,9 +255,7 @@ def initModelSDA(data):
 		data['pretrain_lr'] = pretrain_lr
 	if not data.has_key('pretraining_epochs') or type(data['pretraining_epochs']) is int:
 		data['pretraining_epochs'] = pretraining_epochs
-	if not data.has_key('training_epochs') or type(data['training_epochs']) is int:
-		data['training_epochs'] = training_epochs
-
+	
 	return data
 
 

@@ -76,7 +76,7 @@ class FileReader(object):
 			self.feat = numpy.asarray(data['d'], dtype = theano.config.floatX)
 			self.label = numpy.asarray(data['l'], dtype = theano.config.floatX)
 			self.partition_num = self.partition_num + 1
-			if not self.options['flatten'] : 
+			if not self.options['keep_flatten'] : 
 				shape = [self.cur_frame_num];
 				shape.extend(self.header['input_shape']);
 				self.feat = self.feat.reshape(shape);
