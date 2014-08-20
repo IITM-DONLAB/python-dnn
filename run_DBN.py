@@ -32,6 +32,46 @@ from io_modules import setLogger
 import logging
 logger = logging.getLogger(__name__)
 
+def preTraining(train_sets,train_xy,pretraining_fns,model_config,rbm_config):
+
+    batch_size = model_config['batch_size'];
+    pretrainingEpochs = model_config['pretraining_epochs']
+    nPreTrainLayers = rbm_config['pretrained_layers']
+    
+    initialMomentum = model_config['initial_momentum']
+    initMomentumEpochs = model_config['initial_momentum_epoch']
+    finalMomentum = model_config['final_momentum']
+
+
+    ## Pre-train layer-wise
+    for i in range(keep_layer_num, nPreTrainLayers):
+        if (dbn.rbm_layers[i].is_gbrbm()):
+            pretrain_lr = model_config['gbrbm_learning_rate']
+        else:
+            pretrain_lr = model_config['learning_rate']
+        # go through pretraining epochs
+        momentum = initialMomentum
+        for epoch in xrange(pretrainingEpochs):
+            # go through the training set
+            if (epoch > initMomentumEpochs):
+                momentum = finalMomentum
+
+            r_c, fe_c = [], []  # keep record of reconstruction and free-energy cost
+            while not train_sets.is_finish():
+                train_sets.make_partition_shared(train_xy)
+                #train_sets.load_next_partition(train_xy)
+                for batch_index in xrange(train_sets.cur_frame_num / batch_size):  # loop over mini-batches
+                    #logger.info("Training For epoch %d and batch %d",epoch,batch_index)
+                    [reconstruction_cost, free_energy_cost] = pretraining_fns[i](index=batch_index,
+                                                                             lr=pretrain_lr,
+                                                                             momentum=momentum)
+                    r_c.append(reconstruction_cost)
+                    fe_c.append(free_energy_cost)
+                train_sets.read_next_partition_data()
+            train_sets.initialize_read()
+            logger.info('Training layer %i, epoch %d, r_cost %f, fe_cost %f' % (i, epoch, numpy.mean(r_c), numpy.mean(fe_c)))
+
+
 def runRBM(configFile):
     model_config = load_model(configFile)
     rbm_config = load_rbm_spec(model_config['rbm_nnet_spec'])
@@ -67,51 +107,14 @@ def runRBM(configFile):
 
     logger.info('Pre-training the model ...')
     start_time = time.clock()
+    preTraining(train_sets,train_xy,pretraining_fns,model_config,rbm_config)
+    end_time = time.clock()
 
-    batch_size = model_config['batch_size'];
-    pretrainingEpochs = model_config['pretraining_epochs']
-    nPreTrainLayers = rbm_config['pretrained_layers']
-    
-    initialMomentum = model_config['initial_momentum']
-    initMomentumEpochs = model_config['initial_momentum_epoch']
-    finalMomentum = model_config['final_momentum']
-
-
-    ## Pre-train layer-wise
-    for i in range(keep_layer_num, nPreTrainLayers):
-        if (dbn.rbm_layers[i].is_gbrbm()):
-            pretrain_lr = model_config['gbrbm_learning_rate']
-        else:
-            pretrain_lr = model_config['learning_rate']
-        # go through pretraining epochs
-        momentum = initialMomentum
-        for epoch in xrange(pretrainingEpochs):
-            # go through the training set
-            if (epoch > initMomentumEpochs):
-                momentum = finalMomentum
-
-            r_c, fe_c = [], []  # keep record of reconstruction and free-energy cost
-            while not train_sets.is_finish():
-            	train_sets.make_partition_shared(train_xy)
-                #train_sets.load_next_partition(train_xy)
-                for batch_index in xrange(train_sets.cur_frame_num / batch_size):  # loop over mini-batches
-                    #logger.info("Training For epoch %d and batch %d",epoch,batch_index)
-                    [reconstruction_cost, free_energy_cost] = pretraining_fns[i](index=batch_index,
-                                                                             lr=pretrain_lr,
-                                                                             momentum=momentum)
-                    r_c.append(reconstruction_cost)
-                    fe_c.append(free_energy_cost)
-                train_sets.read_next_partition_data()
-            train_sets.initialize_read()
-            logger.info('Training layer %i, epoch %d, r_cost %f, fe_cost %f' % (i, epoch, numpy.mean(r_c), numpy.mean(fe_c)))
+    logger.info('The PreTraing ran for %.2fm' % ((end_time - start_time) / 60.))
 
     # save the pretrained nnet to file
     #_nnet2file(dbn.sigmoid_layers, filename=output_file, withfinal=True)
-
-    end_time = time.clock()
-    import os
-    logger.info('The code for file ' + os.path.split(__file__)[1] +
-                      ' ran for %.2fm' % ((end_time - start_time) / 60.))
+    
 
 
 if __name__ == '__main__':
