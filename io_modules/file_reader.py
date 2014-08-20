@@ -113,7 +113,7 @@ class TDFileReader(FileReader):
 		self.filepath = path;
 		self.options=options;
 		self.lbl = options['label'];
-		self.filehandle = open(self.filepath,'rb')		
+		self.filehandle = open(self.filepath,'rb')
 		
 	def read_file_info(self):
 		header = self.filehandle.readline();

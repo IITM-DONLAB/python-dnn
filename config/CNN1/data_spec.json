@@ -1,7 +1,7 @@
 {
 	"validation": {
 		"base_path" : "data/TFILE",
-		"filename" : "val.dat",
+		"filename" : "val1.dat",
 		"partition" : 0.002,
 		"random" : true,
 		"random_seed" : 123,
@@ -9,12 +9,12 @@
 		"dim_shuffle" : [0,1,2,3],
 		"batch_size": 8,
 		"keep_flatten" : false,
-		"reader_type" : "T2"
+		"reader_type" : "T1"
 	},
 
 	"training" : {
 		"base_path" : "data/TFILE",
-		"filename" : "train.dat",
+		"filename" : "train1.dat",
 		"partition" : 0.002,
 		"random" : true,
 		"random_seed" : 123,
@@ -22,12 +22,12 @@
 		"dim_shuffle" : [0,1,2,3],
 		"batch_size": 8,
 		"keep_flatten" : false,
-		"reader_type" : "T2"
+		"reader_type" : "T1"
 	},
 
 	"testing" : {
 		"base_path" : "data/TFILE",
-		"filename" : "train.dat",
+		"filename" : "train1.dat",
 		"partition" : 0.002,
 		"random" : true,
 		"random_seed" : 123,
@@ -35,6 +35,6 @@
 		"dim_shuffle" : [0,1,2,3],
 		"batch_size": 8,
 		"keep_flatten" : false,
-		"reader_type" : "T2"
+		"reader_type" : "T1"
 	}
 }
