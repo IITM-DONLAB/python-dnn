@@ -74,4 +74,6 @@ class ConvLayer(object):
 		self.params = [self.W, self.b]
 		self.delta_params = [self.delta_W, self.delta_b]
 
-
+		
+		
+		

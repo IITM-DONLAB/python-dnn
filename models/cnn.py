@@ -85,9 +85,10 @@ class CNN(object):
 
 	"Getting CNN Feats Outputs"
 	def build_out_function(self):
-		feat = T.tensor4('feat')
-		out_da = theano.function([feat], self.conv_layers[-1].output, updates = None, givens={self.x:feat}, on_unused_input='warn')
-        	return out_da
+		feat = T.tensor4('feat', dtype=theano.config.floatX)
+		out_da = theano.function([feat], self.conv_layers[-1].output, \
+				updates = None, givens={self.x:feat}, on_unused_input='warn')
+		return out_da
 	
 	"Building fine tuning operation "
 	def build_finetune_functions(self, train_shared_xy, valid_shared_xy, batch_size):

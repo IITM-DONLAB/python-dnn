@@ -13,7 +13,7 @@
 	},
 
 	"training" : {
-		"path" : "data/TFILE",
+		"base_path" : "data/TFILE",
 		"filename" : "train.dat",
 		"partition" : 0.002,
 		"random" : true,
@@ -26,7 +26,7 @@
 	},
 
 	"testing" : {
-		"path" : "data/TFILE",
+		"base_path" : "data/TFILE",
 		"filename" : "train.dat",
 		"partition" : 0.002,
 		"random" : true,

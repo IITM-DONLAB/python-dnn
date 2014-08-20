@@ -23,8 +23,8 @@ from theano.tensor.shared_randomstreams import RandomStreams
 
 from io_modules.model_io import _nnet2file, _file2nnet, _cnn2file, _file2cnn
 from utils.load_conf import load_model, load_conv_spec,load_mlp_spec,load_data_spec 
-from io_modules.file_reader import read_dataset
-from io_modules.file_writer import write_dataset
+from io_modules.data_exporter import export_data
+
 
 from models.cnn import CNN
 from utils.utils import parse_activation
@@ -48,23 +48,11 @@ def runCNNFeat(configFile):
 
 	
 	_file2cnn(cnn.conv_layers, filename=model_configs['conv_output_file'], activation=conv_activation)
-	out_function = cnn.build_out_function()
-
-	data_spec =  load_data_spec(model_configs['data_spec']);
-	test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing'])
+	out_fn = cnn.build_out_function();
 	
-	export_path = model_configs['export_path'];
-	export_configs['featdim'] = test_sets.feat_dim
-	export_configs['classes'] = model_configs['n_outs'];
+	data_spec = load_data_spec(model_configs['data_spec'])
+	export_data(data_spec['testing'],model_configs['export_path'],out_fn,cnn.conv_output_dim);
 	
-	exporter = write_dataset(export_configs);
-	while (not test_sets.is_finish()):
-		for batch_index in xrange(test_sets.cur_frame_num/batch_size):
-			s_idx = batch_index*batch_size; e_idx= min(test_sets.cur_frame_num ,s_idx+batch_size);
-			data = out_function(test_sets.feat[s_idx:e_idx])
-			exporter.write_data(data,test_sets.label)
-		test_sets.read_next_partition_data()
-				
 #######################################################################################################################################################
 '''
     arg_elements=[]
