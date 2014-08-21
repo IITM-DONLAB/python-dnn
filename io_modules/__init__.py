@@ -27,3 +27,18 @@ def setLogger(level="INFO",stderr=True,name=None,logFile='python-dnn.log'):
 		logger.setLevel(logging.DEBUG)
 	else:
 		logger.setLevel(logging.ERROR)
+		
+def create_folder_structure_if_not_exists(filepath):
+	import logging,os,errno
+	logger = logging.getLogger(__name__)
+	try:
+		path = os.path.split(filepath)[0]
+		os.makedirs(path)
+		logger.info("Created folder structure %s.." % path)
+	except OSError as exc: # Python >2.5
+		if exc.errno == errno.EEXIST and os.path.isdir(path):
+			logger.debug("Folder structure %s already exists.." % path)
+		else:
+			logger.critical("Folder structure %s could not be created.." % path) 
+			raise
+	return path

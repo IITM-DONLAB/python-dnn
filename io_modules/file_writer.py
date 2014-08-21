@@ -1,13 +1,16 @@
-import json,numpy,sys,os
-from utils.utils import dimshuffle
-import theano
-import theano.tensor as T
+
+import json,numpy,os
+from io_modules import create_folder_structure_if_not_exists
 
 import logging
 logger = logging.getLogger(__name__)
 	
 def write_dataset(options):
 	file_path = options['base_path'] + os.sep + options['filename'];
+	logger.info("%s dataset will be initialized to write to %s",
+				options['writer_type'],file_path);
+	logger.debug("options : %s" % str(options))	
+	create_folder_structure_if_not_exists(file_path);
 	file_writer = FileWriter.get_instance(file_path,options);
 	file_writer.write_file_info()
 	return file_writer
@@ -29,7 +32,8 @@ class FileWriter(object):
 		elif header['writer_type']=='NP':
 			return NPFileWriter(path,header);
 		else:
-			logger.critical('\'%s\'  writer_type is not defined...')
+			logger.critical('\'%s\'  writer_type is not defined...' \
+					% options['writer_type'])
 			
 	def __init__(self,filepath,header):
 		self.header = header
@@ -57,17 +61,21 @@ class NPFileWriter(FileWriter):
 
 	def write_file_info(self):
 		self.filehandle.write(json.dumps(self.header)+'\n')
+		dt={'names': ['d','l'],'formats': [('>f2',self.feat_dim),'>i2']}
+		logger.debug('NP Filewriter : feats : %s' % str(dt))
 
 	def write_data(self,vector_array,labels):
 		dt={'names': ['d','l'],'formats': [('>f2',self.feat_dim),'>i2']}
 		data = numpy.zeros(1,dtype= numpy.dtype(dt))
 		for vector,label in zip(vector_array,labels):
 			flatten_vector = vector.flatten();
-			if self.feat_dim==len(flatten_vector):
+			if self.feat_dim!=len(flatten_vector):
+				logger.critical('Feature dimension mentioned in header and vector length are mismatching');
+			else:
 				data['d']=flatten_vector; data['l']=label;
 				data.tofile(self.filehandle); 
 		self.filehandle.flush();
-
+		logger.debug('NP Filewriter : data writen to %s' % self.filepath)
 ##########################################TD FILEREADER##############################################################
 """
 	Reads the simple text file following is the structure
@@ -83,17 +91,19 @@ class TDFileWriter(FileWriter):
 
 	def write_file_info(self):
 		self.filehandle.write(str(self.feat_dim)+os.linesep)
+		logger.debug('TD Filewriter : feats : %d' % self.feat_dim)
 
 	def write_data(self,vector_array,labels):
 		for vector,label in zip(vector_array,labels):
 			flatten_vector = vector.flatten();
-			if self.feat_dim==len(flatten_vector):
-				logger.critical('Feature dimension mentioned in header and vector length is mismatching');
-			for element in vector:
-				self.filehandle.write('%f ' % element)
+			if self.feat_dim!=len(flatten_vector):
+				logger.critical('Feature dimension mentioned in header and vector length are	 mismatching');
+			else:
+				for element in vector:
+					self.filehandle.write('%f ' % element)
 			self.filehandle.write(os.linesep);
 		self.filehandle.flush();		
-
+		logger.debug('TD Filewriter : data writen to %s' % self.filepath)
 
 """
 class T1FileWriter(FileWriter):

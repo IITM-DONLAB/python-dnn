@@ -8,7 +8,10 @@ logger = logging.getLogger(__name__)
 
 def read_dataset(options,pad_zeros=False):
 	filepath =   options['base_path'] + os.sep + options['filename'];
-	
+	logger.info("%s dataset will be initialized to reader to %s",
+				options['reader_type'],filepath);
+	logger.debug("options : %s" % str(options))	
+				
 	file_reader = FileReader.get_instance(filepath,options)
 	file_header = file_reader.read_file_info()
 
@@ -46,15 +49,22 @@ class FileReader(object):
 			file_reader = T1FileReader(filepath,options);
 		elif options['reader_type']=='T2':
 			file_reader = T2FileReader(filepath,options);
+		else:
+			logger.critical('\'%s\'  reader_type is not defined...'\
+						%options['reader_type'])
 		return file_reader
+		
 	'''Reads the file header information'''	
 	def read_file_info(self):
 		pass
+		
 	'''Reads the data from the next partition'''	
 	def read_next_partition_data(self,already_read=0,pad_zeros=False):
 		pass
+		
 	'''Makes the current partition shared across GPU's'''	
 	def make_partition_shared(self, shared_xy):
+		logger.debug("Partition is now made shared for GPU processing");
 		shared_x, shared_y = shared_xy  
 		if self.options['random']:  # randomly shuffle features and labels in the *same* order
 			try: 
@@ -67,12 +77,17 @@ class FileReader(object):
 			numpy.random.shuffle(self.label)
 		shared_x.set_value(self.feat, borrow=True)
 		shared_y.set_value(self.label, borrow=True)
+		
+		
 	def pad_zeros(self,num_pad_frames):
 		if num_pad_frames > 0:
+			logger.debug("Padded %d frames for one partition" % num_pad_frames);
 			self.num_pad_frames = num_pad_frames;
 			for x in xrange(self.num_pad_frames):
 				self.feat = numpy.append(self.feat,[0]*self.feat_dim) 
 				self.cur_frame_num+=1
+				
+				
 	'''Create first partition shared across GPU's'''	
 	def create_shared(self,pad_zeros=False):
 		if self.feat is None:
@@ -86,7 +101,8 @@ class FileReader(object):
 		return self.end_reading
 		
 	''' Initialize the file_reader options''' 	
-	def initialize_read(self):		
+	def initialize_read(self):
+		logger.debug("File reader is initialzed again for file reading");	
 		self.filehandle.seek(0,0);
 		self.end_reading = False
 		self.feat=None
@@ -117,12 +133,11 @@ class TDFileReader(FileReader):
 		
 	def read_file_info(self):
 		header = self.filehandle.readline();
-
 		self.header = header.split()
 		self.feat_dim = int(self.header[0]);
 		self.header = {}	
 		self.header['featdim'] = self.feat_dim
-		
+		logger.debug('TD Filereader : feats : %d, label : %d' % (self.feat_dim,self.lbl))
 		#self.frames_remaining = long(self.header[1])
 		# partitions specifies approximate amount data to be loaded one operation
 		self.frames_per_partition= self.options['partition'] *1000*1000/ (self.feat_dim * 4)
@@ -148,7 +163,7 @@ class TDFileReader(FileReader):
 			self.feat = numpy.asarray(self.feat, dtype = theano.config.floatX)
 			self.label = numpy.asarray([self.lbl]*self.cur_frame_num , dtype = theano.config.floatX)
 			self.partition_num = self.partition_num + 1
-			
+			logger.debug('TD Filereader : %d frames read from %s' % (self.cur_frame_num,self.filepath))
 			if not self.options['keep_flatten'] :	#reshape the vector if needed
 				shape = [self.cur_frame_num];
 				shape.extend(self.options['input_shape']);
@@ -156,6 +171,7 @@ class TDFileReader(FileReader):
 				self.feat = dimshuffle(self.feat,self.options['dim_shuffle'])				
 		else:
 			self.end_reading = True;
+		
 ##########################################T2 FILEREADER##############################################################
 """
 	Reads the dataset which has two level directory structure
@@ -190,6 +206,8 @@ class T2FileReader(FileReader):
 		self.feat_dim = int(self.header[0]);
 		self.classes = long(self.header[1])
 		
+		logger.debug('T2 Filereader : feat : %d' % self.feat_dim)
+		
 		self.header = {}
 		self.header['featdim'] = self.feat_dim
 		self.header['classes'] = self.classes
@@ -203,7 +221,7 @@ class T2FileReader(FileReader):
 		
 		#load filehandle for all classes
 		for i in xrange(0,self.classes):
-			data_file = options['base_path'] + os.sep + self.filehandle.readline().strip();
+			data_file = self.options['base_path'] + os.sep + self.filehandle.readline().strip();
 			self.filehandles.append(open(data_file,'rb'));
 			self.childhandles.append(None);
 			
@@ -251,7 +269,7 @@ class T2FileReader(FileReader):
 			if pad_zeros:	#padding zeros
 				self.pad_zeros(int(self.frames_per_partition)-already_read-self.cur_frame_num);
 				
-			logger.debug('Datapath %s %d partition has %d frames' % (self.filepath,self.partition_num,self.cur_frame_num));
+			logger.debug('T2 Filereader : from file %s, %d partition has %d frames' % (self.filepath,self.partition_num,self.cur_frame_num));
 			self.feat = self.feat.reshape([self.cur_frame_num,self.feat_dim])
 			self.feat = numpy.asarray(self.feat, dtype = theano.config.floatX)
 			self.partition_num = self.partition_num + 1
@@ -263,6 +281,7 @@ class T2FileReader(FileReader):
 				self.feat = dimshuffle(self.feat,self.options['dim_shuffle'])
 		else:
 			self.end_reading = True
+		
 
 ##########################################T1 FILEREADER##############################################################
 """
@@ -295,6 +314,8 @@ class T1FileReader(FileReader):
 		self.header = {};
 		self.header['featdim'] = self.feat_dim
 		batch_size = self.options['batch_size']
+		
+		logger.debug('T1 Filereader : feat : %d' % self.feat_dim)
 		
 		# partitions specifies approximate amount data to be loaded one operation
 		self.frames_per_partition = self.options['partition'] *1000*1000/ (self.feat_dim * 4)
@@ -342,7 +363,7 @@ class T1FileReader(FileReader):
 			if pad_zeros:	#padding zeros
 				self.pad_zeros(int(self.frames_per_partition)-already_read-self.cur_frame_num);
 				
-			logger.debug('Datapath %s %d partition has %d frames' % (self.filepath,self.partition_num,self.cur_frame_num));
+			logger.debug('T1 Filereader : from file %s, %d partition has %d frames' % (self.filepath,self.partition_num,self.cur_frame_num));
 			self.feat = self.feat.reshape([self.cur_frame_num,self.feat_dim])
 			self.feat = numpy.asarray(self.feat, dtype = theano.config.floatX)
 			self.partition_num = self.partition_num + 1
@@ -375,6 +396,7 @@ class NPFileReader(FileReader):
 		jsonheader = self.filehandle.readline();
 		self.header = json.loads(jsonheader);
 		self.feat_dim = self.header['featdim'];
+		logger.debug("NP Filereader : feats : %d"% self.feat_dim);
 		# partitions specifies approximate amount data to be loaded one operation
 		self.frames_per_partition= self.options['partition'] *1000*1000/ (self.feat_dim * 4)
 		batch_residual = self.frames_per_partition% self.options['batch_size']
@@ -394,7 +416,7 @@ class NPFileReader(FileReader):
 				for x in xrange(self.num_pad_frames):
 					self.label = numpy.append(self.label,[0]*self.feat_dim) 
 			
-			logger.debug('Datapath %s %d partition has %d frames' % (self.filepath,self.partition_num,self.cur_frame_num));
+			logger.debug('NP Filereader : from file %s, %d partition has %d frames' % (self.filepath,self.partition_num,self.cur_frame_num));
 			
 			if not self.options['keep_flatten'] :	#reshape the vector if needed
 				shape = [self.cur_frame_num];
@@ -403,6 +425,7 @@ class NPFileReader(FileReader):
 				self.feat = dimshuffle(self.feat,self.options['dim_shuffle'])
 		else:
 			self.end_reading = True;
+		
 
 
 		
