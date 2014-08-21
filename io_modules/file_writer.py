@@ -26,8 +26,10 @@ class FileWriter(object):
 			return T1FileWriter(path,header);
 		elif header['writer_type']=='TD':
 			return TDFileWriter(path,header);
-		else:
+		elif header['writer_type']=='NP':
 			return NPFileWriter(path,header);
+		else:
+			logger.critical('\'%s\'  writer_type is not defined...')
 			
 	def __init__(self,filepath,header):
 		self.header = header

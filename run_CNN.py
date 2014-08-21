@@ -97,5 +97,5 @@ def runCNN(configFile):
 	_nnet2file(cnn.layers[cnn.conv_layer_num:], filename=model_configs['hidden_output_file'],activation=mlp_configs['activation']);
 	
 if __name__ == '__main__':
-	setLogger();
+	setLogger(level="DEBUG");
 	runCNN(sys.argv[1])

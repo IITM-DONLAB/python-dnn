@@ -28,7 +28,7 @@ class CNN(object):
 		if not theano_rng:	#if theano range not passed creating new random stream object
 			theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
 
-		self.x = T.ftensor4('x')  
+		self.x = T.tensor4('x')  
 		self.y = T.ivector('y')
 
 		self.conv_layer_num = len(conv_layer_configs) 	#counting number of convolution layers

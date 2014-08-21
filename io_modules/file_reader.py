@@ -6,13 +6,13 @@ from utils.utils import dimshuffle
 import logging
 logger = logging.getLogger(__name__)
 
-def read_dataset(options):
+def read_dataset(options,pad_zeros=False):
 	filepath =   options['base_path'] + os.sep + options['filename'];
 	
 	file_reader = FileReader.get_instance(filepath,options)
 	file_header = file_reader.read_file_info()
 
-	shared_xy = file_reader.create_shared()
+	shared_xy = file_reader.create_shared(pad_zeros)
 	shared_x, shared_y = shared_xy
 	shared_y = T.cast(shared_y, 'int32')
 	return file_reader,shared_xy, shared_x, shared_y
@@ -74,9 +74,9 @@ class FileReader(object):
 				self.feat = numpy.append(self.feat,[0]*self.feat_dim) 
 				self.cur_frame_num+=1
 	'''Create first partition shared across GPU's'''	
-	def create_shared(self):
+	def create_shared(self,pad_zeros=False):
 		if self.feat is None:
-			self.read_next_partition_data()
+			self.read_next_partition_data(pad_zeros)
 		shared_x = theano.shared(self.feat, name = 'x', borrow = True)
 		shared_y = theano.shared(self.label, name = 'y', borrow = True)
 		return shared_x, shared_y
@@ -345,7 +345,7 @@ class T1FileReader(FileReader):
 			logger.debug('Datapath %s %d partition has %d frames' % (self.filepath,self.partition_num,self.cur_frame_num));
 			self.feat = self.feat.reshape([self.cur_frame_num,self.feat_dim])
 			self.feat = numpy.asarray(self.feat, dtype = theano.config.floatX)
-			self.partition_num = selget_instancef.partition_num + 1
+			self.partition_num = self.partition_num + 1
 			
 			if not self.options['keep_flatten'] :	#reshape the vector if needed
 				shape = [self.cur_frame_num];
@@ -383,7 +383,7 @@ class NPFileReader(FileReader):
 		return self.header
 	
 	def read_next_partition_data(self,already_read=0,pad_zeros=False):
-		data = numpy.fromfile(self.filehandle,dtype=self.dtype,count=self.frame_per_partition);
+		data = numpy.fromfile(self.filehandle,dtype=self.dtype,count=self.frames_per_partition);
 		self.cur_frame_num = data.__len__();
 		if self.cur_frame_num > 0:
 			self.feat = numpy.asarray(data['d'], dtype = theano.config.floatX)
@@ -393,7 +393,9 @@ class NPFileReader(FileReader):
 				self.pad_zeros(int(self.frame_per_partition)-self.cur_frame_num);
 				for x in xrange(self.num_pad_frames):
 					self.label = numpy.append(self.label,[0]*self.feat_dim) 
-
+			
+			logger.debug('Datapath %s %d partition has %d frames' % (self.filepath,self.partition_num,self.cur_frame_num));
+			
 			if not self.options['keep_flatten'] :	#reshape the vector if needed
 				shape = [self.cur_frame_num];
 				shape.extend(self.header['input_shape']);

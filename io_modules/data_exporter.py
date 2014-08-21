@@ -64,7 +64,7 @@ class  T1DataExporter(DataExporter):
 			in_child_options['filename'] = self.filehandle.readline().strip()	#filename of individual classes
 			in_child_options['reader_type'] = "TD"
 			in_child_options['label'] = idx;
-			file_reader  = read_dataset(in_child_options)[0]	#taking only one reader 
+			file_reader  = read_dataset(in_child_options,pad_zeros=True)[0]	#taking only one reader 
 			out_child_options = in_child_options.copy();
 			out_child_options['base_path'] = self.export_path;
 			out_child_options['featdim'] = out_featdim;
@@ -72,10 +72,10 @@ class  T1DataExporter(DataExporter):
 			file_writer =  write_dataset(out_child_options);
 			while (not file_reader.is_finish()):
 				for batch_index in xrange(file_reader.cur_frame_num/batch_size):
-					s_idx = batch_index*batch_size; 
-					e_idx= min(file_reader.cur_frame_num -file_reader.num_pad_frames,s_idx+batch_size);
+					s_idx = batch_index*batch_size; e_idx = s_idx + batch_size
 					data = out_fn(file_reader.feat[s_idx:e_idx])
-					file_writer.write_data(data,file_reader.label[s_idx:e_idx]);
+					e_idx= min(file_reader.cur_frame_num -file_reader.num_pad_frames,s_idx+batch_size);
+					file_writer.write_data(data[s_idx:e_idx],file_reader.label[s_idx:e_idx]);
 				file_reader.read_next_partition_data(pad_zeros=True);
 				
 
@@ -111,7 +111,7 @@ class  T2DataExporter(DataExporter):
 				in_child_options['filename'] = level2_filepath	#filename of individual classes
 				in_child_options['reader_type'] = "TD"
 				in_child_options['label'] = idx;
-				file_reader  = read_dataset(in_child_options)[0]	#taking only one reader 
+				file_reader  = read_dataset(in_child_options,pad_zeros=True)[0]	#taking only one reader 
 				out_child_options = in_child_options.copy();
 				out_child_options['base_path'] = self.export_path;	#updating the base_path
 				out_child_options['featdim'] = out_featdim;
@@ -120,13 +120,39 @@ class  T2DataExporter(DataExporter):
 				
 				while not file_reader.is_finish():
 					for batch_index in xrange(file_reader.cur_frame_num/batch_size):
-						s_idx = batch_index*batch_size; 
-						e_idx= min(file_reader.cur_frame_num - file_reader.num_pad_frames,s_idx+batch_size);
+						s_idx = batch_index * batch_size; e_idx = s_idx + batch_size
 						data = out_fn(file_reader.feat[s_idx:e_idx])
-						file_writer.write_data(data,file_reader.label[s_idx:e_idx]);
+						e_idx= min(file_reader.cur_frame_num - file_reader.num_pad_frames,s_idx+batch_size);
+						file_writer.write_data(data[s_idx:e_idx],file_reader.label[s_idx:e_idx]);
 					file_reader.read_next_partition_data(pad_zeros=True);
 			
 				level2_filepath = self.level1FileHandle.readline().strip();
 		
 		
 		
+##########################################NP DataExporter##############################################################
+'''
+	NPDataExporter focuses on exporting the features which is derived from neural network model where datset is \
+	represented as NP Dataset
+'''	
+
+class  NPDataExporter(DataExporter):
+	def __init__(self,data_spec,export_path):
+		self.data_spec = data_spec;
+		self.export_path = export_path;
+		
+	def dump_data(self,out_fn,out_featdim):
+		batch_size = self.data_spec['batch_size'];
+		file_reader  = read_dataset(self.data_spec,pad_zeros=True)[0]	#taking only one reader 
+		out_options = self.data_spec.copy();
+		out_options['base_path'] = self.export_path;	#updating the base_path
+		out_options['featdim'] = out_featdim;
+		out_options['writer_type'] = "NP"
+		file_writer =  write_dataset(out_options);
+		while not file_reader.is_finish():
+			for batch_index in xrange(file_reader.cur_frame_num/batch_size):
+				s_idx = batch_index * batch_size; e_idx = s_idx + batch_size
+				data = out_fn(file_reader.feat[s_idx:e_idx])
+				e_idx= min(file_reader.cur_frame_num - file_reader.num_pad_frames,s_idx+batch_size);
+				file_writer.write_data(data[s_idx:e_idx],file_reader.label[s_idx:e_idx]);
+			file_reader.read_next_partition_data(pad_zeros=True);

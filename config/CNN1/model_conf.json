@@ -30,7 +30,7 @@
 	"momentum" : 0.5,
 
 	"comment" : "n_outs :: Specify the number of outputs",
-	"n_outs" : 2,
+	"n_outs" : 8,
 	
 	"comment" : "l_rate_method :: Two method l_rate method are supported  C: Constant learning rate and E : Exponential decay",
 	"l_rate_method" : "C",	
