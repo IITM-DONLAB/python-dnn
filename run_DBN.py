@@ -82,7 +82,7 @@ def preTraining(nnetModel,train_sets,train_xy,train_x,train_y,model_config):
                     fe_c.append(free_energy_cost)
                 train_sets.read_next_partition_data()
             train_sets.initialize_read()
-    logger.info('Training layer %i, epoch %d, r_cost %f, fe_cost %f' % (i, epoch, numpy.mean(r_c), numpy.mean(fe_c)))
+            logger.info('Training layer %i, epoch %d, r_cost %f, fe_cost %f' % (i, epoch, numpy.mean(r_c), numpy.mean(fe_c)))
     end_time = time.clock()
     logger.info('The PreTraing ran for %.2fm' % ((end_time - start_time) / 60.))
 
@@ -114,7 +114,7 @@ def runRBM(configFile):
         # load model
         #_file2nnet(dbn.sigmoid_layers, set_layer_num = keep_layer_num, filename = current_nnet, withfinal=False)
 
-    #preTraining(dbn,train_sets,train_xy,train_x,train_y,model_config)
+    preTraining(dbn,train_sets,train_xy,train_x,train_y,model_config)
 
     # save the pretrained nnet to file
     #_nnet2file(dbn.sigmoid_layers, filename=output_file, withfinal=True)
@@ -148,7 +148,7 @@ def runRBM(configFile):
 
 
     try:
-        test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing'])        
+        test_sets, test_xy, test_x, test_y = read_dataset(data_spec['validation']) 
     except KeyError:
         #raise e
         logger.info("No testing set:Skiping Testing");

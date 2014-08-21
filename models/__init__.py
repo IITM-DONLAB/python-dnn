@@ -156,10 +156,10 @@ def testing(nnetModel,test_sets, test_xy, test_x, test_y,batch_size):
         logger.debug("Test Error (upto curr part) = %f",numpy.mean(test_error))
     test_sets.initialize_read();
 
+    test_loss=numpy.mean(test_error)
     logger.info('Optimization complete with best Test score of %f %%',test_loss * 100)
 
-
-    return test_output,numpy.mean(test_error);
+    return test_output,test_loss;
 
 def fineTunning(nnetModel,train_sets,train_xy,train_x,train_y,
         valid_sets,valid_xy,valid_x,valid_y,lrate,momentum,batch_size):
@@ -206,10 +206,11 @@ def fineTunning(nnetModel,train_sets,train_xy,train_x,train_y,
     
     end_time = time.clock()
 
-    logger.info('The Fine tunning ran for %.2fm' % ((end_time - start_time) / 60.))
-    logger.info('Optimization complete with best validation score of %f %%',err * 100)
-
     logger.info('Best validation error %f',best_validation_loss)
+
+    logger.info('The Fine tunning ran for %.2fm' % ((end_time - start_time) / 60.))
+    logger.info('Optimization complete with best validation score of %f %%', best_validation_loss * 100)
+
     return best_validation_loss
 
 
