@@ -28,6 +28,8 @@ from io_modules import setLogger
 from utils.learn_rates import LearningRate
 from models.sda import SDA
 
+from models import fineTunning,testing
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -54,68 +56,6 @@ def preTraining(layers,epochs,pretrainfns,train_sets,train_xy,corruptions,lr,bat
             err = numpy.mean(c);
             logger.info("Pre-training layer %i, epoch %d, cost %f", i, epoch,err)
     return err
-
-
-def fineTunning(train_fn,validate_fn,train_sets,train_xy,valid_sets,valid_xy,lrate,momentum,batch_size):
-
-    def valid_score():
-        valid_error = [] 
-        while not valid_sets.is_finish():
-            valid_sets.make_partition_shared(valid_xy)
-            n_valid_batches= valid_sets.cur_frame_num / batch_size;
-            validation_losses = [validate_fn(i) for i in xrange(n_valid_batches)]
-            valid_error.append(validation_losses)
-            valid_sets.read_next_partition_data()
-            logger.debug("Valid Error (upto curr part) = %f",numpy.mean(valid_error))
-        valid_sets.initialize_read();
-        return numpy.mean(valid_error);
-
-    best_validation_loss=float('Inf')
-    while (lrate.get_rate() != 0):
-        train_error = []
-        while not train_sets.is_finish():
-            train_sets.make_partition_shared(train_xy)
-            for batch_index in xrange(train_sets.cur_frame_num / batch_size):  # loop over mini-batches
-                train_error.append(train_fn(index=batch_index,
-                    learning_rate = lrate.get_rate(), momentum = momentum))
-                logger.debug('Training batch %d error %f',batch_index, numpy.mean(train_error))
-            train_sets.read_next_partition_data()
-        logger.info('Fine Tunning:epoch %d, training error %f',lrate.epoch, numpy.mean(train_error));
-        train_sets.initialize_read()
-
-        valid_error = valid_score()
-        if valid_error < best_validation_loss:
-            best_validation_loss=valid_error
-        logger.info('Fine Tunning:epoch %d, validation error %f',lrate.epoch, valid_error);
-        lrate.get_next_rate(current_error = 100 * valid_error)
-
-    logger.info('Best validation error %f',best_validation_loss)
-    return best_validation_loss
-
-def testing(test_fn,test_sets,test_xy,batch_size):
-    test_error  = []
-    test_output = numpy.array([],int);
-    while not test_sets.is_finish():
-        test_sets.make_partition_shared(test_xy)
-        n_test_batches= test_sets.cur_frame_num / batch_size;
-        for i in xrange(n_test_batches):
-            pred, err = test_fn(i)
-            test_error.append(err)
-            test_output=numpy.append(test_output,pred)
-        test_sets.read_next_partition_data()
-        logger.debug("Test Error (upto curr part) = %f",numpy.mean(test_error))
-    test_sets.initialize_read();
-    return test_output,numpy.mean(test_error);
-
-def getFeatures(sda,data_spec_testing):
-    out_function = sda.getFeaturesFunction()
-    test_sets, test_xy, test_x, test_y = read_dataset(data_spec_testing)
-    while (not test_sets.is_finish()):
-        data = out_function(test_sets.feat)
-        test_sets.read_next_partition_data()
-        #TODO write data
-
-
 
 
 def runSdA(configFile):
@@ -177,12 +117,6 @@ def runSdA(configFile):
         logger.info("Finshed")
         sys.exit(0)
 
-
-    # get the training, validation function for the model
-    logger.info('Getting the finetuning functions')
-    train_fn, validate_fn = sda.build_finetune_functions((train_x, train_y),
-             (valid_x, valid_y), batch_size=batch_size)
-    
     try:
         finetune_method = model_config['finetune_method']
         finetune_config = model_config['finetune_rate'] 
@@ -193,18 +127,8 @@ def runSdA(configFile):
         print("Fine tunning Paramters Missing")
         sys.exit(2)
 
-    
-    logger.info('Finetunning the model..');
-    
-    start_time = time.clock()
-    err=fineTunning(train_fn,validate_fn,train_sets,train_xy,
-            valid_sets,valid_xy,lrate,momentum,batch_size);
-    end_time = time.clock()
-
-    logger.info('The Fine tunning ran for %.2fm' % ((end_time - start_time) / 60.))
-    logger.info('Optimization complete with best validation score of %f %%',err * 100)
-
-
+    fineTunning(sda,train_sets,train_xy,train_x,train_y,
+        valid_sets,valid_xy,valid_x,valid_y,lrate,momentum,batch_size);
 
     try:
         test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing'])        
@@ -213,15 +137,8 @@ def runSdA(configFile):
         logger.info("No testing set:Skiping Testing");
         logger.info("Finshed")
         sys.exit(0)
-
-
-    # get the testing function for the model
-    logger.info('Getting the Test function')
-    test_fn = sda.build_test_function((test_x, test_y), batch_size=batch_size)
-
-    logger.info('Starting Testing');
-    test_pred,test_loss=testing(test_fn,test_sets,test_xy,batch_size)
-    logger.info('Optimization complete with best Test score of %f %%',test_loss * 100)
+        
+    testing(sda,test_sets, test_xy, test_x, test_y,batch_size)
 
     #print test_pred
 

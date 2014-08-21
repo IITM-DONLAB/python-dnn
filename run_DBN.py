@@ -148,7 +148,7 @@ def runRBM(configFile):
 
 
     try:
-        test_sets, test_xy, test_x, test_y = read_dataset(data_spec['validation']) 
+        test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing']) 
     except KeyError:
         #raise e
         logger.info("No testing set:Skiping Testing");

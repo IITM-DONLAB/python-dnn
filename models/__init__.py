@@ -214,8 +214,8 @@ def fineTunning(nnetModel,train_sets,train_xy,train_x,train_y,
     return best_validation_loss
 
 
-def getFeatures(dbn,data_spec_testing):
-    out_function = dbn.getFeaturesFunction()
+def getFeatures(nnetModel,data_spec_testing):
+    out_function = nnetModel.getFeaturesFunction()
     test_sets, test_xy, test_x, test_y = read_dataset(data_spec_testing)
     while (not test_sets.is_finish()):
         data = out_function(test_sets.feat)
