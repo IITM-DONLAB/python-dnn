@@ -23,10 +23,12 @@ def setLogger(level="INFO",stderr=True,name=None,logFile='python-dnn.log'):
 	# Set the level which determines what you see
 	if level == "INFO":
 		logger.setLevel(logging.INFO)
-	elif level=="DEBUG":
+	elif level == "DEBUG":
 		logger.setLevel(logging.DEBUG)
+	elif level == "ERROR":
+		logger.setLevel(logging.ERROR)		
 	else:
-		logger.setLevel(logging.ERROR)
+		logger.setLevel(logging.WARNING)
 		
 def create_folder_structure_if_not_exists(filepath):
 	import logging,os,errno

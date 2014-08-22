@@ -26,9 +26,10 @@ from theano.tensor.shared_randomstreams import RandomStreams
 #module imports
 from utils.load_conf import load_model,load_rbm_spec,load_data_spec
 from models.dbn import DBN
-from io_modules.file_io import read_dataset
+from io_modules.file_reader import read_dataset
 from io_modules import setLogger
 from utils.learn_rates import LearningRate
+from io_modules.model_io import _nnet2file, _file2nnet
 
 from models import fineTunning,testing
 
@@ -73,7 +74,8 @@ def preTraining(nnetModel,train_sets,train_xy,train_x,train_y,model_config):
             while not train_sets.is_finish():
                 train_sets.make_partition_shared(train_xy)
                 #train_sets.load_next_partition(train_xy)
-                for batch_index in xrange(train_sets.cur_frame_num / batch_size):  # loop over mini-batches
+                for batch_index in xrange(train_sets.cur_frame_num / batch_size):  
+                    # loop over mini-batches
                     #logger.info("Training For epoch %d and batch %d",epoch,batch_index)
                     [reconstruction_cost, free_energy_cost] = pretraining_fns[i](index=batch_index,
                                                                              lr=pretrain_lr,
@@ -82,7 +84,8 @@ def preTraining(nnetModel,train_sets,train_xy,train_x,train_y,model_config):
                     fe_c.append(free_energy_cost)
                 train_sets.read_next_partition_data()
             train_sets.initialize_read()
-            logger.info('Training layer %i, epoch %d, r_cost %f, fe_cost %f' % (i, epoch, numpy.mean(r_c), numpy.mean(fe_c)))
+            logger.info('Training layer %i, epoch %d, r_cost %f, fe_cost %f',
+                i, epoch, numpy.mean(r_c), numpy.mean(fe_c))
     end_time = time.clock()
     logger.info('The PreTraing ran for %.2fm' % ((end_time - start_time) / 60.))
 
@@ -105,19 +108,22 @@ def runRBM(configFile):
 
     train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
 
-    keep_layer_num=model_config['keep_layer_num']
-    batch_size=model_config['batch_size']
+    keep_layer_num = model_config['keep_layer_num']
+    batch_size = model_config['batch_size']
+    wdir = model_config['wdir']
     
     if keep_layer_num > 0:
-        #current_nnet = wdir + 'nnet.ptr.current'
+        current_nnet = wdir + '/nnet.ptr.current'
         logger.info('Initializing model from ' + str(current_nnet) + '....')
         # load model
-        #_file2nnet(dbn.sigmoid_layers, set_layer_num = keep_layer_num, filename = current_nnet, withfinal=False)
+        _file2nnet(dbn.sigmoid_layers, set_layer_num = keep_layer_num, 
+            filename = current_nnet, withfinal=False)
 
     preTraining(dbn,train_sets,train_xy,train_x,train_y,model_config)
 
     # save the pretrained nnet to file
-    #_nnet2file(dbn.sigmoid_layers, filename=output_file, withfinal=True)
+    logger.info('Saving model to ' + str(model_config['output_file']) + '....')
+    _nnet2file(dbn.sigmoid_layers, filename=model_config['output_file'], withfinal=True)
     
 
     ########################
@@ -146,6 +152,8 @@ def runRBM(configFile):
     fineTunning(dbn,train_sets,train_xy,train_x,train_y,
         valid_sets,valid_xy,valid_x,valid_y,lrate,momentum,batch_size)
 
+    logger.info('Saving model to ' + str(model_config['output_file']) + '.final ....')
+    _nnet2file(dbn.sigmoid_layers, filename=model_config['output_file']+'.final', withfinal=True)
 
     try:
         test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing']) 

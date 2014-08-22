@@ -165,6 +165,7 @@ class TDFileReader(FileReader):
 			self.partition_num = self.partition_num + 1
 			logger.debug('TD Filereader : %d frames read from %s' % (self.cur_frame_num,self.filepath))
 			if not self.options['keep_flatten'] :	#reshape the vector if needed
+				logger.debug('TD Filereader : Reshape input...')
 				shape = [self.cur_frame_num];
 				shape.extend(self.options['input_shape']);
 				self.feat = self.feat.reshape(shape);

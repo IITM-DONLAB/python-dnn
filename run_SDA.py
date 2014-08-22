@@ -23,11 +23,11 @@ import theano
 
 #module imports
 from utils.load_conf import load_model,load_sda_spec,load_data_spec
-from io_modules.file_io import read_dataset
+from io_modules.file_reader import read_dataset
 from io_modules import setLogger
 from utils.learn_rates import LearningRate
 from models.sda import SDA
-
+from io_modules.model_io import _nnet2file, _file2nnet
 from models import fineTunning,testing
 
 
@@ -104,6 +104,10 @@ def runSdA(configFile):
 
     logger.info('The PreTraing ran for %.2fm' % ((end_time - start_time) / 60.))
 
+    # save the pretrained nnet to file
+    logger.info('Saving model to ' + str(model_config['output_file']) + '....')
+    _nnet2file(dbn.sigmoid_layers, filename=model_config['output_file'], withfinal=True)
+
 
     ########################
     # FINETUNING THE MODEL #
@@ -129,6 +133,11 @@ def runSdA(configFile):
 
     fineTunning(sda,train_sets,train_xy,train_x,train_y,
         valid_sets,valid_xy,valid_x,valid_y,lrate,momentum,batch_size);
+
+        # save the pretrained nnet to file
+    logger.info('Saving model to ' + str(model_config['output_file']) + '.final ....')
+    _nnet2file(dbn.sigmoid_layers, filename=model_config['output_file']+'.final', withfinal=True)
+
 
     try:
         test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing'])        
