@@ -10,5 +10,6 @@ __pycache__/
 data/*
 *.log
 *.model
+*.model*
 *.out
 \#*#

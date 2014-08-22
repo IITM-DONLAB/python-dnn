@@ -83,6 +83,8 @@ class CNN(nnet):
 		self.finetune_cost = self.logLayer.negative_log_likelihood(self.y)
 
 		self.errors = self.logLayer.errors(self.y)
+                self.output = self.logLayer.prediction();
+
 
 	"Getting CNN Feats Outputs"
 	def build_out_function(self):
