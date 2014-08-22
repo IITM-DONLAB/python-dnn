@@ -29,7 +29,7 @@ class CNN(nnet):
 		if not theano_rng:	#if theano range not passed creating new random stream object
 			theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
 
-		self.x = T.ftensor4('x')  
+		self.x = T.tensor4('x')  
 		self.y = T.ivector('y')
 
 		self.conv_layer_num = len(conv_layer_configs) 	#counting number of convolution layers
@@ -86,9 +86,10 @@ class CNN(nnet):
 
 	"Getting CNN Feats Outputs"
 	def build_out_function(self):
-		feat = T.tensor4('feat')
-		out_da = theano.function([feat], self.conv_layers[-1].output, updates = None, givens={self.x:feat}, on_unused_input='warn')
-        	return out_da
+		feat = T.tensor4('feat', dtype=theano.config.floatX)
+		out_da = theano.function([feat], self.conv_layers[-1].output, \
+				updates = None, givens={self.x:feat}, on_unused_input='warn')
+		return out_da
 	
 	"Building fine tuning operation "
 	def build_finetune_functions(self, train_shared_xy, valid_shared_xy, batch_size):

@@ -84,5 +84,5 @@ def runCNN(configFile):
 
 	
 if __name__ == '__main__':
-	setLogger();
+	setLogger(level="DEBUG");
 	runCNN(sys.argv[1])
