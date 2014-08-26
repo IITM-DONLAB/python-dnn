@@ -62,6 +62,8 @@ def checkConfig(data,nnetType):
 		requiredKeys=['rbm_nnet_spec','output_file']
 	elif nnetType == 'SDA':
 		requiredKeys = ['sda_nnet_spec','output_file']
+	elif nnetType == 'DNN'
+		requiredKeys = ['dnn_nnet_spec','output_file']
 	else :
 		logger.error('Unknown nnet Type')
 		return False
@@ -209,7 +211,7 @@ def initModelRBM(data):
 	learning_rate = 0.08
 	batch_size=128
 	epochs=10
-        keep_layer_num=0	
+	keep_layer_num=0	
 
 	# momentum; more complicated than dnn 
 	initial_momentum = 0.5	 # initial momentum 
@@ -225,7 +227,7 @@ def initModelRBM(data):
 	if not data.has_key('pretraining_epochs') or not type(data['pretraining_epochs']) is int:
 		data['pretraining_epochs'] = epochs
 	if not data.has_key('keep_layer_num') or not type(data['keep_layer_num']) is int:
-                data['keep_layer_num'] = keep_layer_num
+		data['keep_layer_num'] = keep_layer_num
 	
 	# momentum
 	if data.has_key('initial_momentum') or not type(data['initial_momentum']) is float:
@@ -289,8 +291,103 @@ def load_sda_spec(input_file):
 
 	return data
 
+#############################################################################################
+#		DNN
+#############################################################################################
+def initModelDNN(data):
+	if not data.has_key('batch_size') or not type(data['batch_size']) is int:
+		data['batch_size']=256
+	if not data.has_key('momentum') or not type(data['momentum']) is float:
+		data['momentum']=0.5
+	
+	if not data.has_key('l_rate_method'):
+		data['l_rate_method']="C"
+	
+	if not data.has_key('l_rate'):
+		lrate_config=dict()
+		if data['l_rate_method'] == "C":
+			lrate_config['learning_rate'] = 0.08
+			lrate_config['epoch_num'] = 15
+		else:
+			lrate_config['start_rate'] = 0.08
+			lrate_config['scale_by'] = 0.08
+			lrate_config['min_derror_decay_start'] = 0.05
+			lrate_config['min_derror_stop'] = 0.05
+			lrate_config['min_epoch_decay_start'] = 15
+			lrate_config['init_error'] = 100
+		data['l_rate']=lrate_config
+	return data
+
+def load_dnn_spec(input_file):
+	logger.info("Loading net properties from %s ..",input_file)	
+	data = load_json(input_file)
+
+	if not data.has_key('hidden_layers') or not type(data['hidden_layers']) is list:
+		logger.critical(" hidden_layers is not present (or not a list) in " + str(input_file))
+		exit(1)
+
+	if not data.has_key('n_ins') or not type(data['n_ins']) is int:
+		logger.critical(" n_ins is not present (or not a int) in " + str(input_file))
+		exit(1)
+
+	if not data.has_key('n_outs') or not type(data['n_outs']) is int:
+		logger.critical(" n_outs is not present (or not a int) in " + str(input_file))
+		exit(1)
+
+	if not data.has_key('pretrained_layers') or not type(data['pretrained_layers']) is int:
+		data['pretrained_layers'] = len(data['hidden_layers'])
+		data['pretrained_file'] = None
+	elif data['pretrained_layers'] > (len(data['hidden_layers'])):
+		data['pretrained_layers'] = len(data['hidden_layers'])
+		data['pretrained_file'] = None
+	elif not data.has_key('pretrained_file'):
+		logger.critical(" pretrained_file is not present in " + str(input_file))
+		exit(1)
+
+	# regularization for hidden layer parameter
+	max_col_norm = None
+	l1_reg = None
+	l2_reg = None
+	if not data.has_key('max_col_norm') or not type(data['max_col_norm']) is float:
+		data['max_col_norm'] = max_col_norm
+	if not data.has_key('l1_reg') or not type(data['l1_reg']) is float
+		data['l1_reg'] = l1_reg
+	if not data.has_key('l2_reg') or not type(data['l2_reg']) is float
+		data['l2_reg'] = l2_reg
 
 
+	activation = "sigmoid"#T.nnet.sigmoid
+	do_maxout = False
+	pool_size = 1
+	do_pnorm = False
+	pnorm_order = 1
+
+	do_dropout = False
+	dropout_factor = [0.0]
+	input_dropout_factor = 0.0
+
+	if not data.has_key('activation') :
+		data['activation'] = 'sigmoid';
+	if not data.has_key('do_maxout') or not type(data['do_maxout']) is bool:
+		data['do_maxout'] = do_maxout
+	if not data.has_key('pool_size') or not type(data['pool_size']) is int:
+		data['pool_size'] = pool_size
+	if not data.has_key('do_pnorm') or not type(data['do_pnorm']) is bool:
+		data['do_pnorm'] = do_pnorm
+	if not data.has_key('pnorm_order') or not type(data['pnorm_order']) is int:
+		data['pnorm_order'] = pnorm_order
+
+	if not data.has_key('dropout_factor') or not type(data['dropout_factor']) is list:
+		data['do_dropout'] = do_dropout
+		data['input_dropout_factor'] = input_dropout_factor
+	else
+		data['do_dropout'] = True
+		if not data.has_key('input_dropout_factor') or type(data['input_dropout_factor']) is float:
+			data['input_dropout_factor'] = input_dropout_factor
+
+
+
+	return data
 
 ##############################################################################################
 def __debugPrintData__(data,name=None):
