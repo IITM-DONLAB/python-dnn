@@ -1,5 +1,5 @@
 
-def setLogger(level="INFO",stderr=True,logFile='python-dnn.log',name=None):
+def setLogger(stderr=True,logFile='python-dnn.log',name=None):
 	import logging,sys
 
 	#get Logger
@@ -19,16 +19,7 @@ def setLogger(level="INFO",stderr=True,logFile='python-dnn.log',name=None):
 		file_handler = logging.FileHandler(logFile)
 		file_handler.setFormatter(formatter)
 		logger.addHandler(file_handler)
-
-	# Set the level which determines what you see
-	if level == "INFO":
-		logger.setLevel(logging.INFO)
-	elif level == "DEBUG":
-		logger.setLevel(logging.DEBUG)
-	elif level == "ERROR":
-		logger.setLevel(logging.ERROR)		
-	else:
-		logger.setLevel(logging.WARNING)
+		
 		
 def create_folder_structure_if_not_exists(filepath):
 	import logging,os,errno

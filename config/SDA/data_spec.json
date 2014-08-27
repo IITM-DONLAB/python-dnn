@@ -5,8 +5,6 @@
 		"partition" : 200,
 		"random" : true,
 		"random_seed" : 123,
-		"dim_shuffle" : [0,3,2,1],
-		"batch_size": 256,
 		"keep_flatten" : true,
 		"reader_type" : "NP"
 	},
@@ -17,8 +15,6 @@
 		"partition" : 200,
 		"random" : true,
 		"random_seed" : 123,
-		"dim_shuffle" : [0,3,2,1],
-		"batch_size": 256,
 		"keep_flatten" : true,
 		"reader_type" : "NP"
 	},
@@ -29,8 +25,6 @@
 		"partition" : 200,
 		"random" : true,
 		"random_seed" : 123,
-		"dim_shuffle" : [0,3,2,1],
-		"batch_size": 256,
 		"keep_flatten" : true,
 		"reader_type" : "NP"
 	}

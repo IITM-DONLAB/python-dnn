@@ -32,7 +32,7 @@ from utils.learn_rates import LearningRate
 from utils.utils import parse_activation
 from io_modules.model_io import _nnet2file, _file2nnet
 
-from models import fineTunning,testing
+from run import fineTunning,testing,createDir
 
 
 import logging
@@ -106,7 +106,9 @@ def runRBM(arg):
     theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
 
     activationFn = parse_activation(rbm_config['activation']);
-
+ 
+    createDir(model_config['wdir']);
+    #create working dir
 
     dbn = DBN(numpy_rng=numpy_rng, theano_rng = theano_rng, n_ins=rbm_config['n_ins'],
             hidden_layers_sizes=rbm_config['hidden_layers'],n_outs=rbm_config['n_outs'],
@@ -114,7 +116,8 @@ def runRBM(arg):
             pretrainedLayers=rbm_config['pretrained_layers'],
             activation=activationFn)
 
-    train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
+    train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'],
+        model_config['batch_size'])
 
     keep_layer_num = model_config['keep_layer_num']
     batch_size = model_config['batch_size']
@@ -139,7 +142,8 @@ def runRBM(arg):
     ########################
 
     try:
-        valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'])        
+        valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'],
+            model_config['batch_size'])        
     except KeyError:
         #raise e
         logger.info("No validation set:Skiping Fine tunning");
@@ -164,7 +168,8 @@ def runRBM(arg):
     _nnet2file(dbn.sigmoid_layers, filename=model_config['output_file']+'.final', withfinal=True)
 
     try:
-        test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing']) 
+        test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing'],
+            model_config['batch_size']) 
     except KeyError:
         #raise e
         logger.info("No testing set:Skiping Testing");

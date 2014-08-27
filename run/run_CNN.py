@@ -30,7 +30,7 @@ from utils.utils import parse_activation
 from io_modules.model_io import _cnn2file,_nnet2file
 from io_modules import setLogger
 
-from models import fineTunning,testing
+from run import fineTunning,testing,createDir
 
 import logging
 logger = logging.getLogger(__name__)
@@ -39,46 +39,49 @@ logger = logging.getLogger(__name__)
 def runCNN(arg):
 	
 	if type(arg) is dict:
-		model_configs = arg
+		model_config = arg
 	else :
-		model_configs = load_model(arg,'CNN')
+		model_config = load_model(arg,'CNN')
 	
-	conv_configs,conv_layer_configs = load_conv_spec(model_configs['conv_nnet_spec'],model_configs['batch_size'],
-				model_configs['input_shape'])
+	conv_config,conv_layer_config = load_conv_spec(model_config['conv_nnet_spec'],model_config['batch_size'],
+				model_config['input_shape'])
 
-	mlp_configs = load_mlp_spec(model_configs['hidden_nnet_spec']);
-	data_spec =  load_data_spec(model_configs['data_spec']);
+	mlp_config = load_mlp_spec(model_config['hidden_nnet_spec']);
+	data_spec =  load_data_spec(model_config['data_spec']);
 	
 	numpy_rng = numpy.random.RandomState(89677)
 	theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
 	
 	logger.info('> ... building the model')
-	conv_activation = parse_activation(conv_configs['activation']);
-	hidden_activation = parse_activation(mlp_configs['activation']);
+	conv_activation = parse_activation(conv_config['activation']);
+	hidden_activation = parse_activation(mlp_config['activation']);
+
+	createDir(model_config['wdir']);
+	#create working dir
 
 	#learning rate, batch-size and momentum
-	lrate = LearningRate.get_instance(model_configs['l_rate_method'],model_configs['l_rate']);
-	batch_size = model_configs['batch_size'];
-	momentum = model_configs['momentum']
+	lrate = LearningRate.get_instance(model_config['l_rate_method'],model_config['l_rate']);
+	batch_size = model_config['batch_size'];
+	momentum = model_config['momentum']
 
-	cnn = CNN(numpy_rng,theano_rng,conv_layer_configs = conv_layer_configs, batch_size = batch_size,
-		n_outs=model_configs['n_outs'],hidden_layers_sizes=mlp_configs['layers'], conv_activation = conv_activation,
-		hidden_activation = hidden_activation,use_fast = conv_configs['use_fast'])
+	cnn = CNN(numpy_rng,theano_rng,conv_layer_configs = conv_layer_config, batch_size = batch_size,
+		n_outs=model_config['n_outs'],hidden_layers_sizes=mlp_config['layers'], conv_activation = conv_activation,
+		hidden_activation = hidden_activation,use_fast = conv_config['use_fast'])
 
-	train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
-	valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'])
+	train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'],model_config['batch_size'])
+	valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'],model_config['batch_size'])
 
 	err=fineTunning(cnn,train_sets,train_xy,train_x,train_y,
 		valid_sets,valid_xy,valid_x,valid_y,lrate,momentum,batch_size);
 	
-	_cnn2file(cnn.layers[0:cnn.conv_layer_num], filename=model_configs['conv_output_file'],activation=conv_configs['activation']);
-	_nnet2file(cnn.layers[cnn.conv_layer_num:], filename=model_configs['hidden_output_file'],activation=mlp_configs['activation']);
+	_cnn2file(cnn.layers[0:cnn.conv_layer_num], filename=model_config['conv_output_file'],activation=conv_config['activation']);
+	_nnet2file(cnn.layers[cnn.conv_layer_num:], filename=model_config['hidden_output_file'],activation=mlp_config['activation']);
 
 	####################
 	##	TESTING	 ##
 	####################
 	try:
-		test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing']) 
+		test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing'],model_config['batch_size']) 
 	except KeyError:
 		#raise e
 		logger.info("No testing set:Skiping Testing");

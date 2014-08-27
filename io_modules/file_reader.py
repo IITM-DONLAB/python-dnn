@@ -6,13 +6,13 @@ from utils.utils import dimshuffle
 import logging
 logger = logging.getLogger(__name__)
 
-def read_dataset(options,pad_zeros=False):
+def read_dataset(options,batch_size,pad_zeros=False):
 	filepath =   options['base_path'] + os.sep + options['filename'];
 	logger.info("%s dataset will be initialized to reader to %s",
 				options['reader_type'],filepath);
 	logger.debug("options : %s" % str(options))	
 				
-	file_reader = FileReader.get_instance(filepath,options)
+	file_reader = FileReader.get_instance(filepath,batch_size,options)
 	file_header = file_reader.read_file_info()
 
 	shared_xy = file_reader.create_shared(pad_zeros)
@@ -39,16 +39,16 @@ class FileReader(object):
 	num_pad_frames = 0;
 	
 	@staticmethod
-	def get_instance(filepath,options):
+	def get_instance(filepath,batch_size,options):
 		file_reader = None;
 		if options['reader_type']=='NP':
-			file_reader = NPFileReader(filepath,options);
+			file_reader = NPFileReader(filepath,batch_size,options);
 		elif options['reader_type']=='TD':
-			file_reader = TDFileReader(filepath,options);
+			file_reader = TDFileReader(filepath,batch_size,options);
 		elif options['reader_type']=='T1':
-			file_reader = T1FileReader(filepath,options);
+			file_reader = T1FileReader(filepath,batch_size,options);
 		elif options['reader_type']=='T2':
-			file_reader = T2FileReader(filepath,options);
+			file_reader = T2FileReader(filepath,batch_size,options);
 		else:
 			logger.critical('\'%s\'  reader_type is not defined...'\
 						%options['reader_type'])
@@ -125,9 +125,10 @@ class FileReader(object):
 
 class TDFileReader(FileReader):
 	''' Reads the data stored in as Simple Text File'''
-	def __init__(self,path,options):
+	def __init__(self,path,batch_size,options):
 		self.filepath = path;
-		self.options=options;
+		self.options = options;
+		self.batch_size = batch_size
 		self.lbl = options['label'];
 		self.filehandle = open(self.filepath,'rb')
 		
@@ -141,7 +142,7 @@ class TDFileReader(FileReader):
 		#self.frames_remaining = long(self.header[1])
 		# partitions specifies approximate amount data to be loaded one operation
 		self.frames_per_partition= self.options['partition'] *1000*1000/ (self.feat_dim * 4)
-		batch_residual = self.frames_per_partition% self.options['batch_size']
+		batch_residual = self.frames_per_partition% self.batch_size
 		self.frames_per_partition = self.frames_per_partition - batch_residual
 		return self.header
 		
@@ -191,9 +192,10 @@ class TDFileReader(FileReader):
 
 class T2FileReader(FileReader):
 	''' Reads the data stored in as Simple Text File With Two level header structure'''
-	def __init__(self,path,options):
+	def __init__(self,path,batch_size,options):
 		self.filepath = path;
 		self.options=options;
+		self.batch_size=batch_size
 		self.filehandle = open(self.filepath,'rb')
 		
 	def read_file_info(self):
@@ -213,7 +215,7 @@ class T2FileReader(FileReader):
 		self.header['featdim'] = self.feat_dim
 		self.header['classes'] = self.classes
 		
-		batch_size = self.options['batch_size']
+		batch_size = self.batch_size
 		
 		# partitions specifies approximate amount data to be loaded one operation
 		self.frames_per_partition = self.options['partition'] *1000*1000/ (self.feat_dim * 4)
@@ -276,6 +278,7 @@ class T2FileReader(FileReader):
 			self.partition_num = self.partition_num + 1
 			
 			if not self.options['keep_flatten'] :	#reshape the vector if needed
+				logger.debug('T2 Filereader : Reshape input...')
 				shape = [self.cur_frame_num];
 				shape.extend(self.options['input_shape']);
 				self.feat = self.feat.reshape(shape);
@@ -297,8 +300,9 @@ class T2FileReader(FileReader):
 
 class T1FileReader(FileReader):
 	''' Reads the data stored in as Simple Text File With One level header structure'''
-	def __init__(self,path,options):
+	def __init__(self,path,batch_size,options):
 		self.filepath = path;
+		self.batch_size = batch_size
 		self.options=options;
 		self.filehandle = open(self.filepath,'rb')
 		
@@ -314,7 +318,7 @@ class T1FileReader(FileReader):
 		
 		self.header = {};
 		self.header['featdim'] = self.feat_dim
-		batch_size = self.options['batch_size']
+		batch_size = self.batch_size
 		
 		logger.debug('T1 Filereader : feat : %d' % self.feat_dim)
 		
@@ -370,6 +374,7 @@ class T1FileReader(FileReader):
 			self.partition_num = self.partition_num + 1
 			
 			if not self.options['keep_flatten'] :	#reshape the vector if needed
+				logger.debug('T1 Filereader : Reshape input...')
 				shape = [self.cur_frame_num];
 				shape.extend(self.options['input_shape']);
 				self.feat = self.feat.reshape(shape);
@@ -388,8 +393,9 @@ class T1FileReader(FileReader):
 
 class NPFileReader(FileReader):
 	''' Reads the data stored in as Numpy Array'''
-	def __init__(self,path,options):
+	def __init__(self,path,batch_size,options):
 		self.filepath = path;
+		self.batch_size = batch_size
 		self.options=options;
 		self.filehandle = open(self.filepath,'rb')
 		
@@ -400,7 +406,7 @@ class NPFileReader(FileReader):
 		logger.debug("NP Filereader : feats : %d"% self.feat_dim);
 		# partitions specifies approximate amount data to be loaded one operation
 		self.frames_per_partition= self.options['partition'] *1000*1000/ (self.feat_dim * 4)
-		batch_residual = self.frames_per_partition% self.options['batch_size']
+		batch_residual = self.frames_per_partition% self.batch_size
 		self.frames_per_partition= self.frames_per_partition- batch_residual
 		self.dtype = numpy.dtype({'names': ['d','l'],'formats': [('>f2',self.feat_dim),'>i2']})
 		return self.header
@@ -417,9 +423,11 @@ class NPFileReader(FileReader):
 				for x in xrange(self.num_pad_frames):
 					self.label = numpy.append(self.label,[0]*self.feat_dim) 
 			
-			logger.debug('NP Filereader : from file %s, %d partition has %d frames' % (self.filepath,self.partition_num,self.cur_frame_num));
+			logger.debug('NP Filereader : from file %s, %d partition has %d frames',
+				self.filepath,self.partition_num,self.cur_frame_num);
 			
 			if not self.options['keep_flatten'] :	#reshape the vector if needed
+				logger.debug('NP Filereader : Reshape input...')
 				shape = [self.cur_frame_num];
 				shape.extend(self.header['input_shape']);
 				self.feat = self.feat.reshape(shape);
