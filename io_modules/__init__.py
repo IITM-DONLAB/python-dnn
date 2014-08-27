@@ -1,5 +1,5 @@
 
-def setLogger(level="INFO",stderr=True,name=None,logFile='python-dnn.log'):
+def setLogger(level="INFO",stderr=True,logFile='python-dnn.log',name=None):
 	import logging,sys
 
 	#get Logger

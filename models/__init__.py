@@ -11,6 +11,7 @@ class nnet(object):
 		self.params = [];
 		self.delta_params = [];
 		self.n_layers = 0;
+		self.type = None;
 
 		# allocate symbolic variables for the data
 		self.x = T.matrix('x')  # the data is presented as rasterized images
@@ -21,6 +22,9 @@ class nnet(object):
 		self.features = None
 		self.errors = None
 		self.finetune_cost = None
+
+	def getType(self):
+		return self.type
 
 	def pretraining_functions(self, train_x, batch_size):
 		"""

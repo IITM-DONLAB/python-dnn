@@ -36,8 +36,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def runCNN(configFile):
-	model_configs = load_model(configFile,'CNN')
+def runCNN(arg):
+	
+	if type(arg) is dict:
+		model_configs = arg
+	else :
+		model_configs = load_model(arg,'CNN')
+	
 	conv_configs,conv_layer_configs = load_conv_spec(model_configs['conv_nnet_spec'],model_configs['batch_size'],
 				model_configs['input_shape'])
 

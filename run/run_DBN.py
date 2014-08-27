@@ -89,9 +89,13 @@ def preTraining(nnetModel,train_sets,train_xy,train_x,train_y,model_config):
     end_time = time.clock()
     logger.info('The PreTraing ran for %.2fm' % ((end_time - start_time) / 60.))
 
-def runRBM(configFile):
+def runRBM(arg):
 
-    model_config = load_model(configFile)
+    if type(arg) is dict:
+        model_config = arg
+    else :
+        model_config = load_model(arg,'RBM')
+
     rbm_config = load_rbm_spec(model_config['rbm_nnet_spec'])
     data_spec =  load_data_spec(model_config['data_spec']);
 

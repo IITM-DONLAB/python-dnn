@@ -6,13 +6,13 @@
 	"wdir" : "wdir",
 
 	"comment" : "valid_data (Mandatory) specify the path of the validation data relative to the working directory",
-	"data_spec" : "config/CNN1/data_spec.json",
+	"data_spec" : "data_spec.json",
 	
 	"comment" : "hidden_nnet_spec :: (Mandatory) specify the path of hidden network configuration specification relative to working directory",
-	"hidden_nnet_spec" : "config/CNN1/mlp_spec.json",
+	"hidden_nnet_spec" : "mlp_spec.json",
 	
 	"comment" : "conv_nnet_spec :: (Mandatory) specify the path of convolution network configuration specification relative to working directory",
-	"conv_nnet_spec" : "config/CNN1/conv_spec.json",
+	"conv_nnet_spec" : "conv_spec.json",
 
 	"comment" : "hidden_output_file :: (Mandatory) specify the path of convolution network output file relative to working directory",
 	"hidden_output_file" : "hidden_out.model",

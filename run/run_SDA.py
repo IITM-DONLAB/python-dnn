@@ -58,9 +58,13 @@ def preTraining(layers,epochs,pretrainfns,train_sets,train_xy,corruptions,lr,bat
     return err
 
 
-def runSdA(configFile):
+def runSdA(arg):
 
-    model_config = load_model(configFile)
+    if type(arg) is dict:
+        model_config = arg
+    else :
+        model_config = load_model(arg,'SDA')
+        
     sda_config = load_sda_spec(model_config['sda_nnet_spec'])
     data_spec =  load_data_spec(model_config['data_spec']);
 

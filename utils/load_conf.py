@@ -1,4 +1,5 @@
 from json import load as jsonLoad
+from utils import makeAbsolute,pathSep
 
 import logging
 logger = logging.getLogger(__name__)
@@ -32,6 +33,16 @@ def load_model(input_file,nnetType=None):
 		logger.critical(" the mandatory arguments are missing in model properties file..")
 		exit(1)
 
+	specPaths=['data_spec','conv_nnet_spec','hidden_nnet_spec',
+				'rbm_nnet_spec','sda_nnet_spec']
+
+	data = correctPath(data,specPaths,input_file);
+
+	outputFiles=['output_file','conv_output_file',
+				'hidden_output_file','export_path']
+
+	data = correctPath(data,outputFiles,data['wdir']+pathSep);
+
 	#init Default Values or update from Json.
 	if nnetType == 'CNN':
 		data = initModelCNN(data)
@@ -46,7 +57,11 @@ def load_model(input_file,nnetType=None):
 	#__debugPrintData__(data,'model');
 	return data;
 
-
+def correctPath(data,keys,basePath):
+	for key in keys:
+		if data.has_key(key):
+			data[key] = makeAbsolute(data[key],basePath)
+	return data
 
 def checkConfig(data,nnetType):
 	if not data.has_key('data_spec'): 
@@ -209,7 +224,7 @@ def initModelRBM(data):
 	learning_rate = 0.08
 	batch_size=128
 	epochs=10
-        keep_layer_num=0	
+	keep_layer_num=0
 
 	# momentum; more complicated than dnn 
 	initial_momentum = 0.5	 # initial momentum 
@@ -302,4 +317,4 @@ def __debugPrintData__(data,name=None):
 #	#config_list = load_model(sys.argv[1])
 #	config_list = load_conv_spec(sys.argv[1],256,[1,29,29,29])
 #	print config_list;
-	
+
