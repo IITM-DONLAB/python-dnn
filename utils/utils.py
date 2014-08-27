@@ -35,12 +35,17 @@ def dimshuffle(a,shuffle):
 	return a
 
 
-def parse_activation(act_str):
-    if act_str == 'sigmoid':
-        return T.nnet.sigmoid
-    if act_str == 'tanh':
+def parse_activation(activation):
+    if activation == 'tanh':
         return T.tanh
-    return T.nnet.sigmoid
+    elif activation == 'sigmoid':
+        return T.nnet.sigmoid
+    elif activation == 'relu':
+        return lambda x: x * (x > 0)
+    elif activation == 'cappedrelu':
+        return lambda x: T.minimum(x * (x > 0), 6)
+    else:
+        raise NotImplementedError
 
 def activation_to_txt(act_func):
     if act_func == T.nnet.sigmoid:

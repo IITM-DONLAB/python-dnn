@@ -25,7 +25,7 @@ class DBN(nnet):
 
     def __init__(self, numpy_rng, theano_rng=None, n_ins=784,
                  hidden_layers_sizes=[500, 500], n_outs=10,
-                 first_layer_gb = True,pretrainedLayers=None):
+                 first_layer_gb = True,pretrainedLayers=None,activation=T.nnet.sigmoid):
         """This class is made to support a variable number of layers.
 
         :type numpy_rng: numpy.random.RandomState
@@ -101,7 +101,7 @@ class DBN(nnet):
                                         input=layer_input,
                                         n_in=input_size,
                                         n_out=hidden_layers_sizes[i],
-                                        activation=T.nnet.sigmoid)
+                                        activation=activation)
 
             # add the layer to our list of layers
             self.sigmoid_layers.append(sigmoid_layer)
@@ -122,7 +122,8 @@ class DBN(nnet):
                               n_visible=input_size,
                               n_hidden=hidden_layers_sizes[i],
                               W=sigmoid_layer.W,
-                              hbias=sigmoid_layer.b)
+                              hbias=sigmoid_layer.b,
+                              activation=activation)
             else:
                 rbm_layer = RBM(numpy_rng=numpy_rng,
                               theano_rng=theano_rng,
@@ -130,7 +131,8 @@ class DBN(nnet):
                               n_visible=input_size,
                               n_hidden=hidden_layers_sizes[i],
                               W=sigmoid_layer.W,
-                              hbias=sigmoid_layer.b)
+                              hbias=sigmoid_layer.b,
+                              activation=activation)
             self.rbm_layers.append(rbm_layer)            
 
         # We now need to add a logistic layer on top of the MLP

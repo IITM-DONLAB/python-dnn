@@ -98,10 +98,22 @@ def load_data_spec(input_file):
 	logger.info("Loading data specification properties from %s..",input_file)
 	data = load_json(input_file);
 	for x in ['training','testing','validation']:
+		logger.debug('Validating data specification: %s',x)
+		requiredKeys=['base_path','filename','partition','reader_type']
+
 		if not data.has_key(x):
 			continue;
 		if not data[x].has_key('keep_flatten') or not type(data[x]['keep_flatten']) is bool:
-			data[x]['keep_flatten']=False
+			data[x]['keep_flatten'] = False
+		
+		if not data[x]['keep_flatten'] :
+			requiredKeys.append('dim_shuffle');
+		if not data[x].has_key('random') or not type(data[x]['keep_flatten']) is bool:
+			data[x]['keep_flatten'] = True
+		
+		if not isKeysPresents(data[x],requiredKeys):
+			logger.critical("The mandatory arguments are missing in data spec(%s)",x)
+			exit(1)
 	return data
 
 

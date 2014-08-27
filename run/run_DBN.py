@@ -29,6 +29,7 @@ from models.dbn import DBN
 from io_modules.file_reader import read_dataset
 from io_modules import setLogger
 from utils.learn_rates import LearningRate
+from utils.utils import parse_activation
 from io_modules.model_io import _nnet2file, _file2nnet
 
 from models import fineTunning,testing
@@ -104,11 +105,14 @@ def runRBM(arg):
     numpy_rng = numpy.random.RandomState(rbm_config['random_seed'])
     theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
 
+    activationFn = parse_activation(rbm_config['activation']);
+
 
     dbn = DBN(numpy_rng=numpy_rng, theano_rng = theano_rng, n_ins=rbm_config['n_ins'],
             hidden_layers_sizes=rbm_config['hidden_layers'],n_outs=rbm_config['n_outs'],
             first_layer_gb = rbm_config['first_layer_gb'],
-            pretrainedLayers=rbm_config['pretrained_layers'])
+            pretrainedLayers=rbm_config['pretrained_layers'],
+            activation=activationFn)
 
     train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
 

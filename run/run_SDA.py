@@ -22,12 +22,14 @@ import numpy
 import theano
 
 #module imports
-from utils.load_conf import load_model,load_sda_spec,load_data_spec
+from io_modules.model_io import _nnet2file, _file2nnet
 from io_modules.file_reader import read_dataset
 from io_modules import setLogger
 from utils.learn_rates import LearningRate
+from utils.utils import parse_activation
+from utils.load_conf import load_model,load_sda_spec,load_data_spec
+
 from models.sda import SDA
-from io_modules.model_io import _nnet2file, _file2nnet
 from models import fineTunning,testing
 
 
@@ -75,11 +77,14 @@ def runSdA(arg):
     numpy_rng = numpy.random.RandomState(sda_config['random_seed'])
     #theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
 
+    #get Activation function
+    activationFn = parse_activation(sda_config['activation']); 
+
     logger.info('building the model')
     # construct the stacked denoising autoencoder class
     sda = SDA(numpy_rng=numpy_rng, n_ins=sda_config['n_ins'],
               hidden_layers_sizes=sda_config['hidden_layers'],
-              n_outs=sda_config['n_outs'])
+              n_outs=sda_config['n_outs'],activation=activationFn)
 
 
 
