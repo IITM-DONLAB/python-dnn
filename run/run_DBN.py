@@ -115,64 +115,72 @@ def runRBM(arg):
     wdir = model_config['wdir']
     
 
-    dbn = DBN(numpy_rng=numpy_rng, theano_rng = theano_rng, n_ins=rbm_config['n_ins'],
-            hidden_layers_sizes=rbm_config['hidden_layers'],n_outs=rbm_config['n_outs'],
+    dbn = DBN(numpy_rng=numpy_rng, theano_rng = theano_rng, n_ins=model_config['n_ins'],
+            hidden_layers_sizes=rbm_config['hidden_layers'],n_outs=model_config['n_outs'],
             first_layer_gb = rbm_config['first_layer_gb'],
             pretrainedLayers=rbm_config['pretrained_layers'],
             activation=activationFn)
 
+    #########################
+    # PRETRAINING THE MODEL #
+    #########################
+    if model_config['processes']['pretraining']:
+        
+        train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'],
+            model_config['batch_size'])
 
-    train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'],
-        model_config['batch_size'])
+        if keep_layer_num > 0:
+            current_nnet = wdir + '/nnet.ptr.current'
+            logger.info('Initializing model from ' + str(current_nnet) + '....')
+            # load model
+            _file2nnet(dbn.sigmoid_layers, set_layer_num = keep_layer_num, 
+                filename = current_nnet, withfinal=False)
 
-    if keep_layer_num > 0:
-        current_nnet = wdir + '/nnet.ptr.current'
-        logger.info('Initializing model from ' + str(current_nnet) + '....')
-        # load model
-        _file2nnet(dbn.sigmoid_layers, set_layer_num = keep_layer_num, 
-            filename = current_nnet, withfinal=False)
-
-    preTraining(dbn,train_sets,train_xy,train_x,train_y,model_config)
+        preTraining(dbn,train_sets,train_xy,train_x,train_y,model_config)
 
 
     ########################
     # FINETUNING THE MODEL #
     ########################
+    if model_config['processes']['finetuning']:
+        try:
+            train_sets
+        except NameError :
+            train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'],
+                    model_config['batch_size'])
+        try:
+            valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'],
+                model_config['batch_size'])        
+        except KeyError:
+            #raise e
+            logger.info("No validation set:Skiping Fine tunning");
+        else:    
+            try:
+                finetune_method = model_config['finetune_method']
+                finetune_config = model_config['finetune_rate'] 
+                momentum = model_config['finetune_momentum']
+                lrate = LearningRate.get_instance(finetune_method,finetune_config);        
+            except KeyError, e:
+                print("KeyMissing:"+str(e));
+                print("Fine tunning Paramters Missing")
+                sys.exit(2)
 
-    try:
-        valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'],
-            model_config['batch_size'])        
-    except KeyError:
-        #raise e
-        logger.info("No validation set:Skiping Fine tunning");
-        logger.info("Finshed")
-        sys.exit(0)
 
-    try:
-        finetune_method = model_config['finetune_method']
-        finetune_config = model_config['finetune_rate'] 
-        momentum = model_config['finetune_momentum']
-        lrate = LearningRate.get_instance(finetune_method,finetune_config);        
-    except KeyError, e:
-        print("KeyMissing:"+str(e));
-        print("Fine tunning Paramters Missing")
-        sys.exit(2)
+            fineTunning(dbn,train_sets,train_xy,train_x,train_y,
+                valid_sets,valid_xy,valid_x,valid_y,lrate,momentum,batch_size)
 
-
-    fineTunning(dbn,train_sets,train_xy,train_x,train_y,
-        valid_sets,valid_xy,valid_x,valid_y,lrate,momentum,batch_size)
-
-
-    try:
-        test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing'],
-            model_config['batch_size']) 
-    except KeyError:
-        #raise e
-        logger.info("No testing set:Skiping Testing");
-        logger.info("Finshed")
-        sys.exit(0)
-
-    testing(dbn,test_sets, test_xy, test_x, test_y,batch_size)
+    ########################
+    #  TESTING THE MODEL   #
+    ########################
+    if model_config['processes']['testing']:
+        try:
+            test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing'],
+                model_config['batch_size']) 
+        except KeyError:
+            #raise e
+            logger.info("No testing set:Skiping Testing");
+        else:
+            testing(dbn,test_sets, test_xy, test_x, test_y,batch_size)
 
     logger.info('Saving model to ' + str(model_config['output_file']) + ' ....')
     _nnet2file(dbn.sigmoid_layers, filename=model_config['output_file'], withfinal=True)

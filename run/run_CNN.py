@@ -59,37 +59,41 @@ def runCNN(arg):
 	createDir(model_config['wdir']);
 	#create working dir
 
-	#learning rate, batch-size and momentum
-	lrate = LearningRate.get_instance(model_config['l_rate_method'],model_config['l_rate']);
-	batch_size = model_config['batch_size'];
-	momentum = model_config['momentum']
-
 	cnn = CNN(numpy_rng,theano_rng,conv_layer_configs = conv_layer_config, batch_size = batch_size,
-		n_outs=model_config['n_outs'],hidden_layers_sizes=mlp_config['layers'], conv_activation = conv_activation,
-		hidden_activation = hidden_activation,use_fast = conv_config['use_fast'])
+			n_outs=model_config['n_outs'],hidden_layers_sizes=mlp_config['layers'], 
+			conv_activation = conv_activation,hidden_activation = hidden_activation,
+			use_fast = conv_config['use_fast'])
 
-	train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'],model_config['batch_size'])
-	valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'],model_config['batch_size'])
+	if model_config['processes']['finetuning']:
+		
+		#learning rate, batch-size and momentum
+		lrate = LearningRate.get_instance(model_config['l_rate_method'],model_config['l_rate']);
+		batch_size = model_config['batch_size'];
+		momentum = model_config['momentum']
 
-	err=fineTunning(cnn,train_sets,train_xy,train_x,train_y,
-		valid_sets,valid_xy,valid_x,valid_y,lrate,momentum,batch_size);
-	
-	_cnn2file(cnn.layers[0:cnn.conv_layer_num], filename=model_config['conv_output_file'],activation=conv_config['activation']);
-	_nnet2file(cnn.layers[cnn.conv_layer_num:], filename=model_config['hidden_output_file'],activation=mlp_config['activation']);
+		train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'],model_config['batch_size'])
+		valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'],model_config['batch_size'])
+
+		err=fineTunning(cnn,train_sets,train_xy,train_x,train_y,
+			valid_sets,valid_xy,valid_x,valid_y,lrate,momentum,batch_size);
+
 
 	####################
 	##	TESTING	 ##
 	####################
-	try:
-		test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing'],model_config['batch_size']) 
-	except KeyError:
-		#raise e
-		logger.info("No testing set:Skiping Testing");
-		logger.info("Finshed")
-		sys.exit(0)
+	if model_config['processes']['testing']:
+		try:
+			test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing'],model_config['batch_size']) 
+		except KeyError:
+			#raise e
+			logger.info("No testing set:Skiping Testing");
+			logger.info("Finshed")
+			sys.exit(0)
 
-	pred,err=testing(cnn,test_sets, test_xy, test_x, test_y,batch_size)
+		pred,err=testing(cnn,test_sets, test_xy, test_x, test_y,batch_size)
 
+	_cnn2file(cnn.layers[0:cnn.conv_layer_num], filename=model_config['conv_output_file'],activation=conv_config['activation']);
+	_nnet2file(cnn.layers[cnn.conv_layer_num:], filename=model_config['hidden_output_file'],activation=mlp_config['activation']);
 	
 if __name__ == '__main__':
 	setLogger(level="DEBUG");

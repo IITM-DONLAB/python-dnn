@@ -18,16 +18,11 @@ def load_model(input_file,nnetType=None):
 	data = load_json(input_file)
 
 	#checking nnetType
-	if nnetType==None:
-                try:
-                        nnetType=data['nnetType']
-                except KeyError, e:
-			logger.critical(" 'nnetType' is missing in model properties file..")
-			exit(1)
-	else :
-		if data.has_key('nnetType') and nnetType!=data['nnetType']:
-			logger.critical(" 'nnetType' is not Matching..")
-			exit(1)
+	try:
+		nnetType=data['nnetType']
+	except KeyError, e:
+		logger.critical(" 'nnetType' is missing in model properties file..")
+		exit(1)
 
 	if checkConfig(data,nnetType):
 		logger.critical(" the mandatory arguments are missing in model properties file..")
@@ -40,8 +35,9 @@ def load_model(input_file,nnetType=None):
                      'hidden_output_file','export_path']
 	data = correctPath(data,outputFiles,data['wdir']+pathSep);
 
-        #init Default Values in processes.
-        data['processes'] = initProcesses(data['processes'])
+	#init Default Values in processes.
+	data['processes'] = initProcesses(data['processes'])
+	
 	#init Default Values or update from Json.
 	if nnetType == 'CNN':
 		data = initModelCNN(data)
@@ -74,10 +70,17 @@ def correctPath(data,keys,basePath):
 	return data
 
 def checkConfig(data,nnetType):
-	requiredKeys = ['data_spec','wdir','processes','nnet_spec','output_file']
+	requiredKeys = [
+		'data_spec','wdir','processes',
+		'nnet_spec','output_file','n_outs'
+		]
 	if isKeysPresents(data,requiredKeys):
 		return False
-	return True
+	if data.has_key('n_ins') or data.has_key('input_shape'):
+		return True
+	else:
+		logger.error('Neither n_ins nor input_shape is present')
+		return False
 
 def isKeysPresents(data,requiredKeys):
 	for key in requiredKeys:
@@ -108,11 +111,6 @@ def load_data_spec(input_file):
 			logger.critical("The mandatory arguments are missing in data spec(%s)",x)
 			exit(1)
 	return data
-
-
-def load_mlp_spec(input_file):
-	logger.info("Loading mlp properties from %s ...",input_file)
-	return load_json(input_file);
 
 
 #############################################################################
@@ -191,14 +189,6 @@ def load_rbm_spec(input_file):
 
 	if not data.has_key('hidden_layers') or not type(data['hidden_layers']) is list:
 		logger.critical(" hidden_layers is not present (or not a list) in " + str(input_file))
-		exit(1)
-
-	if not data.has_key('n_ins') or not type(data['n_ins']) is int:
-		logger.critical(" n_ins is not present (or not a int) in " + str(input_file))
-		exit(1)
-
-	if not data.has_key('n_outs') or not type(data['n_outs']) is int:
-		logger.critical(" n_outs is not present (or not a int) in " + str(input_file))
 		exit(1)
 
 
@@ -287,13 +277,6 @@ def load_sda_spec(input_file):
 	if not data.has_key('hidden_layers') or not type(data['hidden_layers']) is list:
 		logger.critical(" hidden_layers is not present (or not a list) in " + str(input_file))
 		exit(1)
-	if not data.has_key('n_ins') or not type(data['n_ins']) is int:
-		logger.critical(" n_ins is not present (or not a int) in " + str(input_file))
-		exit(1)
-	if not data.has_key('n_outs') or not type(data['n_outs']) is int:
-		logger.critical(" n_outs is not present (or not a int) in " + str(input_file))
-		exit(1)
-
 
 	if not data.has_key('corruption_levels') or not type(data['corruption_levels']) is list:
 		logger.critical(" corruption_levels is not present (or not a list) in " + str(input_file))
