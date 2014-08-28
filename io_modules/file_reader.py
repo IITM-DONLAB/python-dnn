@@ -6,13 +6,13 @@ from utils.utils import dimshuffle
 import logging
 logger = logging.getLogger(__name__)
 
-def read_dataset(options,batch_size,pad_zeros=False):
+def read_dataset(options,pad_zeros=False):
 	filepath =   options['base_path'] + os.sep + options['filename'];
 	logger.info("%s dataset will be initialized to reader to %s",
 				options['reader_type'],filepath);
 	logger.debug("options : %s" % str(options))	
 				
-	file_reader = FileReader.get_instance(filepath,batch_size,options)
+	file_reader = FileReader.get_instance(filepath,options)
 	file_header = file_reader.read_file_info()
 
 	shared_xy = file_reader.create_shared(pad_zeros)
@@ -39,16 +39,16 @@ class FileReader(object):
 	num_pad_frames = 0;
 	
 	@staticmethod
-	def get_instance(filepath,batch_size,options):
+	def get_instance(filepath,options):
 		file_reader = None;
 		if options['reader_type']=='NP':
-			file_reader = NPFileReader(filepath,batch_size,options);
+			file_reader = NPFileReader(filepath,options);
 		elif options['reader_type']=='TD':
-			file_reader = TDFileReader(filepath,batch_size,options);
+			file_reader = TDFileReader(filepath,options);
 		elif options['reader_type']=='T1':
-			file_reader = T1FileReader(filepath,batch_size,options);
+			file_reader = T1FileReader(filepath,options);
 		elif options['reader_type']=='T2':
-			file_reader = T2FileReader(filepath,batch_size,options);
+			file_reader = T2FileReader(filepath,options);
 		else:
 			logger.critical('\'%s\'  reader_type is not defined...'\
 						%options['reader_type'])
@@ -125,10 +125,10 @@ class FileReader(object):
 
 class TDFileReader(FileReader):
 	''' Reads the data stored in as Simple Text File'''
-	def __init__(self,path,batch_size,options):
+	def __init__(self,path,options):
 		self.filepath = path;
 		self.options = options;
-		self.batch_size = batch_size
+		self.batch_size = options['batch_size']
 		self.lbl = options['label'];
 		self.filehandle = open(self.filepath,'rb')
 		
@@ -192,10 +192,10 @@ class TDFileReader(FileReader):
 
 class T2FileReader(FileReader):
 	''' Reads the data stored in as Simple Text File With Two level header structure'''
-	def __init__(self,path,batch_size,options):
+	def __init__(self,path,options):
 		self.filepath = path;
 		self.options=options;
-		self.batch_size=batch_size
+		self.batch_size = options['batch_size']
 		self.filehandle = open(self.filepath,'rb')
 		
 	def read_file_info(self):
@@ -300,10 +300,10 @@ class T2FileReader(FileReader):
 
 class T1FileReader(FileReader):
 	''' Reads the data stored in as Simple Text File With One level header structure'''
-	def __init__(self,path,batch_size,options):
+	def __init__(self,path,options):
 		self.filepath = path;
-		self.batch_size = batch_size
 		self.options=options;
+		self.batch_size = options['batch_size']
 		self.filehandle = open(self.filepath,'rb')
 		
 	def read_file_info(self):
@@ -334,7 +334,7 @@ class T1FileReader(FileReader):
 			child_options['label']= i;
 			child_options['keep_flatten'] = True
 			data_file = child_options['base_path'] + os.sep + child_options['filename']
-			self.filehandles.append(TDFileReader(data_file,self.batch_size,child_options));
+			self.filehandles.append(TDFileReader(data_file,child_options));
 			self.filehandles[-1].read_file_info();
 			
 		if self.frames_per_partition < self.classes:
@@ -393,10 +393,10 @@ class T1FileReader(FileReader):
 
 class NPFileReader(FileReader):
 	''' Reads the data stored in as Numpy Array'''
-	def __init__(self,path,batch_size,options):
+	def __init__(self,path,options):
 		self.filepath = path;
-		self.batch_size = batch_size
 		self.options=options;
+		self.batch_size = options['batch_size']
 		self.filehandle = open(self.filepath,'rb')
 		
 	def read_file_info(self):

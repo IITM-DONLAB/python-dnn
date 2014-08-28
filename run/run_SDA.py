@@ -68,11 +68,10 @@ def runSdA(arg):
         model_config = load_model(arg,'SDA')
         
     sda_config = load_sda_spec(model_config['nnet_spec'])
-    data_spec =  load_data_spec(model_config['data_spec']);
+    data_spec =  load_data_spec(model_config['data_spec'],model_config['batch_size']);
 
 
-    train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'],
-                model_config['batch_size'])
+    train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
 
     # numpy random generator
     numpy_rng = numpy.random.RandomState(sda_config['random_seed'])
@@ -127,8 +126,7 @@ def runSdA(arg):
     ########################
 
     try:
-        valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'],
-            model_config['batch_size'])
+        valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'])
     except KeyError:
         #raise e
         logger.info("No validation set:Skiping Fine tunning");
@@ -154,8 +152,7 @@ def runSdA(arg):
 
 
     try:
-        test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing'],
-            model_config['batch_size'])        
+        test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing'])        
     except KeyError:
         #raise e
         logger.info("No testing set:Skiping Testing");

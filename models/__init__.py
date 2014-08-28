@@ -19,6 +19,7 @@ class nnet(object):
 		#placeholders
 		self.output = None
 		self.features = None
+		self.features_dim = None
 		self.errors = None
 		self.finetune_cost = None
 
@@ -129,7 +130,7 @@ class nnet(object):
 		A function takes input features 
 		"""
 		#in_x = T.matrix('in_x');
-		in_x = x.type('in_x');
-		fn = theano.function(inputs=[in_x],outputs=[self.features],
+		in_x = self.x.type('in_x');
+		fn = theano.function(inputs=[in_x],outputs=self.features,
 			givens={self.x: in_x},name='features')#,on_unused_input='warn')
 		return fn

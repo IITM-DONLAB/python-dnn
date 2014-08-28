@@ -87,7 +87,7 @@ def isKeysPresents(data,requiredKeys):
 	return True
 	
 
-def load_data_spec(input_file):
+def load_data_spec(input_file,batch_size):
 	logger.info("Loading data specification properties from %s..",input_file)
 	data = load_json(input_file);
 	for x in ['training','testing','validation']:
@@ -103,7 +103,9 @@ def load_data_spec(input_file):
 			requiredKeys.append('dim_shuffle');
 		if not data[x].has_key('random') or not type(data[x]['keep_flatten']) is bool:
 			data[x]['keep_flatten'] = True
-			
+		
+		data[x]['batch_size'] = batch_size;
+		
 		if not isKeysPresents(data[x],requiredKeys):
 			logger.critical("The mandatory arguments are missing in data spec(%s)",x)
 			exit(1)

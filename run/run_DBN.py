@@ -98,7 +98,7 @@ def runRBM(arg):
         model_config = load_model(arg,'RBM')
 
     rbm_config = load_rbm_spec(model_config['nnet_spec'])
-    data_spec =  load_data_spec(model_config['data_spec']);
+    data_spec =  load_data_spec(model_config['data_spec'],model_config['batch_size']);
 
 
     #generating Random
@@ -122,8 +122,7 @@ def runRBM(arg):
             activation=activationFn)
 
 
-    train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'],
-        model_config['batch_size'])
+    train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
 
     if keep_layer_num > 0:
         current_nnet = wdir + '/nnet.ptr.current'
@@ -140,8 +139,7 @@ def runRBM(arg):
     ########################
 
     try:
-        valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'],
-            model_config['batch_size'])        
+        valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'])        
     except KeyError:
         #raise e
         logger.info("No validation set:Skiping Fine tunning");
@@ -164,8 +162,7 @@ def runRBM(arg):
 
 
     try:
-        test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing'],
-            model_config['batch_size']) 
+        test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing']) 
     except KeyError:
         #raise e
         logger.info("No testing set:Skiping Testing");
