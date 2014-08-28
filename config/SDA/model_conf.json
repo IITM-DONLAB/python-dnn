@@ -17,6 +17,12 @@
 	"comment" : "batch_size :: specify the mini batch size while training, default 128",
 	"batch_size" : 128,
 
+	"comment": "",
+  	"n_ins":2352,
+
+  	"comment":"",
+  	"n_outs":200,
+
 	"comment" :"pretraining_epochs: number of epoch to do pretraining",
 	"pretraining_epochs":10,
 

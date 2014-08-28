@@ -49,7 +49,7 @@
 		"pretraining":false,
 		"finetuning":true,
 		"testing":true,
-		"export_data":false
+		"export_data":true
 	},
 	"export_path" : "data/export"
 }
