@@ -67,7 +67,7 @@ def runSdA(arg):
     else :
         model_config = load_model(arg,'SDA')
         
-    sda_config = load_sda_spec(model_config['sda_nnet_spec'])
+    sda_config = load_sda_spec(model_config['nnet_spec'])
     data_spec =  load_data_spec(model_config['data_spec']);
 
 

@@ -10,7 +10,7 @@
   "n_outs":200,
 
   "comment" : "activation :: sigmoid or tanh",
-  "activation" : "tanh",
+  "activation" : "sigmoid",
 
   "comment" : "pretrained_layers:number of layers to be pre-trained",
   "pretrained_layers" : 5,

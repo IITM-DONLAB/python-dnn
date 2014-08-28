@@ -19,9 +19,9 @@ def load_model(input_file,nnetType=None):
 
 	#checking nnetType
 	if nnetType==None:
-		try:
-			nnetType=data['nnetType']
-		except KeyError, e:
+                try:
+                        nnetType=data['nnetType']
+                except KeyError, e:
 			logger.critical(" 'nnetType' is missing in model properties file..")
 			exit(1)
 	else :
@@ -33,16 +33,15 @@ def load_model(input_file,nnetType=None):
 		logger.critical(" the mandatory arguments are missing in model properties file..")
 		exit(1)
 
-	specPaths=['data_spec','conv_nnet_spec','hidden_nnet_spec',
-				'rbm_nnet_spec','sda_nnet_spec']
-
+	specPaths=['data_spec','nnet_spec']
 	data = correctPath(data,specPaths,input_file);
 
 	outputFiles=['output_file','conv_output_file',
-				'hidden_output_file','export_path']
-
+                     'hidden_output_file','export_path']
 	data = correctPath(data,outputFiles,data['wdir']+pathSep);
 
+        #init Default Values in processes.
+        data['processes'] = initProcesses(data['processes'])
 	#init Default Values or update from Json.
 	if nnetType == 'CNN':
 		data = initModelCNN(data)
@@ -57,6 +56,17 @@ def load_model(input_file,nnetType=None):
 	#__debugPrintData__(data,'model');
 	return data;
 
+def initProcesses(data):
+        if not data.has_key('pretraining') or not type(data['pretraining']) is bool:
+                data['pretraining'] = False
+        if not data.has_key("finetuning") or not type(data["finetuning"]) is bool:
+                data["finetuning"] = False
+        if not data.has_key('testing') or not type(data['testing']) is bool:
+                data['testing'] = False
+        if not data.has_key('export_data') or not type(data['export_data']) is bool:
+                data['export_data'] = False
+        return data
+
 def correctPath(data,keys,basePath):
 	for key in keys:
 		if data.has_key(key):
@@ -64,26 +74,9 @@ def correctPath(data,keys,basePath):
 	return data
 
 def checkConfig(data,nnetType):
-	if not data.has_key('data_spec'): 
-		logger.error('Missing Key in JSON :data_spec')
-		return False
-	if not data.has_key('wdir'):
-		logger.error('Missing Key in JSON :wdir')
-		return False
-	if nnetType == 'CNN':
-		requiredKeys=['conv_output_file','hidden_output_file','conv_nnet_spec', \
-		'hidden_nnet_spec','input_shape','n_outs']
-	elif nnetType == 'RBM':
-		requiredKeys=['rbm_nnet_spec','output_file']
-	elif nnetType == 'SDA':
-		requiredKeys = ['sda_nnet_spec','output_file']
-	else :
-		logger.error('Unknown nnet Type')
-		return False
-
+	requiredKeys = ['data_spec','wdir','processes','nnet_spec','output_file']
 	if isKeysPresents(data,requiredKeys):
 		return False
-
 	return True
 
 def isKeysPresents(data,requiredKeys):
