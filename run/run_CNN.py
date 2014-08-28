@@ -92,6 +92,9 @@ def runCNN(arg):
 
 		pred,err=testing(cnn,test_sets, test_xy, test_x, test_y,batch_size)
 
+
+	_cnn2file(cnn.layers[0:cnn.conv_layer_num],cnn.layers[cnn.conv_layer_num:], filename=model_config['output_file']);
+	
 	##########################
 	##	Export Features ##
 	##########################

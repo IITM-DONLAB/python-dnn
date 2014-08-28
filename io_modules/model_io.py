@@ -94,7 +94,6 @@ def _cnn2file(conv_layers,mlp_layers,filename='nnet.out',
 	   if i == 0:
 		   mlp_dict[dict_a] = array_2_string(input_factor * mlp_layers[i].params[0].get_value())
 	   else:
-		   print mlp_layers[i].params[0]
 		   mlp_dict[dict_a] = array_2_string(factor * mlp_layers[i].params[0].get_value())
 	   dict_a = str(i) + ' b'
 	   mlp_dict[dict_a] = array_2_string(mlp_layers[i].params[1].get_value())
