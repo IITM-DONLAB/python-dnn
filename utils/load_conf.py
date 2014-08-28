@@ -24,7 +24,15 @@ def load_model(input_file,nnetType=None):
 		logger.critical(" 'nnetType' is missing in model properties file..")
 		exit(1)
 
-	if checkConfig(data,nnetType):
+	requiredKeys = ['data_spec','wdir','processes','nnet_spec','output_file','n_outs']
+	if not isKeysPresents(data,requiredKeys):
+		logger.critical(" the mandatory arguments are missing in model properties file..")
+		exit(1)
+		
+	if data.has_key('n_ins') or data.has_key('input_shape'):
+		pass
+	else:
+		logger.error('Neither n_ins nor input_shape is present')
 		logger.critical(" the mandatory arguments are missing in model properties file..")
 		exit(1)
 
@@ -69,19 +77,6 @@ def correctPath(data,keys,basePath):
 			data[key] = makeAbsolute(data[key],basePath)
 	return data
 
-def checkConfig(data,nnetType):
-	requiredKeys = [
-		'data_spec','wdir','processes',
-		'nnet_spec','output_file','n_outs'
-		]
-	if isKeysPresents(data,requiredKeys):
-		return False
-	if data.has_key('n_ins') or data.has_key('input_shape'):
-		return True
-	else:
-		logger.error('Neither n_ins nor input_shape is present')
-		return False
-
 def isKeysPresents(data,requiredKeys):
 	for key in requiredKeys:
 		if not data.has_key(key):
@@ -112,11 +107,6 @@ def load_data_spec(input_file):
 			exit(1)
 		
 	return data
-
-
-def load_mlp_spec(input_file):
-	logger.info("Loading mlp properties from %s ...",input_file)
-	return load_json(input_file);
 
 
 #############################################################################
