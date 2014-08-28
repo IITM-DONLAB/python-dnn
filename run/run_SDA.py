@@ -22,13 +22,15 @@ import numpy
 import theano
 
 #module imports
-from utils.load_conf import load_model,load_sda_spec,load_data_spec
+from io_modules.model_io import _nnet2file, _file2nnet
 from io_modules.file_reader import read_dataset
 from io_modules import setLogger
 from utils.learn_rates import LearningRate
+from utils.utils import parse_activation
+from utils.load_conf import load_model,load_sda_spec,load_data_spec
+
 from models.sda import SDA
-from io_modules.model_io import _nnet2file, _file2nnet
-from models import fineTunning,testing
+from run import fineTunning,testing,createDir
 
 
 import logging
@@ -65,21 +67,28 @@ def runSdA(arg):
     else :
         model_config = load_model(arg,'SDA')
         
-    sda_config = load_sda_spec(model_config['sda_nnet_spec'])
+    sda_config = load_sda_spec(model_config['nnet_spec'])
     data_spec =  load_data_spec(model_config['data_spec']);
 
 
-    train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
+    train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'],
+                model_config['batch_size'])
 
     # numpy random generator
     numpy_rng = numpy.random.RandomState(sda_config['random_seed'])
     #theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
 
+    #get Activation function
+    activationFn = parse_activation(sda_config['activation']);
+
+    createDir(model_config['wdir']);
+    #create working dir
+
     logger.info('building the model')
     # construct the stacked denoising autoencoder class
     sda = SDA(numpy_rng=numpy_rng, n_ins=sda_config['n_ins'],
               hidden_layers_sizes=sda_config['hidden_layers'],
-              n_outs=sda_config['n_outs'])
+              n_outs=sda_config['n_outs'],activation=activationFn)
 
 
 
@@ -118,7 +127,8 @@ def runSdA(arg):
     ########################
 
     try:
-        valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'])        
+        valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'],
+            model_config['batch_size'])
     except KeyError:
         #raise e
         logger.info("No validation set:Skiping Fine tunning");
@@ -144,7 +154,8 @@ def runSdA(arg):
 
 
     try:
-        test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing'])        
+        test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing'],
+            model_config['batch_size'])        
     except KeyError:
         #raise e
         logger.info("No testing set:Skiping Testing");

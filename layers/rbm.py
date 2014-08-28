@@ -4,6 +4,7 @@ import theano.tensor as T
 from theano.sandbox.rng_mrg import MRG_RandomStreams as RandomStreams
 from collections import OrderedDict
 
+
 class RBM(object):
     """Bernoulli-bernoulli restricted Boltzmann machine (RBM)  """
     
@@ -13,6 +14,7 @@ class RBM(object):
                
         self.n_visible = n_visible
         self.n_hidden  = n_hidden
+
 
         if numpy_rng is None:
             numpy_rng = numpy.random.RandomState(1234)
@@ -43,9 +45,12 @@ class RBM(object):
         if not input:
             self.input = T.matrix('input')
         
-        self.delta_W = theano.shared(value=numpy.zeros_like(W.get_value(borrow=True), dtype=theano.config.floatX), name='delta_W')
-        self.delta_hbias = theano.shared(value=numpy.zeros_like(hbias.get_value(borrow=True), dtype=theano.config.floatX), name='delta_hbias')
-        self.delta_vbias = theano.shared(value=numpy.zeros_like(vbias.get_value(borrow=True), dtype=theano.config.floatX), name='delta_vbias')
+        self.delta_W = theano.shared(value=numpy.zeros_like(W.get_value(borrow=True),
+            dtype=theano.config.floatX), name='delta_W')
+        self.delta_hbias = theano.shared(value=numpy.zeros_like(hbias.get_value(borrow=True),
+            dtype=theano.config.floatX), name='delta_hbias')
+        self.delta_vbias = theano.shared(value=numpy.zeros_like(vbias.get_value(borrow=True),
+            dtype=theano.config.floatX), name='delta_vbias')
         
         self.W = W
         self.hbias = hbias
@@ -105,7 +110,8 @@ class RBM(object):
         pre_sigmoid_v1, v1_mean, v1_sample = self.sample_v_given_h(h1_sample)
         return [pre_sigmoid_h1, h1_mean, h1_sample, pre_sigmoid_v1, v1_mean, v1_sample]
 
-#    def get_cost_updates(self, batch_size = 128, lr = 0.0001, momentum=0.5, weight_cost=0.00001, persistent=None, k=1):        
+#    def get_cost_updates(self, batch_size = 128, lr = 0.0001, momentum=0.5, 
+#    weight_cost=0.00001, persistent=None, k=1):        
     def get_cost_updates(self, batch_size = 128, lr = 0.0001, momentum=0.5, weight_cost=0.00001):
         """
         get the cost and the gradient corresponding to one step of CD-k (k=1)
@@ -116,9 +122,15 @@ class RBM(object):
                 
         # gradient of parameters
         updates=OrderedDict()
-        updates[self.delta_W] = momentum * self.delta_W + lr * (1.0/batch_size) * (T.dot(self.input.T, hp_data) - T.dot(v_rec_sigm.T, hp_rec)) - lr * weight_cost * self.W
-        updates[self.delta_hbias] = momentum * self.delta_hbias + lr * (1.0/batch_size) * (T.sum(h_data, axis=0) - T.sum(hp_rec, axis=0))
-        updates[self.delta_vbias] = momentum * self.delta_vbias + lr * (1.0/batch_size) * (T.sum(self.input, axis=0) - T.sum(v_rec_sigm, axis=0))
+        updates[self.delta_W] = (
+            momentum * self.delta_W + lr * (1.0/batch_size) *(T.dot(self.input.T, hp_data) -
+             T.dot(v_rec_sigm.T, hp_rec)) - lr * weight_cost * self.W)
+        updates[self.delta_hbias] = (
+            momentum * self.delta_hbias + lr * (1.0/batch_size) *
+            (T.sum(h_data, axis=0) - T.sum(hp_rec, axis=0)))
+        updates[self.delta_vbias] = (
+            momentum * self.delta_vbias + lr * (1.0/batch_size) *
+            (T.sum(self.input, axis=0) - T.sum(v_rec_sigm, axis=0)))
         
         for param, dparam in zip(self.params, self.delta_params):
             updates[param] = param + updates[dparam]
@@ -136,11 +148,14 @@ class GBRBM(RBM):
     """Gaussian-bernoulli restricted Boltzmann machine"""
     
     def __init__(self, input=None, n_visible=351, n_hidden=1000,
-                 W = None, hbias = None, vbias = None,
-                 numpy_rng = None, theano_rng = None):
+                 W = None, hbias = None, vbias = None, numpy_rng = None,
+                 theano_rng = None):
         
-        super(GBRBM, self).__init__(input=input, n_visible=n_visible, n_hidden=n_hidden,
-                    W=W, hbias=hbias, vbias=vbias, numpy_rng=numpy_rng, theano_rng=theano_rng)
+        super(GBRBM, self).__init__(input=input, n_visible=n_visible,
+                    n_hidden=n_hidden,
+                    W=W, hbias=hbias,
+                    vbias=vbias, numpy_rng=numpy_rng, 
+                    theano_rng=theano_rng)
     
     def free_energy(self, v_sample):
         ''' Compute the free energy '''
@@ -158,7 +173,8 @@ class GBRBM(RBM):
 
         return [pre_sigmoid_v1, v1_mean, v1_sample]
 
-#    def get_cost_updates(self, batch_size = 128, lr = 0.0001, momentum=0.5, weight_cost=0.00001, persistent=None, k = 1):    
+#    def get_cost_updates(self, batch_size = 128, lr = 0.0001, 
+#    momentum=0.5, weight_cost=0.00001, persistent=None, k = 1):    
     def get_cost_updates(self, batch_size = 128, lr = 0.0001, momentum=0.5, weight_cost=0.00001):
         
         x, hp_data, h_data = self.sample_h_given_v(self.input)
@@ -167,9 +183,15 @@ class GBRBM(RBM):
                 
         updates=OrderedDict()
         
-        updates[self.delta_W] = momentum * self.delta_W + lr * (1.0/batch_size) * (T.dot(self.input.T, hp_data) - T.dot(v_rec.T, hp_rec)) - lr * weight_cost * self.W
-        updates[self.delta_hbias] = momentum * self.delta_hbias + lr * (1.0/batch_size) * (T.sum(h_data, axis=0) - T.sum(hp_rec, axis=0))
-        updates[self.delta_vbias] = momentum * self.delta_vbias + lr * (1.0/batch_size) * (T.sum(self.input, axis=0) - T.sum(v_rec, axis=0))
+        updates[self.delta_W] = (
+            momentum * self.delta_W + lr * (1.0/batch_size) * (T.dot(self.input.T, hp_data) -
+            T.dot(v_rec.T, hp_rec)) - lr * weight_cost * self.W)
+        updates[self.delta_hbias] = (
+            momentum * self.delta_hbias + lr * (1.0/batch_size) * 
+            (T.sum(h_data, axis=0) - T.sum(hp_rec, axis=0)))
+        updates[self.delta_vbias] = (
+            momentum * self.delta_vbias + lr * (1.0/batch_size) *
+            (T.sum(self.input, axis=0) - T.sum(v_rec, axis=0)))
             
         updates[self.W] = self.W + updates[self.delta_W]
         updates[self.hbias] = self.hbias + updates[self.delta_hbias]

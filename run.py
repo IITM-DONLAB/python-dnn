@@ -25,12 +25,15 @@ logger = logging.getLogger(__name__)
 from io_modules import setLogger
 
 
-def setLoggerLevel(modelConfig):
+def setLoggerLevel(modelConfig,name=None):
+	logger = logging.getLogger(name)
 	# Set the level which determines what you see
 	try:
 		level = modelConfig['logger_level']
 	except KeyError:
-		level = "INFO"
+		level = "DEBUG"
+
+	logger.info('Changing logger level:%s',level)
 
 	if level == "INFO":
 		logger.setLevel(logging.INFO)

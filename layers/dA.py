@@ -62,7 +62,7 @@ class dA(object):
 
     def __init__(self, numpy_rng, theano_rng=None, input=None,
                  n_visible=784, n_hidden=500,
-                 W=None, bhid=None, bvis=None):
+                 W=None, bhid=None, bvis=None,activation=T.nnet.sigmoid):
         """
         Initialize the dA class by specifying the number of visible units (the
         dimension d of the input ), the number of hidden units ( the dimension
@@ -107,10 +107,13 @@ class dA(object):
                      visible units) that should be shared belong dA and another
                      architecture; if dA should be standalone set this to None
 
+        :type activation: <theano.tensor.elemwise.Elemwise object>
+        :param activation: activation function
 
         """
         self.n_visible = n_visible
         self.n_hidden = n_hidden
+        self.activation = activation
 
         # create a Theano random generator that gives symbolic random values
         if not theano_rng:
@@ -186,14 +189,14 @@ class dA(object):
 
     def get_hidden_values(self, input):
         """ Computes the values of the hidden layer """
-        return T.nnet.sigmoid(T.dot(input, self.W) + self.b)
+        return self.activation(T.dot(input, self.W) + self.b)
 
     def get_reconstructed_input(self, hidden):
         """Computes the reconstructed input given the values of the
         hidden layer
 
         """
-        return  T.nnet.sigmoid(T.dot(hidden, self.W_prime) + self.b_prime)
+        return  self.activation(T.dot(hidden, self.W_prime) + self.b_prime)
 
     def get_cost_updates(self, corruption_level, learning_rate):
         """ This function computes the cost and the updates for one trainng

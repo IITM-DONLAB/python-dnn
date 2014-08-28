@@ -29,9 +29,10 @@ from models.dbn import DBN
 from io_modules.file_reader import read_dataset
 from io_modules import setLogger
 from utils.learn_rates import LearningRate
+from utils.utils import parse_activation
 from io_modules.model_io import _nnet2file, _file2nnet
 
-from models import fineTunning,testing
+from run import fineTunning,testing,createDir
 
 
 import logging
@@ -96,7 +97,7 @@ def runRBM(arg):
     else :
         model_config = load_model(arg,'RBM')
 
-    rbm_config = load_rbm_spec(model_config['rbm_nnet_spec'])
+    rbm_config = load_rbm_spec(model_config['nnet_spec'])
     data_spec =  load_data_spec(model_config['data_spec']);
 
 
@@ -104,18 +105,26 @@ def runRBM(arg):
     numpy_rng = numpy.random.RandomState(rbm_config['random_seed'])
     theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
 
-
-    dbn = DBN(numpy_rng=numpy_rng, theano_rng = theano_rng, n_ins=rbm_config['n_ins'],
-            hidden_layers_sizes=rbm_config['hidden_layers'],n_outs=rbm_config['n_outs'],
-            first_layer_gb = rbm_config['first_layer_gb'],
-            pretrainedLayers=rbm_config['pretrained_layers'])
-
-    train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
+    activationFn = parse_activation(rbm_config['activation']);
+ 
+    createDir(model_config['wdir']);
+    #create working dir
 
     keep_layer_num = model_config['keep_layer_num']
     batch_size = model_config['batch_size']
     wdir = model_config['wdir']
     
+
+    dbn = DBN(numpy_rng=numpy_rng, theano_rng = theano_rng, n_ins=rbm_config['n_ins'],
+            hidden_layers_sizes=rbm_config['hidden_layers'],n_outs=rbm_config['n_outs'],
+            first_layer_gb = rbm_config['first_layer_gb'],
+            pretrainedLayers=rbm_config['pretrained_layers'],
+            activation=activationFn)
+
+
+    train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'],
+        model_config['batch_size'])
+
     if keep_layer_num > 0:
         current_nnet = wdir + '/nnet.ptr.current'
         logger.info('Initializing model from ' + str(current_nnet) + '....')
@@ -125,17 +134,14 @@ def runRBM(arg):
 
     preTraining(dbn,train_sets,train_xy,train_x,train_y,model_config)
 
-    # save the pretrained nnet to file
-    logger.info('Saving model to ' + str(model_config['output_file']) + '....')
-    _nnet2file(dbn.sigmoid_layers, filename=model_config['output_file'], withfinal=True)
-    
 
     ########################
     # FINETUNING THE MODEL #
     ########################
 
     try:
-        valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'])        
+        valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'],
+            model_config['batch_size'])        
     except KeyError:
         #raise e
         logger.info("No validation set:Skiping Fine tunning");
@@ -156,11 +162,10 @@ def runRBM(arg):
     fineTunning(dbn,train_sets,train_xy,train_x,train_y,
         valid_sets,valid_xy,valid_x,valid_y,lrate,momentum,batch_size)
 
-    logger.info('Saving model to ' + str(model_config['output_file']) + '.final ....')
-    _nnet2file(dbn.sigmoid_layers, filename=model_config['output_file']+'.final', withfinal=True)
 
     try:
-        test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing']) 
+        test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing'],
+            model_config['batch_size']) 
     except KeyError:
         #raise e
         logger.info("No testing set:Skiping Testing");
@@ -168,6 +173,9 @@ def runRBM(arg):
         sys.exit(0)
 
     testing(dbn,test_sets, test_xy, test_x, test_y,batch_size)
+
+    logger.info('Saving model to ' + str(model_config['output_file']) + ' ....')
+    _nnet2file(dbn.sigmoid_layers, filename=model_config['output_file'], withfinal=True)
 
 
 

@@ -25,7 +25,7 @@ class DBN(nnet):
 
     def __init__(self, numpy_rng, theano_rng=None, n_ins=784,
                  hidden_layers_sizes=[500, 500], n_outs=10,
-                 first_layer_gb = True,pretrainedLayers=None):
+                 first_layer_gb = True,pretrainedLayers=None,activation=T.nnet.sigmoid):
         """This class is made to support a variable number of layers.
 
         :type numpy_rng: numpy.random.RandomState
@@ -101,7 +101,7 @@ class DBN(nnet):
                                         input=layer_input,
                                         n_in=input_size,
                                         n_out=hidden_layers_sizes[i],
-                                        activation=T.nnet.sigmoid)
+                                        activation=activation)
 
             # add the layer to our list of layers
             self.sigmoid_layers.append(sigmoid_layer)
