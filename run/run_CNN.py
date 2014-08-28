@@ -43,10 +43,9 @@ def runCNN(arg):
 	else :
 		model_configs = load_model(arg,'CNN')
 	
-	conv_configs,conv_layer_configs = load_conv_spec(model_configs['conv_nnet_spec'],model_configs['batch_size'],
+	conv_configs,conv_layer_configs,mlp_configs = load_conv_spec(model_configs['nnet_spec'],model_configs['batch_size'],
 				model_configs['input_shape'])
 
-	mlp_configs = load_mlp_spec(model_configs['hidden_nnet_spec']);
 	data_spec =  load_data_spec(model_configs['data_spec']);
 	
 	numpy_rng = numpy.random.RandomState(89677)
