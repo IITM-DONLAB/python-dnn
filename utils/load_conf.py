@@ -106,11 +106,17 @@ def load_data_spec(input_file):
 			requiredKeys.append('dim_shuffle');
 		if not data[x].has_key('random') or not type(data[x]['keep_flatten']) is bool:
 			data[x]['keep_flatten'] = True
-		
+			
 		if not isKeysPresents(data[x],requiredKeys):
 			logger.critical("The mandatory arguments are missing in data spec(%s)",x)
 			exit(1)
+		
 	return data
+
+
+def load_mlp_spec(input_file):
+	logger.info("Loading mlp properties from %s ...",input_file)
+	return load_json(input_file);
 
 
 #############################################################################
@@ -144,9 +150,12 @@ def initModelCNN(data):
 def load_conv_spec(input_file,batch_size,input_shape):
 	logger.info("Loading convnet properties from %s ...",input_file)	
 	data = load_json(input_file)  
-	
-	layer_configs=data.pop('layers');
-	conv_configs = data;
+	if not data.has_key('cnn'):
+		logger.critical("CNN configuration is not present in " + str(input_file))
+		exit(1)	
+	cnn_data = data['cnn'];
+	layer_configs=cnn_data.pop('layers');
+	conv_configs = cnn_data;
 	if len(layer_configs)==0:
 		print "Error: No convnet configuration avaialable.."
 		exit(1)	
@@ -175,7 +184,11 @@ def load_conv_spec(input_file,batch_size,input_shape):
 			input_shape.append(outdim);
 	
 		prev_map_number = current_map_number
-	return (conv_configs,layer_configs)	
+	if not data.has_key('cnn'):
+		logger.critical("mlp configuration is not present in " + str(input_file))
+		exit(1)	
+	mlp_configs = data['mlp'];	
+	return (conv_configs,layer_configs,mlp_configs)	
 
 #############################################################################
 #DBN/RBM

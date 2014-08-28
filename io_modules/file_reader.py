@@ -334,7 +334,7 @@ class T1FileReader(FileReader):
 			child_options['label']= i;
 			child_options['keep_flatten'] = True
 			data_file = child_options['base_path'] + os.sep + child_options['filename']
-			self.filehandles.append(TDFileReader(data_file,child_options));
+			self.filehandles.append(TDFileReader(data_file,self.batch_size,child_options));
 			self.filehandles[-1].read_file_info();
 			
 		if self.frames_per_partition < self.classes:

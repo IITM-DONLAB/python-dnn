@@ -43,11 +43,11 @@ def runCNN(arg):
 	else :
 		model_config = load_model(arg,'CNN')
 	
-	conv_config,conv_layer_config = load_conv_spec(model_config['conv_nnet_spec'],model_config['batch_size'],
+	conv_config,conv_layer_config,mlp_config = load_conv_spec(model_config['nnet_spec'],model_config['batch_size'],
 				model_config['input_shape'])
 
-	mlp_config = load_mlp_spec(model_config['hidden_nnet_spec']);
 	data_spec =  load_data_spec(model_config['data_spec']);
+
 	
 	numpy_rng = numpy.random.RandomState(89677)
 	theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
@@ -76,7 +76,6 @@ def runCNN(arg):
 
 		err=fineTunning(cnn,train_sets,train_xy,train_x,train_y,
 			valid_sets,valid_xy,valid_x,valid_y,lrate,momentum,batch_size);
-
 
 	####################
 	##	TESTING	 ##
