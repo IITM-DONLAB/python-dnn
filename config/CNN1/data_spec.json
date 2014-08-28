@@ -7,7 +7,6 @@
 		"random_seed" : 123,
 		"input_shape" : [1,10,5],
 		"dim_shuffle" : [0,1,2,3],
-		"batch_size": 8,
 		"keep_flatten" : false,
 		"reader_type" : "T1"
 	},
@@ -20,7 +19,6 @@
 		"random_seed" : 123,
 		"input_shape" : [1,10,5],
 		"dim_shuffle" : [0,1,2,3],
-		"batch_size": 8,
 		"keep_flatten" : false,
 		"reader_type" : "T1"
 	},
@@ -33,7 +31,6 @@
 		"random_seed" : 123,
 		"input_shape" : [1,10,5],
 		"dim_shuffle" : [0,1,2,3],
-		"batch_size": 8,
 		"keep_flatten" : false,
 		"reader_type" : "T1"
 	}

@@ -56,7 +56,7 @@ class SDA(nnet):
 
     def __init__(self, numpy_rng, theano_rng=None, n_ins=784,
                  hidden_layers_sizes=[500, 500], n_outs=10,
-                 corruption_levels=[0.1, 0.1]):
+                 corruption_levels=[0.1, 0.1],activation=T.nnet.sigmoid):
         """ This class is made to support a variable number of layers.
 
         :type numpy_rng: numpy.random.RandomState
@@ -147,7 +147,8 @@ class SDA(nnet):
                           n_visible=input_size,
                           n_hidden=hidden_layers_sizes[i],
                           W=sigmoid_layer.W,
-                          bhid=sigmoid_layer.b)
+                          bhid=sigmoid_layer.b,
+                          activation=T.nnet.sigmoid)
             self.dA_layers.append(dA_layer)
 
         # We now need to add a logistic layer on top of the MLP

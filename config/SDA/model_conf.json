@@ -6,10 +6,10 @@
 	"wdir" : "wdir",
 
 	"comment" : "valid_data (Mandatory) specify the path of the validation data relative to the working directory",
-	"data_spec" : "config/SDA/data_spec.json",
+	"data_spec" : "data_spec.json",
 	
 	"comment" : "sda_nnet_spec:: (Mandatory) specify the path of SDA network configuration specification relative to working directory",
-	"sda_nnet_spec" : "config/SDA/sda_spec.json",
+	"nnet_spec" : "sda_spec.json",
 
 	"comment" : "output_file :: (Mandatory) specify the path of SDA network output file relative to working directory",
 	"output_file" : "sda_out.model",
@@ -41,6 +41,12 @@
 	},
 
 	"comment" : "finetune_momentum ::  Specify the momentum factor while finetuning",
-	"finetune_momentum": 0.5
+	"finetune_momentum": 0.5,
 
+	"processes":{
+		"pretraining":true,
+		"finetuning":true,
+		"testing":true,
+		"export_data":false
+	}
 }
