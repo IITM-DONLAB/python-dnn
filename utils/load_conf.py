@@ -103,10 +103,11 @@ def load_data_spec(input_file):
 			requiredKeys.append('dim_shuffle');
 		if not data[x].has_key('random') or not type(data[x]['keep_flatten']) is bool:
 			data[x]['keep_flatten'] = True
-		
+			
 		if not isKeysPresents(data[x],requiredKeys):
 			logger.critical("The mandatory arguments are missing in data spec(%s)",x)
 			exit(1)
+		
 	return data
 
 
@@ -167,7 +168,7 @@ def load_conv_spec(input_file,batch_size,input_shape):
 
 		current_map_number = layer_configs[layer_index]['num_filters']
 		layer_configs[layer_index]['filter_shape']=[current_map_number,prev_map_number];
-		layer_configs[layer_index]['filter_shape'].extend(layer_configs[layer_index]['	']);
+		layer_configs[layer_index]['filter_shape'].extend(layer_configs[layer_index]['convmat_dim']);
 		
 		layer_configs[layer_index]['output_shape'] = [batch_size,current_map_number];
 		if not len(layer_configs[layer_index]['input_shape'][2:]) == len(layer_configs[layer_index]['convmat_dim']):

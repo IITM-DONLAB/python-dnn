@@ -6,16 +6,16 @@
 	"wdir" : "wdir",
 
 	"comment" : "valid_data (Mandatory) specify the path of the validation data relative to the working directory",
-	"data_spec" : "config/CNN/T/data_spec.json",
-		
+	"data_spec" : "data_spec.json",
+	
 	"comment" : "nnet_spec :: (Mandatory) specify the path of convolution network configuration specification relative to working directory",
-	"nnet_spec" : "config/CNN/T/nnet_spec.json",
+	"nnet_spec" : "nnet_spec.json",
 
 	"comment" : "hidden_output_file :: (Mandatory) specify the path of convolution network output file relative to working directory",
-	"hidden_output_file" : "hidden_out.model",
+	"output_file" : "hidden_out.model",
 	
 	"comment" : "conv_output_file :: (Mandatory) specify the path of convolution network output file relative to working directory",
-	"conv_output_file" : "conv_out.model",
+	"output_file" : "conv_out.model",
 	
 	"comment" : "input_shape :: (Mandatory) specify the input shape of a given feature vector" ,
 	"input_shape" : [1,10,5],
@@ -44,5 +44,13 @@
 			"min_epoch_decay_start" : 15,
 			"init_error" :100
 	},
+
+	"processes":{
+		"pretraining":false,
+		"finetuning":true,
+		"testing":true,
+		"export_data":false
+	},
+
 	"export_path" : "data/export"
 }

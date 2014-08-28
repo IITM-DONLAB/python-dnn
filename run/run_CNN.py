@@ -43,10 +43,10 @@ def runCNN(arg):
 	else :
 		model_config = load_model(arg,'CNN')
 	
-	conv_configs,conv_layer_configs,mlp_configs = load_conv_spec(model_configs['nnet_spec'],model_configs['batch_size'],
-				model_configs['input_shape'])
+	conv_config,conv_layer_config,mlp_config = load_conv_spec(model_config['nnet_spec'],model_config['batch_size'],
+				model_config['input_shape'])
 
-	data_spec =  load_data_spec(model_configs['data_spec']);
+	data_spec =  load_data_spec(model_config['data_spec']);
 
 	
 	numpy_rng = numpy.random.RandomState(89677)
@@ -74,8 +74,8 @@ def runCNN(arg):
 	err=fineTunning(cnn,train_sets,train_xy,train_x,train_y,
 		valid_sets,valid_xy,valid_x,valid_y,lrate,momentum,batch_size);
 	
-	_cnn2file(cnn.layers[0:cnn.conv_layer_num], filename=model_config['conv_output_file'],activation=conv_config['activation']);
-	_nnet2file(cnn.layers[cnn.conv_layer_num:], filename=model_config['hidden_output_file'],activation=mlp_config['activation']);
+	_cnn2file(cnn.layers[0:cnn.conv_layer_num], filename=model_config['output_file'],activation=conv_config['activation']);
+	_nnet2file(cnn.layers[cnn.conv_layer_num:], filename=model_config['output_file'],activation=mlp_config['activation']);
 
 	####################
 	##	TESTING	 ##
