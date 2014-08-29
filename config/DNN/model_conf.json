@@ -1,18 +1,18 @@
 {	
     "comment" : "nnetType :: (Mandatory) specify Type of Network (CNN,RBM) ",
-    "nnetType" : "RBM",
+    "nnetType" : "DNN",
 
     "comment" : "train_data :: (Mandatory) specify the working directory containing data configuration and output ",
     "wdir" : "wdir",
 
-    "comment" : "valid_data (Mandatory) specify the path of the validation data relative to the working directory",
+    "comment" : "valid_data (Mandatory) specify the path of the validation data relative current directory",
     "data_spec" : "data_spec.json",
     
-    "comment" : "rbm_nnet_spec:: (Mandatory) specify the path of RBM network configuration specification relative to working directory",
-    "nnet_spec" : "rbm_spec.json",
+    "comment" : "rbm_nnet_spec:: (Mandatory) specify the path of RBM network configuration specification relative to current directory",
+    "nnet_spec" : "dnn_spec.json",
 
     "comment" : "output_file :: (Mandatory) specify the path of RBM network output file relative to working directory",
-    "output_file" : "rbm_out.model",
+    "output_file" : "dnn_out.model",
     
     "comment" : "batch_size :: specify the mini batch size while training, default 128",
     "batch_size" : 128,
@@ -23,21 +23,14 @@
     "comment":"",
     "n_outs":200,
 
-    "comment" :"TODO",
-    "gbrbm_learning_rate":0.005,
-    "learning_rate":0.08,
-    "pretraining_epochs":10,
-    
-    "comment" : "initial_momentum,final_momentum,initial_momentum_epoch ::  Specify the momentum factor while training default 0.5,0.9,5",
-    "initial_momentum":0.5,
-    "final_momentum":0.9,
-    "initial_momentum_epoch":5,
+    "comment" : "input_file :: (Mandatory) specify the path of PreTrained network input file relative to working directory",
+    "input_file" : "rbm_in.model",
 
     "comment" : "finetune_method::  Two methods are supported  C: Constant learning rate and E : Exponential decay",
     "finetune_method":"C",
 
     "comment" : "finetune_rate :: learning rate configuration",
-    "finetune_rate" : {	
+    "finetune_rate" : {
 	"learning_rate" : 0.08,
 	"epoch_num" : 10,
 
@@ -54,8 +47,8 @@
 
     "processes":{
 	"pretraining":false,
-	"finetuning":false,
-	"testing":true,
+	"finetuning":true,
+	"testing":false,
 	"export_data":false
     }
 

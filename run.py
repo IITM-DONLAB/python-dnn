@@ -54,6 +54,8 @@ def runNet(modelConfig):
 		from run.run_DBN import runRBM as runModel
 	elif nnetType == 'SDA':
 		from run.run_SDA import runSdA as runModel
+	elif nnetType == 'DNN':
+		from run.run_DNN import runDNN as runModel
 	else :
 		logger.error('Unknown nnet Type')
 		return 1
