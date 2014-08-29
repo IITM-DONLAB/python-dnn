@@ -81,13 +81,11 @@ def fineTunning(nnetModel,train_sets,train_xy,train_x,train_y,
 	return best_validation_loss
 
 
-def getFeatures(nnetModel,data_spec_testing):
+def exportFeatures(nnetModel,export_path,data_spec_testing):
+	from io_modules.data_exporter import export_data
+	print nnetModel.features_dim
 	out_function = nnetModel.getFeaturesFunction()
-	test_sets, test_xy, test_x, test_y = read_dataset(data_spec_testing)
-	while (not test_sets.is_finish()):
-		data = out_function(test_sets.feat)
-		test_sets.read_next_partition_data()
-		#TODO write data
+	export_data(data_spec_testing,export_path,out_function,nnetModel.features_dim);
 
 def createDir(wdir):
 	"""create working dir"""

@@ -8,20 +8,20 @@
 	"comment" : "valid_data (Mandatory) specify the path of the validation data relative to the working directory",
 	"data_spec" : "data_spec.json",
 	
-	"comment" : "conv_nnet_spec :: (Mandatory) specify the path of convolution network configuration specification relative to working directory",
-	"nnet_spec" : "conv_spec.json",
-
+	"comment" : "hidden_nnet_spec :: (Mandatory) specify the path of hidden network configuration specification relative to working directory",
+	"nnet_spec" : "nnet_spec.json",
+	
 	"comment" : "hidden_output_file :: (Mandatory) specify the path of convolution network output file relative to working directory",
-	"hidden_output_file" : "hidden_out.model",
+	"output_file" : "hidden_out.model",
 	
 	"comment" : "conv_output_file :: (Mandatory) specify the path of convolution network output file relative to working directory",
-	"conv_output_file" : "conv_out.model",
+	"output_file" : "conv_out.model",
 	
 	"comment" : "input_shape :: (Mandatory) specify the input shape of a given feature vector" ,
-	"input_shape" : [1,10,5],
+	"input_shape" : [3,28,28],
 	
 	"comment" : "batch_size :: specify the mini batch size while training, default 256",
-	"batch_size" : 8,
+	"batch_size" : 256,
 
 	"comment" : "momentum ::  Specify the momentum factor while training default 0.5",
 	"momentum" : 0.5,
@@ -35,7 +35,7 @@
 	"comment" : "l_rate :: learning rate configuration",
 	"l_rate" : {	
 			"learning_rate" : 0.08,
-			"epoch_num" : 10,
+			"epoch_num" : 0,
 
 			"start_rate" : 0.08,
 			"scale_by" : 0.5,
@@ -43,14 +43,13 @@
 			"min_derror_stop" : 0.05,
 			"min_epoch_decay_start" : 15,
 			"init_error" :100
-	},
-
+		},
+	
 	"processes":{
 		"pretraining":false,
 		"finetuning":true,
 		"testing":true,
-		"export_data":false,
+		"export_data":true
 	},
-
 	"export_path" : "data/export"
 }

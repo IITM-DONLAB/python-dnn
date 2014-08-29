@@ -77,10 +77,12 @@ class CNN(nnet):
 		self.logLayer = LogisticRegression(input=self.layers[-1].output,n_in=hidden_layers_sizes[-1],n_out=n_outs)
 		
 		self.layers.append(self.logLayer)
-	        self.params.extend(self.logLayer.params)
-	        self.delta_params.extend(self.logLayer.delta_params)
+		self.params.extend(self.logLayer.params)
+		self.delta_params.extend(self.logLayer.delta_params)
 		
 		self.finetune_cost = self.logLayer.negative_log_likelihood(self.y)
-
 		self.errors = self.logLayer.errors(self.y)
-                self.output = self.logLayer.prediction();
+		self.output = self.logLayer.prediction()
+		
+		self.features = self.conv_layers[-1].output;
+		self.features_dim = self.conv_output_dim;

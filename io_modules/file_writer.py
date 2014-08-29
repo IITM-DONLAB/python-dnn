@@ -71,6 +71,7 @@ class NPFileWriter(FileWriter):
 			flatten_vector = vector.flatten();
 			if self.feat_dim!=len(flatten_vector):
 				logger.critical('Feature dimension mentioned in header and vector length are mismatching');
+				exit(0)
 			else:
 				data['d']=flatten_vector; data['l']=label;
 				data.tofile(self.filehandle); 
@@ -97,7 +98,8 @@ class TDFileWriter(FileWriter):
 		for vector,label in zip(vector_array,labels):
 			flatten_vector = vector.flatten();
 			if self.feat_dim!=len(flatten_vector):
-				logger.critical('Feature dimension mentioned in header and vector length are	 mismatching');
+				logger.critical('Feature dimension mentioned in header and vector length are mismatching');
+				exit(0)
 			else:
 				for element in vector:
 					self.filehandle.write('%f ' % element)

@@ -23,14 +23,14 @@ import theano
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
 
-from utils.load_conf import load_model,load_conv_spec,load_mlp_spec,load_data_spec
+from utils.load_conf import load_model,load_conv_spec,load_data_spec
 from io_modules.file_reader import read_dataset
 from utils.learn_rates import LearningRate
 from utils.utils import parse_activation
-from io_modules.model_io import _cnn2file,_nnet2file
+from io_modules.model_io import _cnn2file,_file2cnn
 from io_modules import setLogger
 
-from run import fineTunning,testing,createDir
+from run import fineTunning,testing,exportFeatures,createDir
 
 import logging
 logger = logging.getLogger(__name__)
@@ -43,11 +43,13 @@ def runCNN(arg):
 	else :
 		model_config = load_model(arg,'CNN')
 	
-	conv_config,conv_layer_config = load_conv_spec(model_config['conv_nnet_spec'],model_config['batch_size'],
-				model_config['input_shape'])
+	conv_config,conv_layer_config,mlp_config = load_conv_spec(
+			model_config['nnet_spec'],
+			model_config['batch_size'],
+			model_config['input_shape'])
 
-	mlp_config = load_mlp_spec(model_config['hidden_nnet_spec']);
-	data_spec =  load_data_spec(model_config['data_spec']);
+	data_spec =  load_data_spec(model_config['data_spec'],model_config['batch_size']);
+
 	
 	numpy_rng = numpy.random.RandomState(89677)
 	theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
@@ -59,38 +61,48 @@ def runCNN(arg):
 	createDir(model_config['wdir']);
 	#create working dir
 
-	#learning rate, batch-size and momentum
-	lrate = LearningRate.get_instance(model_config['l_rate_method'],model_config['l_rate']);
 	batch_size = model_config['batch_size'];
-	momentum = model_config['momentum']
-
 	cnn = CNN(numpy_rng,theano_rng,conv_layer_configs = conv_layer_config, batch_size = batch_size,
-		n_outs=model_config['n_outs'],hidden_layers_sizes=mlp_config['layers'], conv_activation = conv_activation,
-		hidden_activation = hidden_activation,use_fast = conv_config['use_fast'])
+			n_outs=model_config['n_outs'],hidden_layers_sizes=mlp_config['layers'], 
+			conv_activation = conv_activation,hidden_activation = hidden_activation,
+			use_fast = conv_config['use_fast'])
 
-	train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'],model_config['batch_size'])
-	valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'],model_config['batch_size'])
+	if model_config['processes']['finetuning']:
+		#learning rate, batch-size and momentum
+		lrate = LearningRate.get_instance(model_config['l_rate_method'],model_config['l_rate']);
+		momentum = model_config['momentum']
 
-	err=fineTunning(cnn,train_sets,train_xy,train_x,train_y,
-		valid_sets,valid_xy,valid_x,valid_y,lrate,momentum,batch_size);
-	
-	_cnn2file(cnn.layers[0:cnn.conv_layer_num], filename=model_config['conv_output_file'],activation=conv_config['activation']);
-	_nnet2file(cnn.layers[cnn.conv_layer_num:], filename=model_config['hidden_output_file'],activation=mlp_config['activation']);
+		train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
+		valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'])
+
+		err=fineTunning(cnn,train_sets,train_xy,train_x,train_y,
+			valid_sets,valid_xy,valid_x,valid_y,lrate,momentum,batch_size);
 
 	####################
 	##	TESTING	 ##
 	####################
-	try:
-		test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing'],model_config['batch_size']) 
-	except KeyError:
-		#raise e
-		logger.info("No testing set:Skiping Testing");
-		logger.info("Finshed")
-		sys.exit(0)
+	if model_config['processes']['testing']:
+		try:
+			test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing']) 
+		except KeyError:
+			#raise e
+			logger.info("No testing set:Skiping Testing");
+			logger.info("Finshed")
+			sys.exit(0)
 
-	pred,err=testing(cnn,test_sets, test_xy, test_x, test_y,batch_size)
+		pred,err=testing(cnn,test_sets, test_xy, test_x, test_y,batch_size)
+
+
+	_cnn2file(cnn.layers[0:cnn.conv_layer_num],cnn.layers[cnn.conv_layer_num:], filename=model_config['output_file']);
+	
+	##########################
+	##	Export Features ##
+	##########################
+	if model_config['processes']['export_data']:
+		mlp_layers = cnn.layers[cnn.conv_layer_num:]
+		_file2cnn(cnn.conv_layers,mlp_layers, filename=model_config['output_file'])
+		exportFeatures(cnn,model_config['export_path'],data_spec['testing'])
 
 	
 if __name__ == '__main__':
-	setLogger(level="DEBUG");
 	runCNN(sys.argv[1])
