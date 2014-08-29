@@ -40,13 +40,20 @@ logger = logging.getLogger(__name__)
 def runDNN(configFile):
 
 	model_config = load_model(configFile)
-	dnn_config = load_dnn_spec(model_config['dnn_nnet_spec'])
-	data_spec =  load_data_spec(model_config['data_spec']);
+	dnn_config = load_dnn_spec(model_config['nnet_spec'])
+	data_spec =  load_data_spec(model_config['data_spec'],model_configs['batch_size']);
 
+	
+    #generating Random
+    numpy_rng = numpy.random.RandomState(rbm_config['random_seed'])
+    theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
 
-	#generating Random
-	numpy_rng = numpy.random.RandomState(dnn_config['random_seed'])
-	theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
+    activationFn = parse_activation(rbm_config['activation']);
+ 
+    #create working dir
+    createDir(model_config['wdir']);
+
+	batch_size = model_configs['batch_size'];
 
 	# pretraining
 	ptr_file = dnn_config['ptr_file']
@@ -57,113 +64,91 @@ def runDNN(configFile):
 	l2_reg = dnn_config['l2_reg']
 
 
-	# learning rate
-	lrate = LearningRate.get_instance(model_configs['l_rate_method'],
-		model_configs['l_rate']);
 
-	# batch_size and momentum
-	batch_size = model_configs['batch_size'];
-	momentum = model_configs['momentum']
-
-
-	n_ins = dnn_configs['n_ins']
+	n_ins = model_config['n_ins']
 	hidden_layers_sizes = dnn_config['hidden_layers']
-	n_outs = dnn_configs['n_outs']
+	n_outs = model_config['n_outs']
     
-    if dnn_configs['activation'] == 'sigmoid':
-        activation = T.nnet.sigmoid
-    else:
-        activation = T.tanh
 
-    do_maxout = dnn_configs['do_maxout']
-    pool_size = dnn_configs['pool_size']
-    do_pnorm = dnn_configs['do_pnorm']
-    pnorm_order = dnn_configs['pnorm_order']
+    do_maxout = dnn_config['do_maxout']
+    pool_size = dnn_config['pool_size']
+    do_pnorm = dnn_config['do_pnorm']
+    pnorm_order = dnn_config['pnorm_order']
 
-    do_dropout = dnn_configs['do_dropout']
-    dropout_factor = dnn_configs['dropout_factor']
-    input_dropout_factor = dnn_configs['input_dropout_factor']
-
-    train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
-    valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'])
-
+    do_dropout = dnn_config['do_dropout']
+    dropout_factor = dnn_config['dropout_factor']
+    input_dropout_factor = dnn_config['input_dropout_factor']
 
 	numpy_rng = numpy.random.RandomState(89677)
 	theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
 	
     logger.info('Building the model')
+
 	if do_dropout:
 		dnn = DNN_Dropout(numpy_rng=numpy_rng, theano_rng = theano_rng, n_ins=n_ins,
 			  hidden_layers_sizes=hidden_layers_sizes, n_outs=n_outs,
-			  activation = activation, dropout_factor = dropout_factor, input_dropout_factor = input_dropout_factor,
+			  activation = activationFn, dropout_factor = dropout_factor,
+			  input_dropout_factor = input_dropout_factor,
 			  do_maxout = do_maxout, pool_size = pool_size,
 			  max_col_norm = max_col_norm, l1_reg = l1_reg, l2_reg = l2_reg)
 	else:
 		dnn = DNN(numpy_rng=numpy_rng, theano_rng = theano_rng, n_ins=n_ins,
 			  hidden_layers_sizes=hidden_layers_sizes, n_outs=n_outs,
-			  activation = activation, do_maxout = do_maxout, pool_size = pool_size,
+			  activation = activationFn, do_maxout = do_maxout, pool_size = pool_size,
 			  do_pnorm = do_pnorm, pnorm_order = pnorm_order,
 			  max_col_norm = max_col_norm, l1_reg = l1_reg, l2_reg = l2_reg)
 
-	if ptr_layer_number > 0:
-	  _file2nnet(dnn.sigmoid_layers, set_layer_num = ptr_layer_number, filename = ptr_file,  withfinal=False)
+	try:
+		_file2nnet(dnn.sigmoid_layers, set_layer_num = ptr_layer_number,
+			filename = ptr_file,  withfinal=False)
+	except Exception, e:
+		logger.error(str(e));
+		logger.error('Model cannot be initialize from input file ')
 
-	# get the training, validation and testing function for the model
-	logger.info('Getting the finetuning functions')
-	train_fn, valid_fn = dnn.build_finetune_functions(
-				(train_x, train_y), (valid_x, valid_y),
-				batch_size=batch_size)
+    ########################
+    # FINETUNING THE MODEL #
+    ########################
+    if model_config['processes']['finetuning']:
+        try:
+            train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
+            valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'])        
+        except KeyError:
+            #raise e
+            logger.error("No validation/Test set:Skiping Fine tunning");
+        else:    
+            try:
+                finetune_method = model_config['finetune_method']
+                finetune_config = model_config['finetune_rate'] 
+                momentum = model_config['finetune_momentum']
+                lrate = LearningRate.get_instance(finetune_method,finetune_config);        
+            except KeyError, e:
+                print("KeyMissing:"+str(e));
+                print("Fine tunning Paramters Missing")
+                sys.exit(2)
 
-	logger.info('Finetunning the model')
-	start_time = time.clock()
-	while (lrate.get_rate() != 0):
-		train_error = []
-		while (not train_sets.is_finish()):
-			train_sets.load_next_partition(train_xy)
-			for batch_index in xrange(train_sets.cur_frame_num / batch_size):  # loop over mini-batches
-				train_error.append(train_fn(index=batch_index, learning_rate = lrate.get_rate(), momentum = momentum))
-		train_sets.initialize_read()
-		logger.info('Epoch %d, training error %f' % (lrate.epoch, numpy.mean(train_error)))
 
-		valid_error = []
-		while (not valid_sets.is_finish()):
-			valid_sets.load_next_partition(valid_xy)
-			for batch_index in xrange(valid_sets.cur_frame_num / batch_size):  # loop over mini-batches
-				valid_error.append(valid_fn(index=batch_index))
-		valid_sets.initialize_read()
-		logger.info('Epoch %d, lrate %f, validation error %f' % (lrate.epoch, lrate.get_rate(), numpy.mean(valid_error)))
+            fineTunning(dbn,train_sets,train_xy,train_x,train_y,
+                valid_sets,valid_xy,valid_x,valid_y,lrate,momentum,batch_size)
 
-		lrate.get_next_rate(current_error = 100 * numpy.mean(valid_error))
 
+    ########################
+    #  TESTING THE MODEL   #
+    ########################
+    if model_config['processes']['testing']:
+        try:
+            test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing']) 
+        except KeyError:
+            #raise e
+            logger.info("No testing set:Skiping Testing");
+        else:
+            testing(dbn,test_sets, test_xy, test_x, test_y,batch_size)
+
+	logger.info('Saving model to ' + str(model_config['output_file']) + '....')
 	if do_dropout:
-		_nnet2file(dnn.sigmoid_layers, filename=wdir + '/nnet.finetune.tmp', input_factor = input_dropout_factor, factor = dropout_factor)
+		_nnet2file(dnn.sigmoid_layers, filename=model_config['output_file'],
+		input_factor = input_dropout_factor, factor = dropout_factor)
 	else:
-		_nnet2file(dnn.sigmoid_layers, filename=wdir + '/nnet.finetune.tmp')
-
-	# determine whether it's BNF based on layer sizes
-	set_layer_num = -1
-	withfinal = True
-	bnf_layer_index = 1
-	while bnf_layer_index < len(hidden_layers_sizes):
-		if hidden_layers_sizes[bnf_layer_index] < hidden_layers_sizes[bnf_layer_index - 1]:  
-			break
-		bnf_layer_index = bnf_layer_index + 1
-
-	if bnf_layer_index < len(hidden_layers_sizes):  # is bottleneck
-		set_layer_num = bnf_layer_index+1
-		withfinal = False
-
-	end_time = time.clock()
-
-    logger.info('The Training ran for %.2fm' % ((end_time - start_time) / 60.))
-
-    if do_maxout:
-        _nnet2janus_maxout(nnet_spec, pool_size = pool_size, set_layer_num = set_layer_num, filein = wdir + '/nnet.finetune.tmp', fileout = output_file, withfinal=withfinal)
-    else:
-        _nnet2janus(nnet_spec, set_layer_num = set_layer_num, filein = wdir + '/nnet.finetune.tmp', fileout = output_file, withfinal=withfinal)
-    
-
-
+		_nnet2file(dnn.sigmoid_layers, filename=model_config['output_file'])
 
 if __name__ == '__main__':
 	import sys
