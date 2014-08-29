@@ -1,0 +1,29 @@
+
+{
+
+  "comment" : "layers :: RBM layer configuration (No: of Nodes)",
+  "hidden_layers": [ 2350,1024,1024,1024,1024,1901 ],
+
+  "comment" : "activation :: sigmoid or tanh",
+  "activation" : "sigmoid",
+
+  "comment" : "pretrained_layers:number of layers to be pre-trained",
+  "pretrained_layers" : 5,
+
+  "comment" : "random_seed::",
+  "random_seed" : 89677,
+
+  "comment" :"regularization for hidden layer parameter",
+  "max_col_norm":null,
+  "l1_reg":null,
+  "l2_reg":null,
+
+  "do_maxout":false,
+  "pool_size":1,
+  "do_pnorm": false,
+  "pnorm_order": 1,
+
+  "do_dropout": false,
+  "dropout_factor": [0.0],
+  "input_dropout_factor": 0.0
+}

@@ -64,6 +64,12 @@ class DropoutHiddenLayer(HiddenLayer):
 		super(DropoutHiddenLayer, self).__init__(rng=rng, input=input, n_in=n_in, n_out=n_out, W=W, b=b,
 				activation=activation, do_maxout = do_maxout, pool_size = pool_size)
 		self.theano_rng = RandomStreams(rng.randint(2 ** 30))
-		dropout_prob = self.theano_rng.binomial(n=1, p=1-dropout_factor, size=self.output.shape, dtype=theano.config.floatX)	
+		dropout_prob = self.theano_rng.binomial(n=1, p=1-dropout_factor, size=self.output.shape,
+			dtype=theano.config.floatX)	
 		self.dropout_output = dropout_prob * self.output
+
+def _dropout_from_layer(theano_rng, hid_out, p):
+    """ p is the factor for dropping a unit """
+    # p=1-p because 1's indicate keep and p is prob of dropping
+    return theano_rng.binomial(n=1, p=1-p, size=hid_out.shape,dtype=theano.config.floatX) * hid_out
 
