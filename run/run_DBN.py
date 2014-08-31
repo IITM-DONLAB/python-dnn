@@ -50,9 +50,9 @@ def preTraining(nnetModel,train_sets,train_xy,train_x,train_y,model_config):
     pretrainingEpochs = model_config['pretraining_epochs']
     keep_layer_num=model_config['keep_layer_num']
     
-    initialMomentum = model_config['initial_momentum']
-    initMomentumEpochs = model_config['initial_momentum_epoch']
-    finalMomentum = model_config['final_momentum']
+    initialMomentum = model_config['initial_pretrain_momentum']
+    initMomentumEpochs = model_config['initial_pretrain_momentum_epoch']
+    finalMomentum = model_config['final_pretrain_momentum']
     
     logger.info('Pre-training the model ...')
     start_time = time.clock()
@@ -63,7 +63,7 @@ def preTraining(nnetModel,train_sets,train_xy,train_x,train_y,model_config):
         if (nnetModel.rbm_layers[i].is_gbrbm()):
             pretrain_lr = model_config['gbrbm_learning_rate']
         else:
-            pretrain_lr = model_config['learning_rate']
+            pretrain_lr = model_config['pretraining_learning_rate']
         # go through pretraining epochs
         momentum = initialMomentum
         for epoch in xrange(pretrainingEpochs):

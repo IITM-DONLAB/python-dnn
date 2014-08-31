@@ -119,15 +119,15 @@ def load_data_spec(input_file,batch_size):
 def initModelCNN(data):
 	if not data.has_key('batch_size') or not type(data['batch_size']) is int:
 		data['batch_size']=256
-	if not data.has_key('momentum') or not type(data['momentum']) is float:
-		data['momentum']=0.5
+	if not data.has_key('finetune_momentum') or not type(data['finetune_momentum']) is float:
+		data['finetune_momentum']=0.5
 
-	if not data.has_key('l_rate_method'):
-		data['l_rate_method']="C"
+	if not data.has_key('finetune_method'):
+		data['finetune_method']="C"
 
-	if not data.has_key('l_rate'):
+	if not data.has_key('finetune_rate'):
 		lrate_config=dict()
-		if data['l_rate_method'] == "C":
+		if data['finetune_method'] == "C":
 			lrate_config['learning_rate'] = 0.08
 			lrate_config['epoch_num'] = 15
 		else:
@@ -137,7 +137,7 @@ def initModelCNN(data):
 			lrate_config['min_derror_stop'] = 0.05
 			lrate_config['min_epoch_decay_start'] = 15
 			lrate_config['init_error'] = 100
-		data['l_rate']=lrate_config
+		data['finetune_rate']=lrate_config
 
 	return data
 
@@ -223,35 +223,35 @@ def initModelRBM(data):
 	#default values:
 
 	gbrbm_learning_rate = 0.005
-	learning_rate = 0.08
+	pretraining_learning_rate = 0.08
 	batch_size=128
 	epochs=10
 	keep_layer_num=0
 
 
 	# momentum; more complicated than dnn
-	initial_momentum = 0.5	 # initial momentum
-	final_momentum = 0.9	   # final momentum
-	initial_momentum_epoch = 5 # for how many epochs do we use initial_momentum
+	initial_pretrain_momentum = 0.5	 # initial momentum
+	final_pretrain_momentum = 0.9	   # final momentum
+	initial_pretrain_momentum_epoch = 5 # for how many epochs do we use initial_pretrain_momentum
 
 	if not data.has_key('batch_size') or not type(data['batch_size']) is int:
 		data['batch_size']=batch_size
 	if not data.has_key('gbrbm_learning_rate') or not type(data['gbrbm_learning_rate']) is float:
 		data['gbrbm_learning_rate'] = gbrbm_learning_rate
-	if not data.has_key('learning_rate') or type(data['learning_rate']) is float:
-		data['learning_rate'] = learning_rate
+	if not data.has_key('pretraining_learning_rate') or type(data['pretraining_learning_rate']) is float:
+		data['pretraining_learning_rate'] = pretraining_learning_rate
 	if not data.has_key('pretraining_epochs') or not type(data['pretraining_epochs']) is int:
 		data['pretraining_epochs'] = epochs
 	if not data.has_key('keep_layer_num') or not type(data['keep_layer_num']) is int:
 		data['keep_layer_num'] = keep_layer_num
 
 	# momentum
-	if data.has_key('initial_momentum') or not type(data['initial_momentum']) is float:
-		data['initial_momentum']=initial_momentum
-	if data.has_key('final_momentum') or not type(data['final_momentum']) is float:
-		data['final_momentum']=final_momentum
-	if data.has_key('initial_momentum_epoch ') or not type(data['initial_momentum_epoch']) is int:
-		data['initial_momentum_epoch']=initial_momentum_epoch
+	if data.has_key('initial_pretrain_momentum') or not type(data['initial_pretrain_momentum']) is float:
+		data['initial_pretrain_momentum']=initial_pretrain_momentum
+	if data.has_key('final_pretrain_momentum') or not type(data['final_pretrain_momentum']) is float:
+		data['final_pretrain_momentum']=final_pretrain_momentum
+	if data.has_key('initial_pretrain_momentum_epoch ') or not type(data['initial_pretrain_momentum_epoch']) is int:
+		data['initial_pretrain_momentum_epoch']=initial_pretrain_momentum_epoch
 
 
 	return data
@@ -306,8 +306,8 @@ def load_sda_spec(input_file):
 def initModelDNN(data):
 	if not data.has_key('batch_size') or not type(data['batch_size']) is int:
 		data['batch_size']=256
-	if not data.has_key('momentum') or not type(data['momentum']) is float:
-		data['momentum']=0.5
+	if not data.has_key('finetune_momentum') or not type(data['finetune_momentum']) is float:
+		data['finetune_momentum']=0.5
 
 	if not data.has_key('finetune_method'):
 		data['finetune_method']="C"

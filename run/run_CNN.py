@@ -69,8 +69,8 @@ def runCNN(arg):
 
 	if model_config['processes']['finetuning']:
 		#learning rate, batch-size and momentum
-		lrate = LearningRate.get_instance(model_config['l_rate_method'],model_config['l_rate']);
-		momentum = model_config['momentum']
+		lrate = LearningRate.get_instance(model_config['finetune_method'],model_config['finetune_rate']);
+		momentum = model_config['finetune_momentum']
 
 		train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
 		valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'])
