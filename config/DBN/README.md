@@ -1,29 +1,27 @@
+Python-DNN Config
+===============
 Model Config
 ------------
-* `nnetType` : (Mandatory) specify Type of Network (CNN/RBM/SDA/DNN)
-* `train_data` : (Mandatory) specify the working directory containing data configuration and output
+* `nnetType` : (Mandatory) Type of Network (CNN/RBM/SDA/DNN)
+* `train_data` : (Mandatory) The working directory containing data configuration and output
 * `wdir` : (Mandatory) Working Directory.
-* `data_spec` : (Mandatory) specify the path of the data sepification relative to `model_config.json`
-* `nnet_spec` : (Mandatory) specify the path of network configuration specification relative to `model_config.json`
+* `data_spec` : (Mandatory) The path of the data sepification relative to `model_config.json`
+* `nnet_spec` : (Mandatory) The path of network configuration specification relative to `model_config.json`
 
-* `output_file` : (Mandatory) specify the path of RBM network output file relative to working directory
-* `input_file` : specify the path of RBM network inpu file relative to working directory
+* `output_file` : (Mandatory) The path of RBM network output file relative to `wdir`
+* `input_file` : The path of PreTrained/FineTuned network input file relative to `wdir`.(Mandatory for DNN)
+
+* `logger_level` : Level of Logger.Valid Values are "INFO","DEBUG" and "ERROR"
 
 * `batch_size` : specify the mini batch size while training, default 128
+* `n_ins` :Dimension of input (Mandatory for all except CNN)
+* `n_outs` :(Mandatory) Dimension of output (No: of Classes) 
+* `input_shape`: The input shape of a given feature vector.(Mandatory For CNN).Should be an Array.
 
-* `n_ins` :784
-* `n_outs` :10
-
-* `gbrbm_learning_rate` : pretraining
-* `pretraining_learning_rate` : pretraining
-* `pretraining_epochs` :
-
-* `initial_pretrain_momentum` :Specify the momentum factor while training default 0.5
-* `final_pretrain_momentum` :Specify the momentum factor while training default 0.9
-* `initial_pretrain_momentum_epoch` : Specify the momentum factor while training default 5
-
-* `finetune_method` :  Two methods are supported  C: Constant learning rate and E:  Exponential decay
-* `finetune_rate` : learning rate configuration
+* `finetune_method` :  Two methods are supported  
+>> 1. C: Constant learning rate.
+>> 2. E:  Exponential decay.
+* `finetune_rate` : Configuration of learning method.Contains a json object with following params
 
 > param | description | default value  |learning method 
 > :-----|:------------|:--------------:|:---------------:
@@ -36,14 +34,44 @@ Model Config
 > `min_epoch_decay_start` || 15 | E
 > `init_error` || 100 | E
 
-* `finetune_momentum` :  Specify the momentum factor while finetuning
+* `finetune_momentum` :  The momentum factor while finetuning
+* `export_path` : path (realative to `wdir`) for writting (bottleneck) features.
+* `processes` : Process should be run by program.Contains a json object with following params
 
-* `processes` :
+> * `pretraining` : whether Pre-Training is needed.(invalid for DNN and CNN).(Default value = false)
+> * `finetuning` : whether Fine Tuning  is needed.(Default value = false)
+> * `testing` : whether Fine Tuning  is needed.(Default value = false)
+> * `export_data` : whether extracted features should written to file.If true,`export_path` is required.(Default value = false).
 
->> * `pretraining` : default:false
->> * `finetuning` : default:false
->> * `testing` : default:false
->> * `export_data` : default:false
+######Specific to DBN(RBM)######
+* `gbrbm_learning_rate` : Pretraining learning rate for gbrbm layer.(Default Value = 0.005)
+* `pretraining_learning_rate` : Pretraining learning rate for all layers except gbrbm layer.(Default Value = 0.08)
+* `pretraining_epochs` :No of Pretraining epochs(Default Value = 10)
+* `initial_pretrain_momentum` :The initial momentum factor while pre-training (Default Value = 0.5)
+* `final_pretrain_momentum` :The final momentum factor while pre-training (Default Value = 0.9)
+* `initial_pretrain_momentum_epoch` : No: of epochs with the initial momentum factor before switching to final momentum factor.(Default Value = 5)
 
-* `export_path` : path (realative to wdir) for writting (bottleneck) features.
+* `keep_layer_num`: From which layer Pre-Trainig Should Start.(Default Value = 0).If non-Zero layer is intilaized with weights from `input_file`
 
+######Specific to SDA######
+* `pretrain_lr` :learning rate to be used during pre-training (Default Value = 0.08).
+
+_____________________________________________________________________________________________________________
+Data Specification
+------------------
+Data Specfication has 3 fields:
+> 1. `training`
+> 2. `validation`
+> 3. `testing`
+
+Each one is a json object with following fields:
+* `base_path` :(Mandatory) Base path of data.
+* `filename` :(Mandatory) Filename,
+* `partition` :(Mandatory) Size of data which should be loaded to memory at a time (in MiB)
+* `random` : Whether to use random order (Default value = true)
+* `random_seed` : Seed for random numbers if `random` is `true`
+* `keep_flatten` : Whether to use data as flatten vector or reshape(Default Value = false)
+* `reader_type` : (Mandatory) Type of reader NP/T1/T2.
+* `dim_shuffle` : how to use reshape given fatten vector.Used only `keep_flatten` is `false`
+
+________________________________________________________________________________________________________________
