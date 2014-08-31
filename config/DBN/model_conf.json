@@ -18,10 +18,10 @@
     "batch_size" : 128,
 
     "comment": "",
-    "n_ins":2352,
+    "n_ins":784,
 
     "comment":"",
-    "n_outs":200,
+    "n_outs":10,
 
     "comment" :"TODO",
     "gbrbm_learning_rate":0.005,
@@ -53,8 +53,8 @@
     "finetune_momentum": 0.5,
 
     "processes":{
-	"pretraining":false,
-	"finetuning":false,
+	"pretraining":true,
+	"finetuning":true,
 	"testing":true,
 	"export_data":false
     }

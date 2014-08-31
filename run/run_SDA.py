@@ -162,7 +162,7 @@ def runSdA(arg):
 
     # save the pretrained nnet to file
     logger.info('Saving model to ' + str(model_config['output_file']) + '....')
-    _nnet2file(dbn.sigmoid_layers, filename=model_config['output_file'], withfinal=True)
+    _nnet2file(sda.sigmoid_layers, filename=model_config['output_file'], withfinal=True)
 
 
     #print test_pred
