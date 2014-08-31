@@ -124,7 +124,7 @@ def runSdA(arg):
         try:
             train_sets
         except NameError :
-            train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training']])
+            train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
         
         try:
             valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'],
