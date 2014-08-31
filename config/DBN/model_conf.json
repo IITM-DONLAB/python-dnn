@@ -25,13 +25,13 @@
 
     "comment" :"TODO",
     "gbrbm_learning_rate":0.005,
-    "learning_rate":0.08,
+    "pretraining_learning_rate":0.08,
     "pretraining_epochs":10,
     
-    "comment" : "initial_momentum,final_momentum,initial_momentum_epoch ::  Specify the momentum factor while training default 0.5,0.9,5",
-    "initial_momentum":0.5,
-    "final_momentum":0.9,
-    "initial_momentum_epoch":5,
+    "comment" : "initial_pretrain_momentum,final_pretrain_momentum,initial_pretrain_momentum_epoch ::  Specify the momentum factor while training default 0.5,0.9,5",
+    "initial_pretrain_momentum":0.5,
+    "final_pretrain_momentum":0.9,
+    "initial_pretrain_momentum_epoch":5,
 
     "comment" : "finetune_method::  Two methods are supported  C: Constant learning rate and E : Exponential decay",
     "finetune_method":"C",
