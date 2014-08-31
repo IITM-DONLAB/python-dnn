@@ -25,14 +25,16 @@ Model Config
 * `finetune_method` :  Two methods are supported  C: Constant learning rate and E:  Exponential decay
 * `finetune_rate` : learning rate configuration
 
->> * `learning_rate` : For Constant learning rate.default value-0.08
->> * `epoch_num` : For Constant learning rate.default value-10
->> * `start_rate` : For Exponential decay.default value-0.08
->> * `scale_by` : For Exponential decay.default value-0.5
->> * `min_derror_decay_start` : For Exponential decay.default value-0.05
->> * `min_derror_stop` : For Exponential decay.default value-0.05
->> * `min_epoch_decay_start` : For Exponential decay.default value-15
->> * `init_error` : For Exponential decay.default value-100
+> param | description | default value  |learning method 
+> :-----|:------------|:--------------:|:---------------:
+> `learning_rate` ||0.08 | C
+> `epoch_num` ||10 | C
+> `start_rate` ||0.08 | E
+> `scale_by`  ||0.5 | E
+> `min_derror_decay_start` ||0.05 | E
+> `min_derror_stop` ||0.05 | E
+> `min_epoch_decay_start` || 15 | E
+> `init_error` || 100 | E
 
 * `finetune_momentum` :  Specify the momentum factor while finetuning
 
