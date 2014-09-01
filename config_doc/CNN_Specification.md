@@ -8,8 +8,8 @@ It has 2 parts:
 Each one contain a json object.`cnn` describes convolution layer configuration and `mlp` describes hidden layer configuration.
 
 * `cnn` contains a json object with following parameters:
-> * `layers`: An Array of json objects.Each one decribes a convolution layer which contains:
 
+> * `layers`: An Array of json objects.Each one decribes a convolution layer which contains:
 >> * `convmat_dim` : [5,5],
 >> * `num_filters` : 100,
 >> * `poolsize`    :  [2,2],
