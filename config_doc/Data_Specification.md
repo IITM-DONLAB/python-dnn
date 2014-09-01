@@ -1,5 +1,5 @@
 Data Specification
-------------------
+====================
 
 Data Specfication has 3 fields:
 
@@ -18,4 +18,8 @@ Each one is a json object with following fields:
 > * `reader_type` : (Mandatory) Type of reader NP/T1/T2.
 > * `dim_shuffle` : how to use reshape given fatten vector.Used only `keep_flatten` is `false`
 
-Also See: [Example](../sample_config/MNIST/CNN/data_spec.json)
+_____________________________________________________________________________________________
+
+**Also See**: 
+
+*[Example](../sample_config/MNIST/CNN/data_spec.json)

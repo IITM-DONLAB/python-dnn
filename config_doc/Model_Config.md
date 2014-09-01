@@ -17,8 +17,10 @@ Model Config
 * `input_shape`: The input shape of a given feature vector.(Mandatory For CNN).Should be an Array.
 
 * `finetune_method` :  Two methods are supported  
->> 1. C: Constant learning rate.
->> 2. E:  Exponential decay.
+
+> 1. C: Constant learning rate.
+> 2. E:  Exponential decay.
+
 * `finetune_rate` : Configuration of learning method.Contains a json object with following params
 
 > param                   | description                           | default value  |learning method 
@@ -53,4 +55,10 @@ Model Config
 ######Specific to SDA######
 * `pretrain_lr` :learning rate to be used during pre-training (Default Value = 0.08).
 
-_____________________________________________________________________________________________________________
+_____________________________________________________________________________________________
+
+**Also See**: 
+
+* [Example-CNN](../sample_config/MNIST/CNN/model_config.json)
+* [Example-RBM](../sample_config/MNIST/DBN/model_config.json)
+* [Example-SDA](../sample_config/MNIST/SDA/model_config.json)
