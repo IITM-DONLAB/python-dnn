@@ -1,58 +1,30 @@
-{	
-    "comment" : "nnetType :: (Mandatory) specify Type of Network (CNN,SDA) ",
+{
     "nnetType" : "SDA",
-
-    "comment" : "train_data :: (Mandatory) specify the working directory containing data configuration and output ",
     "wdir" : "wdir",
-
-    "comment" : "valid_data (Mandatory) specify the path of the validation data relative to the working directory",
     "data_spec" : "data_spec.json",
-    
-    "comment" : "sda_nnet_spec:: (Mandatory) specify the path of SDA network configuration specification relative to working directory",
     "nnet_spec" : "sda_spec.json",
-
-    "comment" : "output_file :: (Mandatory) specify the path of SDA network output file relative to working directory",
     "output_file" : "sda_out.model",
-
     "logger_level":"INFO",
-    
-    "comment" : "batch_size :: specify the mini batch size while training, default 128",
     "batch_size" : 128,
-
-    "comment": "",
     "n_ins":784,
-
-    "comment":"",
     "n_outs":10,
-
-    "comment" :"pretraining_epochs: number of epoch to do pretraining",
     "pretraining_epochs":10,
-
-    "comment" :"learning rate to be used during pre-training",
     "pretrain_lr":0.08,
-    
-    "comment" : "finetune_method::  Two methods are supported  C: Constant learning rate and E : Exponential decay",
     "finetune_method":"C",
-
-    "comment" : "finetune_rate :: learning rate configuration",
-    "finetune_rate" : {	
-	"learning_rate" : 0.08,
-	"epoch_num" : 10,
-
-	"start_rate" : 0.08,
-	"scale_by" : 0.5,
-	"min_derror_decay_start" : 0.05,
-	"min_derror_stop" : 0.05,
-	"min_epoch_decay_start" : 15
+    "finetune_rate" : {
+        "learning_rate" : 0.08,
+        "epoch_num" : 10,
+        "start_rate" : 0.08,
+        "scale_by" : 0.5,
+        "min_derror_decay_start" : 0.05,
+        "min_derror_stop" : 0.05,
+        "min_epoch_decay_start" : 15
     },
-
-    "comment" : "finetune_momentum ::  Specify the momentum factor while finetuning",
     "finetune_momentum": 0.5,
-
     "processes":{
-	"pretraining":true,
-	"finetuning":true,
-	"testing":true,
-	"export_data":false
+        "pretraining":true,
+        "finetuning":true,
+        "testing":true,
+        "export_data":false
     }
 }

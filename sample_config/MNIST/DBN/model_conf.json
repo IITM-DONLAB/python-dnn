@@ -1,61 +1,33 @@
-{	
-    "comment" : "nnetType :: (Mandatory) specify Type of Network (CNN,RBM) ",
+{
     "nnetType" : "RBM",
-
-    "comment" : "train_data :: (Mandatory) specify the working directory containing data configuration and output ",
     "wdir" : "wdir",
-
-    "comment" : "valid_data (Mandatory) specify the path of the validation data relative to the working directory",
     "data_spec" : "data_spec.json",
-    
-    "comment" : "rbm_nnet_spec:: (Mandatory) specify the path of RBM network configuration specification relative to working directory",
     "nnet_spec" : "rbm_spec.json",
-
-    "comment" : "output_file :: (Mandatory) specify the path of RBM network output file relative to working directory",
     "output_file" : "rbm_out.model",
-    
-    "comment" : "batch_size :: specify the mini batch size while training, default 128",
     "batch_size" : 128,
-
-    "comment": "",
     "n_ins":784,
-
-    "comment":"",
     "n_outs":10,
-
-    "comment" :"TODO",
     "gbrbm_learning_rate":0.005,
     "pretraining_learning_rate":0.08,
     "pretraining_epochs":10,
-    
-    "comment" : "initial_pretrain_momentum,final_pretrain_momentum,initial_pretrain_momentum_epoch ::  Specify the momentum factor while training default 0.5,0.9,5",
     "initial_pretrain_momentum":0.5,
     "final_pretrain_momentum":0.9,
     "initial_pretrain_momentum_epoch":5,
-
-    "comment" : "finetune_method::  Two methods are supported  C: Constant learning rate and E : Exponential decay",
     "finetune_method":"C",
-
-    "comment" : "finetune_rate :: learning rate configuration",
-    "finetune_rate" : {	
-	"learning_rate" : 0.08,
-	"epoch_num" : 10,
-
-	"start_rate" : 0.08,
-	"scale_by" : 0.5,
-	"min_derror_decay_start" : 0.05,
-	"min_derror_stop" : 0.05,
-	"min_epoch_decay_start" : 15
+    "finetune_rate" : {
+        "learning_rate" : 0.08,
+        "epoch_num" : 10,
+        "start_rate" : 0.08,
+        "scale_by" : 0.5,
+        "min_derror_decay_start" : 0.05,
+        "min_derror_stop" : 0.05,
+        "min_epoch_decay_start" : 15
     },
-
-    "comment" : "finetune_momentum ::  Specify the momentum factor while finetuning",
     "finetune_momentum": 0.5,
-
     "processes":{
-	"pretraining":true,
-	"finetuning":true,
-	"testing":true,
-	"export_data":false
+        "pretraining":true,
+        "finetuning":true,
+        "testing":true,
+        "export_data":false
     }
-
 }

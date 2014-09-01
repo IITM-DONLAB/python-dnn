@@ -21,15 +21,15 @@ Model Config
 >> 2. E:  Exponential decay.
 * `finetune_rate` : Configuration of learning method.Contains a json object with following params
 
-> param 					| description | default value  |learning method 
-> :-------------------------|:------------|:--------------:|:---------------:
-> `learning_rate` 			||0.08 | C
-> `epoch_num` 				||10 | C
-> `start_rate` 				||0.08 | E
-> `scale_by`  				||0.5 | E
-> `min_derror_decay_start` 	||0.05 | E
-> `min_derror_stop` 		||0.05 | E
-> `min_epoch_decay_start` 	|| 15 | E
+> param                   | description                           | default value  |learning method 
+> :-----------------------|:--------------------------------------|:--------------:|:---------------:
+> `learning_rate`         |                                       |0.08            | C
+> `epoch_num`             |                                       |10              | C
+> `start_rate`            |                                       |0.08            | E
+> `scale_by`              |                                       |0.5             | E
+> `min_derror_decay_start`|                                       |0.05            | E
+> `min_derror_stop`       |                                       |0.05            | E
+> `min_epoch_decay_start` |                                       | 15             | E
 
 * `finetune_momentum` :  The momentum factor while finetuning
 * `export_path` : path (realative to `wdir`) for writting (bottleneck) features.

@@ -1,6 +1,6 @@
 {
 	"validation": {
-		"base_path" : "/data/abil/MNIST/NP",
+		"base_path" : "/data/MNIST/NP",
 		"filename" : "val.dat",
 		"partition" : 100,
 		"random" : true,
@@ -13,7 +13,7 @@
 	},
 
 	"training" : {
-		"base_path" : "/data/abil/MNIST/NP",
+		"base_path" : "/data/MNIST/NP",
 		"filename" : "train.dat",
 		"partition" : 100,
 		"random" : true,
@@ -26,7 +26,7 @@
 	},
 
 	"testing" : {
-		"base_path" : "/data/abil/MNIST/NP",
+		"base_path" : "/data/MNIST/NP",
 		"filename" : "test.dat",
 		"partition" : 100,
 		"random" : true,
