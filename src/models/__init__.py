@@ -58,12 +58,12 @@ class nnet(object):
 		:type batch_size: int
 		:param batch_size: size of a minibatch
 
-        :returns (theano.function,theano.function)
+		:returns (theano.function,theano.function)
 		* A function for training takes minibatch_index,learning_rate,momentum 
 		which updates weights,and return error rate
 		* A function for validation takes minibatch_indexand return error rate
 		
-        """
+		"""
 
 		(train_set_x, train_set_y) = train_shared_xy
 		(valid_set_x, valid_set_y) = valid_shared_xy
@@ -146,24 +146,24 @@ class nnet(object):
 		TODO
 		"""
 		if self.l1_reg is not None:
-            for i in xrange(self.n_layers):
-                W = self.params[i * 2]
-                self.finetune_cost += self.l1_reg * (abs(W).sum())
+			for i in xrange(self.n_layers):
+				W = self.params[i * 2]
+				self.finetune_cost += self.l1_reg * (abs(W).sum())
 
-        if self.l2_reg is not None:
-            for i in xrange(self.n_layers):
-                W = self.params[i * 2]
-                self.finetune_cost += self.l2_reg * T.sqr(W).sum()
+		if self.l2_reg is not None:
+			for i in xrange(self.n_layers):
+				W = self.params[i * 2]
+				self.finetune_cost += self.l2_reg * T.sqr(W).sum()
 
-    def __TrainReg__(self):
-    	"""
+	def __TrainReg__(self):
+		"""
 		TODO
 		"""
-    	if self.max_col_norm is not None:
-            for i in xrange(self.n_layers):
-                W = self.params[i * 2]
-                if W in updates:
-                    updated_W = updates[W]
-                    col_norms = T.sqrt(T.sum(T.sqr(updated_W), axis=0))
-                    desired_norms = T.clip(col_norms, 0, self.max_col_norm)
-                    updates[W] = updated_W * (desired_norms / (1e-7 + col_norms))
+		if self.max_col_norm is not None:
+			for i in xrange(self.n_layers):
+				W = self.params[i * 2]
+				if W in updates:
+					updated_W = updates[W]
+					col_norms = T.sqrt(T.sum(T.sqr(updated_W), axis=0))
+					desired_norms = T.clip(col_norms, 0, self.max_col_norm)
+					updates[W] = updated_W * (desired_norms / (1e-7 + col_norms))
