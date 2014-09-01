@@ -1,5 +1,6 @@
 Python-DNN Config
 ===============
-* [[Model Config]]
-* [[Data Specification]]
+* [Model Config](Model_Config.md)
+* [Data Specification](Data_Specification.md)
+
 _____________________________________________________________________________________________________________
