@@ -23,10 +23,16 @@ class nnet(object):
 		self.errors = None
 		self.finetune_cost = None
 
+		#__Regularization Param
+		self.l1_reg = None
+		self.l2_reg = None
+		self.max_col_norm = None
+
+
 	def getType(self):
 		return self.type
 
-	def pretraining_functions(self, train_x, batch_size):
+	def pretraining_functions(self, *args, **kwargs):
 		"""
 		Should be implemeted by derived class
 		"""
@@ -134,3 +140,30 @@ class nnet(object):
 		fn = theano.function(inputs=[in_x],outputs=self.features,
 			givens={self.x: in_x},name='features')#,on_unused_input='warn')
 		return fn
+
+	def __Regularization__(self):
+		"""
+		TODO
+		"""
+		if self.l1_reg is not None:
+            for i in xrange(self.n_layers):
+                W = self.params[i * 2]
+                self.finetune_cost += self.l1_reg * (abs(W).sum())
+
+        if self.l2_reg is not None:
+            for i in xrange(self.n_layers):
+                W = self.params[i * 2]
+                self.finetune_cost += self.l2_reg * T.sqr(W).sum()
+
+    def __TrainReg__(self):
+    	"""
+		TODO
+		"""
+    	if self.max_col_norm is not None:
+            for i in xrange(self.n_layers):
+                W = self.params[i * 2]
+                if W in updates:
+                    updated_W = updates[W]
+                    col_norms = T.sqrt(T.sum(T.sqr(updated_W), axis=0))
+                    desired_norms = T.clip(col_norms, 0, self.max_col_norm)
+                    updates[W] = updated_W * (desired_norms / (1e-7 + col_norms))
