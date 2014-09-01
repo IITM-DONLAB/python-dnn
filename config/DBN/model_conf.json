@@ -45,8 +45,7 @@
 	"scale_by" : 0.5,
 	"min_derror_decay_start" : 0.05,
 	"min_derror_stop" : 0.05,
-	"min_epoch_decay_start" : 15,
-	"init_error" :100
+	"min_epoch_decay_start" : 15
     },
 
     "comment" : "finetune_momentum ::  Specify the momentum factor while finetuning",

@@ -41,14 +41,12 @@ class LearningRateExpDecay(LearningRate):
 	def __init__(self,kwargs, decay=False, zero_rate = 0.0):
 
 		self.start_rate = kwargs['start_rate']
-		self.init_error = kwargs['init_error']
-		
 		self.rate = kwargs['start_rate']
 		self.scale_by = kwargs['scale_by']
 		self.min_derror_decay_start = kwargs['min_derror_decay_start']
 		self.min_derror_stop = kwargs['min_derror_stop']
-		self.lowest_error = kwargs['init_error']
 		self.min_epoch_decay_start = kwargs['min_epoch_decay_start']
+		self.lowest_error = float('Inf')
 		self.epoch = 1
 		self.decay = decay
 		self.zero_rate = zero_rate

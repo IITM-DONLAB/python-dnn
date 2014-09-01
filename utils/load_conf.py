@@ -323,7 +323,6 @@ def initModelDNN(data):
 			lrate_config['min_derror_decay_start'] = 0.05
 			lrate_config['min_derror_stop'] = 0.05
 			lrate_config['min_epoch_decay_start'] = 15
-			lrate_config['init_error'] = 100
 		data['finetune_rate']=lrate_config
 	return data
 
