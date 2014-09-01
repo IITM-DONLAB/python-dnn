@@ -1,11 +1,14 @@
 Data Specification
 ------------------
+
 Data Specfication has 3 fields:
+
 > 1. `training`
 > 2. `validation`
 > 3. `testing`
 
 Each one is a json object with following fields:
+
 * `base_path` :(Mandatory) Base path of data.
 * `filename` :(Mandatory) Filename,
 * `partition` :(Mandatory) Size of data which should be loaded to memory at a time (in MiB)
