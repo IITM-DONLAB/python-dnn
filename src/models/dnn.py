@@ -42,7 +42,7 @@ class DNN(nnet):
 
         super(DNN, self).__init__()
         
-        self.sigmoid_layers = []
+        self.mlp_layers = []
         self.n_layers = len(hidden_layers_sizes)
 
         self.max_col_norm = max_col_norm
@@ -64,7 +64,7 @@ class DNN(nnet):
                 layer_input = self.x
             else:
                 input_size = hidden_layers_sizes[i - 1]
-                layer_input = self.sigmoid_layers[-1].output
+                layer_input = self.mlp_layers[-1].output
 
             if do_maxout == True:
                 sigmoid_layer = HiddenLayer(rng=numpy_rng,
@@ -87,15 +87,15 @@ class DNN(nnet):
                                         n_out=hidden_layers_sizes[i],
                                         activation=activation)
             # add the layer to our list of layers
-            self.sigmoid_layers.append(sigmoid_layer)
+            self.mlp_layers.append(sigmoid_layer)
             self.params.extend(sigmoid_layer.params)
             self.delta_params.extend(sigmoid_layer.delta_params)
         # We now need to add a logistic layer on top of the MLP
         self.logLayer = LogisticRegression(
-                         input=self.sigmoid_layers[-1].output,
+                         input=self.mlp_layers[-1].output,
                          n_in=hidden_layers_sizes[-1], n_out=n_outs)
 
-        self.sigmoid_layers.append(self.logLayer)
+        self.mlp_layers.append(self.logLayer)
         self.params.extend(self.logLayer.params)
         self.delta_params.extend(self.logLayer.delta_params)
        
@@ -107,87 +107,11 @@ class DNN(nnet):
         self.errors = self.logLayer.errors(self.y)
 
         if self.l1_reg is not None:
-            for i in xrange(self.n_layers):
-                W = self.params[i * 2]
-                self.finetune_cost += self.l1_reg * (abs(W).sum())
+            self.__l1Regularization__();
 
         if self.l2_reg is not None:
-            for i in xrange(self.n_layers):
-                W = self.params[i * 2]
-                self.finetune_cost += self.l2_reg * T.sqr(W).sum()
+            self.__l2Regularization__();
 
         self.output = self.logLayer.prediction();
-        self.features = self.sigmoid_layers[-2].output;
-
-    def build_finetune_functions(self, train_shared_xy, valid_shared_xy, batch_size):
-        """
-        Generates a function `train` that implements one step of
-        finetuning and a function `validate` that computes the error on 
-        a batch from the validation set 
-
-        :type train_shared_xy: pairs of theano.tensor.TensorType
-        :param train_shared_xy: It is a list that contain all the train dataset, 
-            pair is formed of two Theano variables, one for the datapoints,
-            the other for the labels
-
-        :type valid_shared_xy: pairs of theano.tensor.TensorType
-        :param valid_shared_xy: It is a list that contain all the valid dataset, 
-            pair is formed of two Theano variables, one for the datapoints,
-            the other for the labels
-
-        :type batch_size: int
-        :param batch_size: size of a minibatch
-
-        :returns (theano.function,theano.function)
-        * A function for training takes minibatch_index,learning_rate,momentum 
-        which updates weights,and return error rate
-        * A function for validation takes minibatch_indexand return error rate
-        
-        """
-
-        (train_set_x, train_set_y) = train_shared_xy
-        (valid_set_x, valid_set_y) = valid_shared_xy
-
-        index = T.lscalar('index')  # index to a [mini]batch
-        learning_rate = T.scalar('learning_rate',dtype=theano.config.floatX)
-        momentum = T.scalar('momentum',dtype=theano.config.floatX)
-
-        # compute the gradients with respect to the model parameters
-        gparams = T.grad(self.finetune_cost, self.params)
-
-        # compute list of fine-tuning updates
-        updates = OrderedDict()
-        for dparam, gparam in zip(self.delta_params, gparams):
-            updates[dparam] = momentum * dparam - gparam*learning_rate
-        for dparam, param in zip(self.delta_params, self.params):
-            updates[param] = param + updates[dparam]
-
-        if self.max_col_norm is not None:
-            for i in xrange(self.n_layers):
-                W = self.params[i * 2]
-                if W in updates:
-                    updated_W = updates[W]
-                    col_norms = T.sqrt(T.sum(T.sqr(updated_W), axis=0))
-                    desired_norms = T.clip(col_norms, 0, self.max_col_norm)
-                    updates[W] = updated_W * (desired_norms / (1e-7 + col_norms))
-
-        train_fn = theano.function(inputs=[index, theano.Param(learning_rate, default = 0.0001),
-              theano.Param(momentum, default = 0.5)],
-              outputs=self.errors,
-              updates=updates,
-              givens={
-                self.x: train_set_x[index * batch_size:
-                                    (index + 1) * batch_size],
-                self.y: train_set_y[index * batch_size:
-                                    (index + 1) * batch_size]})
-
-        valid_fn = theano.function(inputs=[index],
-              outputs=self.errors,
-              givens={
-                self.x: valid_set_x[index * batch_size:
-                                    (index + 1) * batch_size],
-                self.y: valid_set_y[index * batch_size:
-                                    (index + 1) * batch_size]})
-
-        return train_fn, valid_fn
-
+        self.features = self.mlp_layers[-2].output;
+        self.features_dim = self.mlp_layers[-1].n_out

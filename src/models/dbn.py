@@ -51,7 +51,7 @@ class DBN(nnet):
                                 bernolli-bernolli
         """
         super(DBN, self).__init__()
-        self.sigmoid_layers = []
+        self.mlp_layers = []
         self.rbm_layers = []
         self.n_layers = len(hidden_layers_sizes)
 
@@ -94,7 +94,7 @@ class DBN(nnet):
                 layer_input = self.x
             else:
                 input_size = hidden_layers_sizes[i - 1]
-                layer_input = self.sigmoid_layers[-1].output
+                layer_input = self.mlp_layers[-1].output
 
 
             sigmoid_layer = HiddenLayer(rng=numpy_rng,
@@ -104,7 +104,7 @@ class DBN(nnet):
                                         activation=activation)
 
             # add the layer to our list of layers
-            self.sigmoid_layers.append(sigmoid_layer)
+            self.mlp_layers.append(sigmoid_layer)
 
             # the parameters of the sigmoid_layers are parameters of the DBN. 
             # The visible biases in the RBM are parameters of those RBMs, 
@@ -135,7 +135,7 @@ class DBN(nnet):
 
         # We now need to add a logistic layer on top of the MLP
         self.logLayer = LogisticRegression(
-            input=self.sigmoid_layers[-1].output,
+            input=self.mlp_layers[-1].output,
             n_in=hidden_layers_sizes[-1],
             n_out=n_outs)
         self.params.extend(self.logLayer.params)
@@ -151,7 +151,8 @@ class DBN(nnet):
         self.errors = self.logLayer.errors(self.y)
 
         self.output = self.logLayer.prediction();
-        self.features = self.sigmoid_layers[-1].output;
+        self.features = self.mlp_layers[-1].output;
+        self.features_dim = self.mlp_layers[-1].n_out
 
     def pretraining_functions(self, train_set_x, batch_size, weight_cost):
         '''Generates a list of functions, for performing one step of

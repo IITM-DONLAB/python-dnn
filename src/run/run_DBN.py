@@ -173,6 +173,17 @@ def runRBM(arg):
         else:
             testing(dbn,test_sets, test_xy, test_x, test_y,batch_size)
 
+    ##########################
+    ##   Export Features    ##
+    ##########################
+    if model_config['processes']['export_data']:
+        try:
+            exportFeatures(cnn,model_config['export_path'],data_spec['testing'])
+        except KeyError:
+            #raise e
+            logger.info("No testing set:Skiping Exporting");
+
+
     logger.info('Saving model to ' + str(model_config['output_file']) + ' ....')
     _nnet2file(dbn.sigmoid_layers, filename=model_config['output_file'], withfinal=True)
 

@@ -83,6 +83,9 @@ class nnet(object):
 
 		for dparam, param in zip(self.delta_params, self.params):
 			updates[param] = param + updates[dparam]
+
+		if self.max_col_norm is not None:
+			updates = self.__TrainReg__(updates,start=0)
 		
 		train_inputs = [index, theano.Param(learning_rate, default = 0.001),
 			theano.Param(momentum, default = 0.5)]
@@ -135,35 +138,41 @@ class nnet(object):
 		:returns theano.function
 		A function takes input features 
 		"""
-		#in_x = T.matrix('in_x');
 		in_x = self.x.type('in_x');
 		fn = theano.function(inputs=[in_x],outputs=self.features,
 			givens={self.x: in_x},name='features')#,on_unused_input='warn')
 		return fn
 
-	def __Regularization__(self):
+	def __l1Regularization__(self,start=0):
 		"""
-		TODO
+		Do L1 Regularization
+		train_objective = cross_entropy + self.l2_reg * [l1 norm of all weight matrices]
 		"""
-		if self.l1_reg is not None:
-			for i in xrange(self.n_layers):
-				W = self.params[i * 2]
-				self.finetune_cost += self.l1_reg * (abs(W).sum())
+		#if self.l1_reg is not None:
+		for i in xrange(start,self.n_layers):
+			W = self.params[i * 2]
+			self.finetune_cost += self.l1_reg * (abs(W).sum())
 
-		if self.l2_reg is not None:
-			for i in xrange(self.n_layers):
-				W = self.params[i * 2]
-				self.finetune_cost += self.l2_reg * T.sqr(W).sum()
+	def __l2Regularization__(self,start=0):
+		"""
+		l2 norm regularization weight
+		train_objective = cross_entropy + self.l2_reg * [l2 norm of all weight matrices]
+		"""
+		#if self.l2_reg is not None:
+		for i in xrange(start,self.n_layers):
+			W = self.params[i * 2]
+			self.finetune_cost += self.l2_reg * T.sqr(W).sum()
 
-	def __TrainReg__(self):
+	def __TrainReg__(self,updates,start=0):
 		"""
-		TODO
+		l2 norm regularization weight
 		"""
-		if self.max_col_norm is not None:
-			for i in xrange(self.n_layers):
-				W = self.params[i * 2]
-				if W in updates:
-					updated_W = updates[W]
-					col_norms = T.sqrt(T.sum(T.sqr(updated_W), axis=0))
-					desired_norms = T.clip(col_norms, 0, self.max_col_norm)
-					updates[W] = updated_W * (desired_norms / (1e-7 + col_norms))
+		#if self.max_col_norm is not None:
+		for i in xrange(start,self.n_layers):
+			W = self.params[i * 2]
+			if W in updates:
+				updated_W = updates[W]
+				col_norms = T.sqrt(T.sum(T.sqr(updated_W), axis=0))
+				desired_norms = T.clip(col_norms, 0, self.max_col_norm)
+				updates[W] = updated_W * (desired_norms / (1e-7 + col_norms))
+		return updates

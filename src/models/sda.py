@@ -83,7 +83,7 @@ class SDA(nnet):
         """
         super(SDA, self).__init__()
         
-        self.sigmoid_layers = []
+        self.mlp_layers = []
         self.dA_layers = []
         self.n_layers = len(hidden_layers_sizes)
 
@@ -122,7 +122,7 @@ class SDA(nnet):
             if i == 0:
                 layer_input = self.x
             else:
-                layer_input = self.sigmoid_layers[-1].output
+                layer_input = self.mlp_layers[-1].output
 
             sigmoid_layer = HiddenLayer(rng=numpy_rng,
                                         input=layer_input,
@@ -130,7 +130,7 @@ class SDA(nnet):
                                         n_out=hidden_layers_sizes[i],
                                         activation=T.nnet.sigmoid)
             # add the layer to our list of layers
-            self.sigmoid_layers.append(sigmoid_layer)
+            self.mlp_layers.append(sigmoid_layer)
             # its arguably a philosophical question...
             # but we are going to only declare that the parameters of the
             # sigmoid_layers are parameters of the StackedDAA
@@ -153,7 +153,7 @@ class SDA(nnet):
 
         # We now need to add a logistic layer on top of the MLP
         self.logLayer = LogisticRegression(
-                         input=self.sigmoid_layers[-1].output,
+                         input=self.mlp_layers[-1].output,
                          n_in=hidden_layers_sizes[-1], n_out=n_outs)
 
         self.params.extend(self.logLayer.params)
@@ -169,7 +169,8 @@ class SDA(nnet):
         self.errors = self.logLayer.errors(self.y)
 
         self.output = self.logLayer.prediction();
-        self.features = self.sigmoid_layers[-1].output;
+        self.features = self.mlp_layers[-1].output;
+        self.features_dim = self.mlp_layers[-1].n_out
 
     def pretraining_functions(self, train_x, batch_size):
         ''' Generates a list of functions, each of them implementing one
