@@ -6,9 +6,9 @@ DNN Specification
 * `pretrained_layers` : Number of layers to be pre-trained.(Default Value = Size of `hidden_layers`)
 * `random_seed` : Random Seed used for init of weights.
 
-* `max_col_norm` :regularization for hidden layer parameter.(Default Value = null)
-* `l1_reg` : regularization for hidden layer parameter.(Default Value = null)
-* `l2_reg` : regularization for hidden layer parameter.(Default Value = null)
+* `max_col_norm` : The max value of norm of gradients; usually used in dropout and maxout.(Default Value = null)
+* `l1_reg` : l1 norm regularization weight.(Default Value = 0)
+* `l2_reg` : l2 norm regularization weight.(Default Value = 0)
 
 * `do_maxout` : whether to use max-out or not. (Default Value = false)
 * `do_pnorm`  : whether to use p-norm (Default Value = false)
