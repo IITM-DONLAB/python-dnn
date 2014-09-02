@@ -6,18 +6,18 @@ DNN Specification
 * `pretrained_layers` : Number of layers to be pre-trained.(Default Value = Size of `hidden_layers`)
 * `random_seed` : Random Seed used for init of weights.
 
-* `max_col_norm` :regularization for hidden layer parameter.(Default Value = null)
-* `l1_reg` : regularization for hidden layer parameter.(Default Value = null)
-* `l2_reg` : regularization for hidden layer parameter.(Default Value = null)
+* `max_col_norm` : The max value of norm of gradients; usually used in dropout and maxout.(Default Value = null)
+* `l1_reg` : l1 norm regularization weight.(Default Value = 0)
+* `l2_reg` : l2 norm regularization weight.(Default Value = 0)
 
-* `do_maxout` : (Default Value = false)
-* `pool_size` : (Default Value = 1)
-* `do_pnorm`  : (Default Value = false)
-* `pnorm_order` : (Default Value = 1)
+* `do_maxout` : whether to use max-out or not. (Default Value = false)
+* `do_pnorm`  : whether to use p-norm (Default Value = false)
+* `pool_size` : The number of units in each max-pooling(or pnorm) group for maxout/pnorm(Default Value = 1)
+* `pnorm_order` : The norm order for pnorm.(Default Value = 1)
 
-* `do_dropout` : (Default Value =false)
-* `dropout_factor` : (Default Value =[0.0])
-* `input_dropout_factor` : (Default Value =0.0)
+* `do_dropout` : whether to use dropout or not. (Default Value =false)
+* `dropout_factor` : the dropout factors for DNN layers.(One for each hidden layer)(Default Value =[0.0])
+* `input_dropout_factor` : The dropout factor for the input features.(Default Value =0.0)
 
 ___________________________________________________________________________________
 **Also See**

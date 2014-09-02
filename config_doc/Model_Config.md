@@ -18,20 +18,21 @@ Model Config
 
 * `finetune_method` :  Two methods are supported  
 
-> 1. C: Constant learning rate.
-> 2. E:  Exponential decay.
+> 1. C: **Constant learning rate**: run `epoch_num` iterations with `learning_rate` unchanged
+> 2. E: **Exponential decay**: we start with the learning rate of `start_rate`; if the validation error reduction between two epochs is less than `min_derror_decay_start`, the learning rate is scaled by `scale_by` during each of the remaining epoch. The whole traing terminates when the validation error reduction between two epochs falls below `min_derror_stop`. `min_epoch_decay_star` is the minimum epoch number after which scaling can only be performed.
 
-* `finetune_rate` : Configuration of learning method.Contains a json object with following params
+* `finetune_rate` : Configuration of learning method.Contains a json object with following params:
 
-> param                   | description                           | default value  |learning method 
-> :-----------------------|:--------------------------------------|:--------------:|:---------------:
-> `learning_rate`         |                                       |0.08            | C
-> `epoch_num`             |                                       |10              | C
-> `start_rate`            |                                       |0.08            | E
-> `scale_by`              |                                       |0.5             | E
-> `min_derror_decay_start`|                                       |0.05            | E
-> `min_derror_stop`       |                                       |0.05            | E
-> `min_epoch_decay_start` |                                       | 15             | E
+> param                   | default value  |learning method 
+> :-----------------------|:--------------:|:---------------:
+> `learning_rate`         |0.08            | C
+> `epoch_num`             |10              | C
+> `start_rate`            |0.08            | E
+> `scale_by`              |0.5             | E
+> `min_derror_decay_start`|0.05            | E
+> `min_derror_stop`       |0.05            | E
+> `min_epoch_decay_start` | 15             | E
+> These parameters are used by **Constant learning rate** or **Exponential decay**
 
 * `finetune_momentum` :  The momentum factor while finetuning
 * `export_path` : path (realative to `wdir`) for writting (bottleneck) features.
