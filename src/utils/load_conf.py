@@ -246,11 +246,11 @@ def initModelRBM(data):
 		data['keep_layer_num'] = keep_layer_num
 
 	# momentum
-	if data.has_key('initial_pretrain_momentum') or not type(data['initial_pretrain_momentum']) is float:
+	if not data.has_key('initial_pretrain_momentum') or not type(data['initial_pretrain_momentum']) is float:
 		data['initial_pretrain_momentum']=initial_pretrain_momentum
-	if data.has_key('final_pretrain_momentum') or not type(data['final_pretrain_momentum']) is float:
+	if not data.has_key('final_pretrain_momentum') or not type(data['final_pretrain_momentum']) is float:
 		data['final_pretrain_momentum']=final_pretrain_momentum
-	if data.has_key('initial_pretrain_momentum_epoch ') or not type(data['initial_pretrain_momentum_epoch']) is int:
+	if not data.has_key('initial_pretrain_momentum_epoch ') or not type(data['initial_pretrain_momentum_epoch']) is int:
 		data['initial_pretrain_momentum_epoch']=initial_pretrain_momentum_epoch
 
 
