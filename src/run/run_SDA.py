@@ -30,7 +30,7 @@ from utils.utils import parse_activation
 from utils.load_conf import load_model,load_sda_spec,load_data_spec
 
 from models.sda import SDA
-from run import fineTunning,testing,createDir
+from run import fineTunning,testing,exportFeatures,createDir
 
 
 import logging
@@ -165,14 +165,13 @@ def runSdA(arg):
     ##########################
     if model_config['processes']['export_data']:
         try:
-            exportFeatures(cnn,model_config['export_path'],data_spec['testing'])
-        except KeyError:
-            #raise e
-            logger.info("No testing set:Skiping Exporting");
+            exportFeatures(sda,model_config['export_path'],data_spec['testing'])
+        except KeyError,e:
+            logger.info("No testing set/Export_Path:Skiping Exporting");
 
     # save the pretrained nnet to file
     logger.info('Saving model to ' + str(model_config['output_file']) + '....')
-    _nnet2file(sda.sigmoid_layers, filename=model_config['output_file'], withfinal=True)
+    _nnet2file(sda.mlp_layers, filename=model_config['output_file'], withfinal=True)
 
 
     #print test_pred

@@ -24,10 +24,11 @@
         "min_epoch_decay_start" : 15
     },
     "finetune_momentum": 0.5,
+    "export_path":"data/rbm/",
     "processes":{
         "pretraining":true,
         "finetuning":true,
         "testing":true,
-        "export_data":false
+        "export_data":true
     }
 }

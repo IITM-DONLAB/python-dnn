@@ -32,7 +32,7 @@ from utils.learn_rates import LearningRate
 from utils.utils import parse_activation
 from io_modules.model_io import _nnet2file, _file2nnet
 
-from run import fineTunning,testing,createDir
+from run import fineTunning,testing,exportFeatures,createDir
 
 
 import logging
@@ -178,14 +178,14 @@ def runRBM(arg):
     ##########################
     if model_config['processes']['export_data']:
         try:
-            exportFeatures(cnn,model_config['export_path'],data_spec['testing'])
+            exportFeatures(dbn,model_config['export_path'],data_spec['testing'])
         except KeyError:
             #raise e
             logger.info("No testing set:Skiping Exporting");
 
 
     logger.info('Saving model to ' + str(model_config['output_file']) + ' ....')
-    _nnet2file(dbn.sigmoid_layers, filename=model_config['output_file'], withfinal=True)
+    _nnet2file(dbn.mlp_layers, filename=model_config['output_file'], withfinal=True)
 
 
 

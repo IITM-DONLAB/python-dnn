@@ -19,10 +19,11 @@
         "min_epoch_decay_start" : 15
     },
     "finetune_momentum": 0.5,
+    "export_path":"data/dnn/",
     "processes":{
         "pretraining":false,
         "finetuning":true,
-        "testing":false,
-        "export_data":false
+        "testing":true,
+        "export_data":true
     }
 }

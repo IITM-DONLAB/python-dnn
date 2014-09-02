@@ -30,7 +30,7 @@ from utils.learn_rates import LearningRate
 from utils.utils import parse_activation
 from io_modules.model_io import _nnet2file, _file2nnet
 
-from run import fineTunning,testing,createDir
+from run import fineTunning,testing,exportFeatures,createDir
 
 from models.dnn import DNN
 from models.dropout_nnet import DNN_Dropout
@@ -101,7 +101,7 @@ def runDNN(arg):
         ptr_file = model_config['input_file']
         pretrained_layers = dnn_config['pretrained_layers']
 
-        _file2nnet(dnn.sigmoid_layers, set_layer_num = pretrained_layers,
+        _file2nnet(dnn.mlp_layers, set_layer_num = pretrained_layers,
             filename = ptr_file,  withfinal=False)
     except KeyError, e:
         logger.critical("KeyMissing:"+str(e));
@@ -155,7 +155,7 @@ def runDNN(arg):
     ##########################
     if model_config['processes']['export_data']:
         try:
-            exportFeatures(cnn,model_config['export_path'],data_spec['testing'])
+            exportFeatures(dnn,model_config['export_path'],data_spec['testing'])
         except KeyError:
             #raise e
             logger.info("No testing set:Skiping Exporting");
@@ -164,10 +164,10 @@ def runDNN(arg):
     logger.info('Saving model to ' + str(model_config['output_file']) + '....')
 
     if do_dropout:
-        _nnet2file(dnn.sigmoid_layers, filename=model_config['output_file'],
+        _nnet2file(dnn.mlp_layers, filename=model_config['output_file'],
         input_factor = input_dropout_factor, factor = dropout_factor)
     else:
-        _nnet2file(dnn.sigmoid_layers, filename=model_config['output_file'])
+        _nnet2file(dnn.mlp_layers, filename=model_config['output_file'])
 
 if __name__ == '__main__':
     import sys
