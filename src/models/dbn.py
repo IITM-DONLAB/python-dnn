@@ -138,6 +138,7 @@ class DBN(nnet):
             input=self.mlp_layers[-1].output,
             n_in=hidden_layers_sizes[-1],
             n_out=n_outs)
+        self.mlp_layers.append(self.logLayer)
         self.params.extend(self.logLayer.params)
         self.delta_params.extend(self.logLayer.delta_params)
 
@@ -151,8 +152,8 @@ class DBN(nnet):
         self.errors = self.logLayer.errors(self.y)
 
         self.output = self.logLayer.prediction();
-        self.features = self.mlp_layers[-1].output;
-        self.features_dim = self.mlp_layers[-1].n_out
+        self.features = self.mlp_layers[-2].output;
+        self.features_dim = self.mlp_layers[-2].n_out
 
     def pretraining_functions(self, train_set_x, batch_size, weight_cost):
         '''Generates a list of functions, for performing one step of

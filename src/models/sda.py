@@ -155,7 +155,7 @@ class SDA(nnet):
         self.logLayer = LogisticRegression(
                          input=self.mlp_layers[-1].output,
                          n_in=hidden_layers_sizes[-1], n_out=n_outs)
-
+        self.mlp_layers.append(self.logLayer)
         self.params.extend(self.logLayer.params)
         self.delta_params.extend(self.logLayer.delta_params)
         # construct a function that implements one step of finetunining
@@ -169,8 +169,8 @@ class SDA(nnet):
         self.errors = self.logLayer.errors(self.y)
 
         self.output = self.logLayer.prediction();
-        self.features = self.mlp_layers[-1].output;
-        self.features_dim = self.mlp_layers[-1].n_out
+        self.features = self.mlp_layers[-2].output;
+        self.features_dim = self.mlp_layers[-2].n_out
 
     def pretraining_functions(self, train_x, batch_size):
         ''' Generates a list of functions, each of them implementing one

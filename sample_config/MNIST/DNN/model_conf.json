@@ -5,8 +5,8 @@
     "nnet_spec" : "dnn_spec.json",
     "output_file" : "dnn_out.model",
     "batch_size" : 128,
-    "n_ins":2352,
-    "n_outs":200,
+    "n_ins":784,
+    "n_outs":10,
     "input_file" : "rbm_out.model",
     "finetune_method":"C",
     "finetune_rate" : {
