@@ -114,4 +114,4 @@ class DNN(nnet):
 
         self.output = self.logLayer.prediction();
         self.features = self.mlp_layers[-2].output;
-        self.features_dim = self.mlp_layers[-1].n_out
+        self.features_dim = self.mlp_layers[-2].n_out

@@ -335,7 +335,7 @@ def load_dnn_spec(input_file):
 		exit(1)
 
 	if not data.has_key('pretrained_layers') or not type(data['pretrained_layers']) is int:
-		data['pretrained_layers'] = len(data['hidden_layers'])
+		data['pretrained_layers'] = -1;
 	elif data['pretrained_layers'] > (len(data['hidden_layers'])):
 		data['pretrained_layers'] = len(data['hidden_layers'])
 

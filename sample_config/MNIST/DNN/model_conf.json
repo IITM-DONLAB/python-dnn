@@ -7,7 +7,7 @@
     "batch_size" : 128,
     "n_ins":2352,
     "n_outs":200,
-    "input_file" : "rbm_in.model",
+    "input_file" : "rbm_out.model",
     "finetune_method":"C",
     "finetune_rate" : {
         "learning_rate" : 0.08,
