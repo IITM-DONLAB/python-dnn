@@ -10,14 +10,14 @@ DNN Specification
 * `l1_reg` : regularization for hidden layer parameter.(Default Value = null)
 * `l2_reg` : regularization for hidden layer parameter.(Default Value = null)
 
-* `do_maxout` : (Default Value = false)
-* `pool_size` : (Default Value = 1)
-* `do_pnorm`  : (Default Value = false)
-* `pnorm_order` : (Default Value = 1)
+* `do_maxout` : whether to use max out or not. (Default Value = false)
+* `do_pnorm`  : whether to use p-norm (Default Value = false)
+* `pool_size` : The number of units in each max-pooling group for maxout/pnorm(Default Value = 1)
+* `pnorm_order` : The norm order for pnorm.(Default Value = 1)
 
 * `do_dropout` : (Default Value =false)
-* `dropout_factor` : (Default Value =[0.0])
-* `input_dropout_factor` : (Default Value =0.0)
+* `dropout_factor` : the dropout factors for DNN layers.(One for each hidden layer)(Default Value =[0.0])
+* `input_dropout_factor` : The dropout factor for the input features.(Default Value =0.0)
 
 ___________________________________________________________________________________
 **Also See**
