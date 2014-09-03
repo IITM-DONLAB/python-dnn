@@ -25,7 +25,6 @@ import theano
 from io_modules.model_io import _nnet2file, _file2nnet
 from io_modules.file_reader import read_dataset
 from io_modules import setLogger
-from utils.learn_rates import LearningRate
 from utils.utils import parse_activation
 from utils.load_conf import load_model,load_sda_spec,load_data_spec
 
@@ -121,53 +120,19 @@ def runSdA(arg):
     # FINETUNING THE MODEL #
     ########################
     if model_config['processes']['finetuning']:
-        try:
-            train_sets
-        except NameError :
-            train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
-        
-        try:
-            valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'],
-                model_config['batch_size'])
-        except KeyError:
-            logger.info("No validation set:Skiping Fine tunning");
-        else:
-            try:
-                finetune_method = model_config['finetune_method']
-                finetune_config = model_config['finetune_rate'] 
-                momentum = model_config['finetune_momentum']
-                lrate = LearningRate.get_instance(finetune_method,finetune_config);        
-            except KeyError, e:
-                print(str(e));
-                print("Fine tunning Paramters Missing")
-                sys.exit(2)
-
-            fineTunning(sda,train_sets,train_xy,train_x,train_y,
-                valid_sets,valid_xy,valid_x,valid_y,lrate,momentum,batch_size);
-
+        fineTunning(sda,model_config,data_spec)
 
     ########################
-    # TESTING   THE MODEL  #
+    #  TESTING THE MODEL   #
     ########################
-    if model_config['processes']['finetuning']:
-        try:
-            test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing'])        
-        except KeyError:
-            #raise e
-            logger.info("No testing set:Skiping Testing");
-            logger.info("Finshed")
-            sys.exit(0)
-        else:
-            testing(sda,test_sets, test_xy, test_x, test_y,batch_size)
+    if model_config['processes']['testing']:
+        testing(sda,model_config,data_spec)
 
     ##########################
     ##   Export Features    ##
     ##########################
     if model_config['processes']['export_data']:
-        try:
-            exportFeatures(sda,model_config['export_path'],data_spec['testing'])
-        except KeyError,e:
-            logger.info("No testing set/Export_Path:Skiping Exporting");
+        exportFeatures(sda,model_config,data_spec)
 
     # save the pretrained nnet to file
     logger.info('Saving model to ' + str(model_config['output_file']) + '....')

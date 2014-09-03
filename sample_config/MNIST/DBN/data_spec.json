@@ -2,7 +2,7 @@
 	"validation": {
 		"base_path" : "/data/abil/MNIST/NP",
 		"filename" : "val.dat",
-		"partition" : 100,
+		"partition" : 200,
 		"random" : true,
 		"random_seed" : 123,
 		"batch_size": 512,
@@ -13,7 +13,7 @@
 	"training" : {
 		"base_path" : "/data/abil/MNIST/NP",
 		"filename" : "train.dat",
-		"partition" : 100,
+		"partition" : 200,
 		"random" : true,
 		"random_seed" : 123,
 		"batch_size": 512,
@@ -24,7 +24,7 @@
 	"testing" : {
 		"base_path" : "/data/abil/MNIST/NP",
 		"filename" : "test.dat",
-		"partition" : 100,
+		"partition" : 200,
 		"random" : true,
 		"random_seed" : 123,
 		"batch_size": 512,

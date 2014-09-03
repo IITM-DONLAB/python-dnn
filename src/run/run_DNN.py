@@ -26,7 +26,6 @@ from theano.tensor.shared_randomstreams import RandomStreams
 from utils.load_conf import load_model,load_dnn_spec,load_data_spec
 from io_modules.file_reader import read_dataset
 from io_modules import setLogger
-from utils.learn_rates import LearningRate
 from utils.utils import parse_activation
 from io_modules.model_io import _nnet2file, _file2nnet
 
@@ -116,50 +115,19 @@ def runDNN(arg):
     # FINETUNING THE MODEL #
     ########################
     if model_config['processes']['finetuning']:
-        try:
-            train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
-            valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'])
-        except KeyError:
-            #raise e
-            logger.error("No validation/Test set:Skiping Fine tunning");
-        else:
-            try:
-                finetune_method = model_config['finetune_method']
-                finetune_config = model_config['finetune_rate']
-                momentum = model_config['finetune_momentum']
-                lrate = LearningRate.get_instance(finetune_method,finetune_config);
-            except KeyError, e:
-                logger.error("KeyMissing:"+str(e));
-                logger.error("Fine tunning Paramters Missing")
-                sys.exit(2)
-
-
-            fineTunning(dnn,train_sets,train_xy,train_x,train_y,
-                valid_sets,valid_xy,valid_x,valid_y,lrate,momentum,batch_size)
-
+        fineTunning(dnn,model_config,data_spec)
 
     ########################
     #  TESTING THE MODEL   #
     ########################
     if model_config['processes']['testing']:
-        try:
-            test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing'])
-        except KeyError:
-            #raise e
-            logger.info("No testing set:Skiping Testing");
-        else:
-            testing(dnn,test_sets, test_xy, test_x, test_y,batch_size)
+        testing(dnn,model_config,data_spec)
 
     ##########################
     ##   Export Features    ##
     ##########################
     if model_config['processes']['export_data']:
-        try:
-            exportFeatures(dnn,model_config['export_path'],data_spec['testing'])
-        except KeyError:
-            #raise e
-            logger.info("No testing set:Skiping Exporting");
-
+        exportFeatures(dnn,model_config,data_spec)
 
     logger.info('Saving model to ' + str(model_config['output_file']) + '....')
 

@@ -1,8 +1,8 @@
 {
 	"validation": {
-		"base_path" : "/data/MNIST/NP",
+		"base_path" : "/data/abil/MNIST/NP",
 		"filename" : "val.dat",
-		"partition" : 100,
+		"partition" : 200,
 		"random" : true,
 		"random_seed" : 123,
 		"input_shape" : [1,28,28],
@@ -13,9 +13,9 @@
 	},
 
 	"training" : {
-		"base_path" : "/data/MNIST/NP",
+		"base_path" : "/data/abil/MNIST/NP",
 		"filename" : "train.dat",
-		"partition" : 100,
+		"partition" : 200,
 		"random" : true,
 		"random_seed" : 123,
 		"input_shape" : [1,28,28],
@@ -26,9 +26,9 @@
 	},
 
 	"testing" : {
-		"base_path" : "/data/MNIST/NP",
+		"base_path" : "/data/abil/MNIST/NP",
 		"filename" : "test.dat",
-		"partition" : 100,
+		"partition" : 200,
 		"random" : true,
 		"random_seed" : 123,
 		"input_shape" : [1,28,28],

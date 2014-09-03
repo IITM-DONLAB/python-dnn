@@ -28,7 +28,6 @@ from utils.load_conf import load_model,load_rbm_spec,load_data_spec
 from models.dbn import DBN
 from io_modules.file_reader import read_dataset
 from io_modules import setLogger
-from utils.learn_rates import LearningRate
 from utils.utils import parse_activation
 from io_modules.model_io import _nnet2file, _file2nnet
 
@@ -38,10 +37,10 @@ from run import fineTunning,testing,exportFeatures,createDir
 import logging
 logger = logging.getLogger(__name__)
 
-def preTraining(nnetModel,train_sets,train_xy,train_x,train_y,model_config):
+def preTraining(dbn,train_sets,train_xy,train_x,train_y,model_config):
 
     logger.info('Getting the pretraining functions....')
-    pretraining_fns = nnetModel.pretraining_functions(train_set_x=train_x,
+    pretraining_fns = dbn.pretraining_functions(train_set_x=train_x,
                                                  batch_size=model_config['batch_size'],
                                                  weight_cost = 0.0002)
     
@@ -59,8 +58,8 @@ def preTraining(nnetModel,train_sets,train_xy,train_x,train_y,model_config):
     
 
     ## Pre-train layer-wise
-    for i in range(keep_layer_num, nnetModel.nPreTrainLayers):
-        if (nnetModel.rbm_layers[i].is_gbrbm()):
+    for i in range(keep_layer_num, dbn.nPreTrainLayers):
+        if (dbn.rbm_layers[i].is_gbrbm()):
             pretrain_lr = model_config['gbrbm_learning_rate']
         else:
             pretrain_lr = model_config['pretraining_learning_rate']
@@ -125,63 +124,26 @@ def runRBM(arg):
     # PRETRAINING THE MODEL #
     #########################
     if model_config['processes']['pretraining']:
-	train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])       
-        train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'],
-            model_config['batch_size'])
-
+        train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
         preTraining(dbn,train_sets,train_xy,train_x,train_y,model_config)
-
 
     ########################
     # FINETUNING THE MODEL #
     ########################
     if model_config['processes']['finetuning']:
-        try:
-            train_sets
-        except NameError :
-            train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
-        try:
-            valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'])        
-        except KeyError:
-            #raise e
-            logger.info("No validation set:Skiping Fine tunning");
-        else:    
-            try:
-                finetune_method = model_config['finetune_method']
-                finetune_config = model_config['finetune_rate'] 
-                momentum = model_config['finetune_momentum']
-                lrate = LearningRate.get_instance(finetune_method,finetune_config);        
-            except KeyError, e:
-                print("KeyMissing:"+str(e));
-                print("Fine tunning Paramters Missing")
-                sys.exit(2)
-
-
-            fineTunning(dbn,train_sets,train_xy,train_x,train_y,
-                valid_sets,valid_xy,valid_x,valid_y,lrate,momentum,batch_size)
-
+        fineTunning(dbn,model_config,data_spec)
 
     ########################
     #  TESTING THE MODEL   #
     ########################
     if model_config['processes']['testing']:
-        try:
-            test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing']) 
-        except KeyError:
-            #raise e
-            logger.info("No testing set:Skiping Testing");
-        else:
-            testing(dbn,test_sets, test_xy, test_x, test_y,batch_size)
+        testing(dbn,model_config,data_spec)
 
     ##########################
     ##   Export Features    ##
     ##########################
     if model_config['processes']['export_data']:
-        try:
-            exportFeatures(dbn,model_config['export_path'],data_spec['testing'])
-        except KeyError:
-            #raise e
-            logger.info("No testing set:Skiping Exporting");
+        exportFeatures(dbn,model_config,data_spec)
 
 
     logger.info('Saving model to ' + str(model_config['output_file']) + ' ....')

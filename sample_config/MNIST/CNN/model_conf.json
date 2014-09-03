@@ -5,6 +5,7 @@
     "nnet_spec" : "nnet_spec.json",
     "output_file" : "hidden_out.model",
     "output_file" : "conv_out.model",
+    "logger_level":"INFO",
     "input_shape" : [1,28,28],
     "batch_size" : 256,
     "finetune_momentum" : 0.5,

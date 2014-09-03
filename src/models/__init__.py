@@ -125,7 +125,7 @@ class nnet(object):
 		(test_set_x, test_set_y) = test_shared_xy
 		index = T.lscalar('index')  # index to a [mini]batch
 		test_fn = theano.function(inputs=[index],
-			outputs=[self.output ,self.errors],
+			outputs=[self.errors],
 			givens={
 				self.x: test_set_x[index * batch_size:(index + 1) * batch_size],
 				self.y: test_set_y[index * batch_size:(index + 1) * batch_size]})
@@ -134,12 +134,24 @@ class nnet(object):
 	def getFeaturesFunction(self):
 		"""
 		Get Function for extracting Feature/Bottle neck
-				
+
 		:returns theano.function
 		A function takes input features 
 		"""
 		in_x = self.x.type('in_x');
 		fn = theano.function(inputs=[in_x],outputs=self.features,
+			givens={self.x: in_x},name='features')#,on_unused_input='warn')
+		return fn
+
+	def getLabelFunction(self):
+		"""
+		Get Function for getting output labels
+
+		:returns theano.function
+		A function takes input features 
+		"""
+		in_x = self.x.type('in_x');
+		fn = theano.function(inputs=[in_x],outputs=self.output,
 			givens={self.x: in_x},name='features')#,on_unused_input='warn')
 		return fn
 
@@ -176,3 +188,9 @@ class nnet(object):
 				desired_norms = T.clip(col_norms, 0, self.max_col_norm)
 				updates[W] = updated_W * (desired_norms / (1e-7 + col_norms))
 		return updates
+
+	def save2file(self,filename='nnet.out',start_layer = 0,set_layer_num = -1,
+		withfinal=True, input_factor = 0.0,factor=[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]):
+		"""
+		"""
+		raise  NotImplementedError;
