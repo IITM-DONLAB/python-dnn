@@ -37,7 +37,7 @@ def fineTunning(nnetModel,train_sets,train_xy,train_x,train_y,
 			valid_sets.make_partition_shared(valid_xy)
 			n_valid_batches= valid_sets.cur_frame_num / batch_size;
 			validation_losses = [validate_fn(i) for i in xrange(n_valid_batches)]
-			valid_error.append(validation_losses)
+			valid_error.extend(validation_losses)
 			valid_sets.read_next_partition_data()
 			logger.debug("Valid Error (upto curr part) = %f",numpy.mean(valid_error))
 		valid_sets.initialize_read();
