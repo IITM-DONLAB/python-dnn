@@ -83,7 +83,7 @@ class SDA(nnet):
         """
         super(SDA, self).__init__()
         
-        self.mlp_layers = []
+        self.layers = []
         self.dA_layers = []
         self.n_layers = len(hidden_layers_sizes)
 
@@ -122,7 +122,7 @@ class SDA(nnet):
             if i == 0:
                 layer_input = self.x
             else:
-                layer_input = self.mlp_layers[-1].output
+                layer_input = self.layers[-1].output
 
             sigmoid_layer = HiddenLayer(rng=numpy_rng,
                                         input=layer_input,
@@ -130,7 +130,7 @@ class SDA(nnet):
                                         n_out=hidden_layers_sizes[i],
                                         activation=T.nnet.sigmoid)
             # add the layer to our list of layers
-            self.mlp_layers.append(sigmoid_layer)
+            self.layers.append(sigmoid_layer)
             # its arguably a philosophical question...
             # but we are going to only declare that the parameters of the
             # sigmoid_layers are parameters of the StackedDAA
@@ -153,9 +153,9 @@ class SDA(nnet):
 
         # We now need to add a logistic layer on top of the MLP
         self.logLayer = LogisticRegression(
-                         input=self.mlp_layers[-1].output,
+                         input=self.layers[-1].output,
                          n_in=hidden_layers_sizes[-1], n_out=n_outs)
-        self.mlp_layers.append(self.logLayer)
+        self.layers.append(self.logLayer)
         self.params.extend(self.logLayer.params)
         self.delta_params.extend(self.logLayer.delta_params)
         # construct a function that implements one step of finetunining
@@ -169,8 +169,8 @@ class SDA(nnet):
         self.errors = self.logLayer.errors(self.y)
 
         self.output = self.logLayer.prediction();
-        self.features = self.mlp_layers[-2].output;
-        self.features_dim = self.mlp_layers[-2].n_out
+        self.features = self.layers[-2].output;
+        self.features_dim = self.layers[-2].n_out
 
     def pretraining_functions(self, train_x, batch_size):
         ''' Generates a list of functions, each of them implementing one

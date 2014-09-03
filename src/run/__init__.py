@@ -128,17 +128,20 @@ def exportFeatures(nnetModel,model_config,data_spec):
 
 
 def saveLabels(nnetModel,export_path,data_spec):
-
+	"""
+	TODO:Write label to file;
+	"""
 	getLabel = nnetModel.getLabelFunction()
 	test_sets  = read_dataset(in_child_options,pad_zeros=True)[0]
 	while (not test_sets.is_finish()):
 		for batch_index in xrange(test_sets.cur_frame_num/batch_size):
 			s_idx = batch_index*batch_size; e_idx = s_idx + batch_size
-		
 			pred = getLabel(test_sets.feat[s_idx:e_idx])
-		
+			#TODO
+			#Write to file
 			e_idx= min(test_sets.cur_frame_num -test_sets.num_pad_frames,s_idx+batch_size);
 		test_sets.read_next_partition_data(pad_zeros=True);
+
 
 def createDir(wdir):
 	"""create working dir"""

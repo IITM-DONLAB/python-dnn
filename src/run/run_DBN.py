@@ -29,7 +29,6 @@ from models.dbn import DBN
 from io_modules.file_reader import read_dataset
 from io_modules import setLogger
 from utils.utils import parse_activation
-from io_modules.model_io import _nnet2file, _file2nnet
 
 from run import fineTunning,testing,exportFeatures,createDir
 
@@ -147,7 +146,7 @@ def runRBM(arg):
 
 
     logger.info('Saving model to ' + str(model_config['output_file']) + ' ....')
-    _nnet2file(dbn.mlp_layers, filename=model_config['output_file'], withfinal=True)
+    dbn.save(filename=model_config['output_file'], withfinal=True);
 
 
 

@@ -26,7 +26,6 @@ from theano.tensor.shared_randomstreams import RandomStreams
 from utils.load_conf import load_model,load_conv_spec,load_data_spec
 from io_modules.file_reader import read_dataset
 from utils.utils import parse_activation
-from io_modules.model_io import _cnn2file,_file2cnn
 from io_modules import setLogger
 
 from run import fineTunning,testing,exportFeatures,createDir
@@ -85,8 +84,7 @@ def runCNN(arg):
 		exportFeatures(cnn,model_config,data_spec)
 
 
-	_cnn2file(cnn.layers[0:cnn.conv_layer_num],cnn.layers[cnn.conv_layer_num:],
-		filename=model_config['output_file']);
+	cnn.load(filename=model_config['output_file']);
 
 	
 if __name__ == '__main__':

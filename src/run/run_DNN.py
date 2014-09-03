@@ -27,7 +27,6 @@ from utils.load_conf import load_model,load_dnn_spec,load_data_spec
 from io_modules.file_reader import read_dataset
 from io_modules import setLogger
 from utils.utils import parse_activation
-from io_modules.model_io import _nnet2file, _file2nnet
 
 from run import fineTunning,testing,exportFeatures,createDir
 
@@ -100,8 +99,7 @@ def runDNN(arg):
         ptr_file = model_config['input_file']
         pretrained_layers = dnn_config['pretrained_layers']
 
-        _file2nnet(dnn.mlp_layers, set_layer_num = pretrained_layers,
-            filename = ptr_file,  withfinal=False)
+        dnn.load(filename = ptr_file,max_layer_num = pretrained_layers,  withfinal=False)
     except KeyError, e:
         logger.critical("KeyMissing:"+str(e));
         logger.error("Pretrained network Missing in configFile")
@@ -131,11 +129,7 @@ def runDNN(arg):
 
     logger.info('Saving model to ' + str(model_config['output_file']) + '....')
 
-    if do_dropout:
-        _nnet2file(dnn.mlp_layers, filename=model_config['output_file'],
-        input_factor = input_dropout_factor, factor = dropout_factor)
-    else:
-        _nnet2file(dnn.mlp_layers, filename=model_config['output_file'])
+    dnn.save(filename=model_config['output_file'])
 
 if __name__ == '__main__':
     import sys

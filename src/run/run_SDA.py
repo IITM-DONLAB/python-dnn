@@ -22,7 +22,6 @@ import numpy
 import theano
 
 #module imports
-from io_modules.model_io import _nnet2file, _file2nnet
 from io_modules.file_reader import read_dataset
 from io_modules import setLogger
 from utils.utils import parse_activation
@@ -136,7 +135,7 @@ def runSdA(arg):
 
     # save the pretrained nnet to file
     logger.info('Saving model to ' + str(model_config['output_file']) + '....')
-    _nnet2file(sda.mlp_layers, filename=model_config['output_file'], withfinal=True)
+    sda.save(filename=model_config['output_file'], withfinal=True)
 
 
     #print test_pred

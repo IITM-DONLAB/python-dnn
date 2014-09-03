@@ -1,7 +1,7 @@
-import numpy
+import numpy,theano,json
 from collections import OrderedDict
-import theano
 import theano.tensor as T
+from StringIO import StringIO
 
 class nnet(object):
 	"""Abstract class for all Network Models"""
@@ -189,8 +189,59 @@ class nnet(object):
 				updates[W] = updated_W * (desired_norms / (1e-7 + col_norms))
 		return updates
 
-	def save2file(self,filename='nnet.out',start_layer = 0,set_layer_num = -1,
-		withfinal=True, input_factor = 0.0,factor=[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]):
-		"""
-		"""
-		raise  NotImplementedError;
+	def save(self,filename,start_layer = 0,max_layer_num = -1,withfinal=True):
+		nnet_dict = {}
+		if max_layer_num == -1:
+		   max_layer_num = self.n_layers
+
+		for i in range(start_layer, max_layer_num):
+			dict_a = str(i) + ' W'
+			nnet_dict[dict_a] = _array2string(self.layers[i].params[0].get_value())
+			dict_a = str(i) + ' b'
+			nnet_dict[dict_a] = _array2string(self.layers[i].params[1].get_value())
+
+		if withfinal: 
+			dict_a = 'logreg W'
+			nnet_dict[dict_a] = _array2string(self.logLayer.params[0].get_value())
+			dict_a = 'logreg b'
+			nnet_dict[dict_a] = _array2string(self.logLayer.params[1].get_value())
+
+		with open(filename, 'wb') as fp:
+			json.dump(nnet_dict, fp, indent=2, sort_keys = True)
+			fp.flush()
+
+	def load(self,filename,start_layer = 0,max_layer_num = -1,withfinal=True):
+		nnet_dict = {}
+		if max_layer_num == -1:
+			max_layer_num = self.n_layers
+
+		with open(filename, 'rb') as fp:
+			nnet_dict = json.load(fp)
+		
+		for i in xrange(max_layer_num):
+			dict_key = str(i) + ' W'
+			self.layers[i].params[0].set_value(numpy.asarray(_string2array(nnet_dict[dict_key]),
+				dtype=theano.config.floatX))
+			dict_key = str(i) + ' b' 
+			self.layers[i].params[1].set_value(numpy.asarray(_string2array(nnet_dict[dict_key]),
+				dtype=theano.config.floatX))
+
+		if withfinal:
+			dict_key = 'logreg W'
+			self.logLayer.params[0].set_value(numpy.asarray(_string2array(nnet_dict[dict_key]),
+				dtype=theano.config.floatX))
+			dict_key = 'logreg b'
+			self.logLayer.params[1].set_value(numpy.asarray(_string2array(nnet_dict[dict_key]),
+				dtype=theano.config.floatX))
+
+
+# convert an array to a string
+def _array2string(array):
+	str_out = StringIO()
+	numpy.savetxt(str_out, array)
+	return str_out.getvalue()
+
+# convert a string to an array
+def _string2array(string):
+	str_in = StringIO(string)
+	return numpy.loadtxt(str_in)

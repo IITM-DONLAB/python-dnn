@@ -13,15 +13,9 @@
 # See the Apache 2 License for the specific language governing permissions and
 # limitations under the License.
 
-import cPickle
-import gzip
-import os
-import sys
-import time
 
 import numpy
 from collections import OrderedDict
-
 import theano
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
@@ -42,7 +36,7 @@ class DNN(nnet):
 
         super(DNN, self).__init__()
         
-        self.mlp_layers = []
+        self.layers = []
         self.n_layers = len(hidden_layers_sizes)
 
         self.max_col_norm = max_col_norm
@@ -64,7 +58,7 @@ class DNN(nnet):
                 layer_input = self.x
             else:
                 input_size = hidden_layers_sizes[i - 1]
-                layer_input = self.mlp_layers[-1].output
+                layer_input = self.layers[-1].output
 
             if do_maxout == True:
                 sigmoid_layer = HiddenLayer(rng=numpy_rng,
@@ -87,15 +81,15 @@ class DNN(nnet):
                                         n_out=hidden_layers_sizes[i],
                                         activation=activation)
             # add the layer to our list of layers
-            self.mlp_layers.append(sigmoid_layer)
+            self.layers.append(sigmoid_layer)
             self.params.extend(sigmoid_layer.params)
             self.delta_params.extend(sigmoid_layer.delta_params)
         # We now need to add a logistic layer on top of the MLP
         self.logLayer = LogisticRegression(
-                         input=self.mlp_layers[-1].output,
+                         input=self.layers[-1].output,
                          n_in=hidden_layers_sizes[-1], n_out=n_outs)
 
-        self.mlp_layers.append(self.logLayer)
+        self.layers.append(self.logLayer)
         self.params.extend(self.logLayer.params)
         self.delta_params.extend(self.logLayer.delta_params)
        
@@ -113,5 +107,6 @@ class DNN(nnet):
             self.__l2Regularization__();
 
         self.output = self.logLayer.prediction();
-        self.features = self.mlp_layers[-2].output;
-        self.features_dim = self.mlp_layers[-2].n_out
+        self.features = self.layers[-2].output;
+        self.features_dim = self.layers[-2].n_out
+
