@@ -1,5 +1,5 @@
 import cPickle,gzip,os,sys
-import theano
+import theano,numpy
 import theano.tensor as T
 from theano.tensor.signal import downsample
 from theano.tensor.nnet import conv
@@ -8,9 +8,9 @@ from layers.cnn import ConvLayer
 from layers.logistic_sgd import LogisticRegression
 from layers.mlp import HiddenLayer
 from  theano.compat.python2x import OrderedDict
-
+from io_modules.file_reader import read_dataset
 from models import nnet
-
+from utils.plotter import plot
 import logging
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ class CNN(nnet):
 
 		self.x = T.tensor4('x')  
 		self.y = T.ivector('y')
-
+		self.conv_input_dim =  conv_layer_configs[0]['input_shape']
 		self.conv_layer_num = len(conv_layer_configs) 	#counting number of convolution layers
         	self.hidden_layer_num = len(hidden_layers_sizes)
 		self.conv_layers = []
@@ -86,3 +86,34 @@ class CNN(nnet):
 		
 		self.features = self.conv_layers[-1].output;
 		self.features_dim = self.conv_output_dim;
+	
+	def getLayerOutFunction(self,idx):
+		in_x = self.x.type('in_x');
+		fn = theano.function(inputs=[in_x],outputs=self.layers[idx].output,
+			givens={self.x: in_x})
+		return fn
+	
+	def plot_layer_output(self,plot_spec,plot_path,max_images=10):
+		#default all nodes set to value 1
+		#inp = numpy.random.random(self.conv_input_dim).astype(theano.config.floatX);
+		batch_size = plot_spec['batch_size'];
+		plot_path = plot_path +os.sep +'layer_%d'+os.sep +'batch_%d'+os.sep+'img_%d.png'
+		for layer_idx in xrange(self.conv_layer_num-1):	
+			img_plot_remaining = max_images;
+			layer_out_fn = self.getLayerOutFunction(layer_idx);
+			logger.info('Plotting the layer %d'%layer_idx);
+			file_reader =read_dataset(plot_spec,pad_zeros=True)[0];
+			while not file_reader.is_finish():
+				for batch_index in xrange(file_reader.cur_frame_num/batch_size):
+					s_idx = batch_index * batch_size; e_idx = s_idx + batch_size
+					data = layer_out_fn(file_reader.feat[s_idx:e_idx])
+					e_idx= min(file_reader.cur_frame_num - file_reader.num_pad_frames,s_idx+batch_size);
+					img_plot_remaining = plot(data[s_idx:e_idx],plot_path,layer_idx,batch_index,img_plot_remaining);
+					if img_plot_remaining == 0:
+						break;
+				if img_plot_remaining == 0:
+					break;
+				file_reader.read_next_partition_data(pad_zeros=True);
+				
+				
+		

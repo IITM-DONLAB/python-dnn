@@ -122,6 +122,14 @@ class nnet(object):
 				self.y: test_set_y[index * batch_size:(index + 1) * batch_size]})
 		return test_fn
 	
+	def getLayerOutFunction(self):
+		"""
+		Get Function for extracting output of each layeer
+		:returns theano.function
+		A function takes input features 
+		"""
+		raise  NotImplementedError;
+	
 	def getFeaturesFunction(self):
 		"""
 		Get Function for extracting Feature/Bottle neck
@@ -134,3 +142,4 @@ class nnet(object):
 		fn = theano.function(inputs=[in_x],outputs=self.features,
 			givens={self.x: in_x},name='features')#,on_unused_input='warn')
 		return fn
+	

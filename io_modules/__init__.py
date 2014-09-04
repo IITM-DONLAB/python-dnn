@@ -25,7 +25,7 @@ def create_folder_structure_if_not_exists(filepath):
 	import logging,os,errno
 	logger = logging.getLogger(__name__)
 	try:
-		path = os.path.split(filepath)[0]
+		path = os.path.dirname(filepath)
 		os.makedirs(path)
 		logger.info("Created folder structure %s.." % path)
 	except OSError as exc: # Python >2.5

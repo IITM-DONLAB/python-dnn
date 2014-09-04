@@ -40,7 +40,7 @@ def load_model(input_file,nnetType=None):
 	data = correctPath(data,specPaths,input_file);
 
 	wdirFiles=['output_file','conv_output_file','input_file',
-                     'hidden_output_file','export_path']
+                     'hidden_output_file','export_path','plot_path']
 	data = correctPath(data,wdirFiles,data['wdir']+pathSep);
 
 	#init Default Values in processes.
@@ -71,6 +71,8 @@ def initProcesses(data):
                 data['testing'] = False
         if not data.has_key('export_data') or not type(data['export_data']) is bool:
                 data['export_data'] = False
+        if not data.has_key('plotting') or not type(data['plotting']) is bool:
+                data['plotting'] = False
         return data
 
 def correctPath(data,keys,basePath):

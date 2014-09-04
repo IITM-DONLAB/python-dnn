@@ -103,6 +103,12 @@ def runCNN(arg):
 		_file2cnn(cnn.conv_layers,mlp_layers, filename=model_config['output_file'])
 		exportFeatures(cnn,model_config['export_path'],data_spec['testing'])
 
-	
+
+	##############################
+	##	Plotting  Layer output ##
+	##############################
+	if model_config['processes']['plotting']:
+		cnn.plot_layer_output(data_spec['validation'],model_config['plot_path']);
+		
 if __name__ == '__main__':
 	runCNN(sys.argv[1])
