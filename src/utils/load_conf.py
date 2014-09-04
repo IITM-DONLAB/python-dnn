@@ -143,6 +143,40 @@ def initModelCNN(data):
 
 	return data
 
+def load_mlp_spec(spec):
+	logger.info("Loading mlp properties from %s ...")
+	if not spec.has_key('layers') or len(spec['layers'])==0:
+		logger.critical("mlp configuration is not having layers key which is mandatory")
+		exit(1);
+					
+	if not spec.has_key('do_dropout'):
+		spec['do_dropout']=False;
+		
+	if spec['do_dropout'] and not spec.has_key('dropout_factor'):
+		spec['dropout_factor']=0.2;
+		
+	if not spec.has_key('max_out'):
+		spec['max_out']=None;
+	else:
+		if not spec['max_out'].has_key('method'):
+			spec['max_out']['method'] = 'maxout'
+		else:
+			if not spec['max_out']['method'] in ['maxout','pnorm']:
+				logger.critical("Invalid max_out method %s.."% spec['max_out']['method'])
+				exit(1);
+			
+		if not spec['max_out'].has_key('pool_size'):
+			spec['max_out']['pool_size'] = 1	
+		
+		if not spec['max_out'].has_key('pnorm_order'):
+			spec['max_out']['pnorm_order'] = 1	
+	if not spec['max_out'] is None and not spec['activation'] in ['linear','relu','cappedrelu']:
+		spec['activation'] =  'linear';
+		logger.debug("Setting the actiavtion function to linear, since max_out is used")
+		 
+	return spec;
+		
+
 def load_conv_spec(input_file,batch_size,input_shape):
 	logger.info("Loading convnet properties from %s ...",input_file)
 	data = load_json(input_file)
@@ -153,7 +187,7 @@ def load_conv_spec(input_file,batch_size,input_shape):
 	layer_configs=cnn_data.pop('layers');
 	conv_configs = cnn_data;
 	if len(layer_configs)==0:
-		print "Error: No convnet configuration avaialable.."
+		logger.critical("Error: No convnet configuration avaialable..")
 		exit(1)
 	prev_map_number = 1;
 	for layer_index in range(0,len(layer_configs)):
@@ -183,7 +217,7 @@ def load_conv_spec(input_file,batch_size,input_shape):
 	if not data.has_key('cnn'):
 		logger.critical("mlp configuration is not present in " + str(input_file))
 		exit(1)
-	mlp_configs = data['mlp'];
+	mlp_configs = load_mlp_spec(data['mlp']);
 	return (conv_configs,layer_configs,mlp_configs)
 
 #############################################################################

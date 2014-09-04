@@ -40,6 +40,8 @@ def parse_activation(activation):
         return T.tanh
     elif activation == 'sigmoid':
         return T.nnet.sigmoid
+    elif activation == 'linear':
+		return (lambda x: 1.0*x)
     elif activation == 'relu':
         return lambda x: x * (x > 0)
     elif activation == 'cappedrelu':

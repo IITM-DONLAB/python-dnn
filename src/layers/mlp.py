@@ -9,7 +9,7 @@ from theano.tensor.shared_randomstreams import RandomStreams
 class HiddenLayer(object):
 	""" Class for hidden layer """
 	def __init__(self, rng, input, n_in, n_out, W=None, b=None, activation=T.tanh, 
-		do_maxout = False, pool_size = 1, do_pnorm = False, pnorm_order = 1):
+		maxout_method = None, pool_size = 1, pnorm_order = 1):
 
 		self.input = input
 		self.n_in = n_in
@@ -34,14 +34,14 @@ class HiddenLayer(object):
 
 		lin_output = T.dot(input, self.W) + self.b
 	
-		if do_maxout == True:	# pooling of output of neuron based on poolsize
+		if maxout_method == 'maxout':	# pooling of output of neuron based on poolsize
 			self.last_start = n_out - pool_size
 			self.tmp_output = lin_output[:,0:self.last_start+1:pool_size]
 			for i in range(1, pool_size):
 				cur = lin_output[:,i:self.last_start+i+1:pool_size]
 				self.tmp_output = T.maximum(cur, self.tmp_output)
 			self.output = activation(self.tmp_output)
-		elif do_pnorm == True: # pooling of output of neuron based on poolsize and normalizing the output
+		elif maxout_method == 'pnorm': # pooling of output of neuron based on poolsize and normalizing the output
 			self.last_start = n_out - pool_size
 			self.tmp_output = abs(lin_output[:,0:self.last_start+1:pool_size]) ** pnorm_order
 			for i in range(1, pool_size):
@@ -60,9 +60,9 @@ class HiddenLayer(object):
 
 class DropoutHiddenLayer(HiddenLayer):
 	def __init__(self, rng, input, n_in, n_out, W=None, b=None, activation=T.tanh,
-			do_maxout = False, pool_size = 1, dropout_factor=0.5):
+			maxout_method = None, pool_size = 1,pnorm_order=1,dropout_factor=0.5):
 		super(DropoutHiddenLayer, self).__init__(rng=rng, input=input, n_in=n_in, n_out=n_out, W=W, b=b,
-				activation=activation, do_maxout = do_maxout, pool_size = pool_size)
+				activation=activation, maxout_method = maxout_method, pool_size = pool_size,pnorm_order=pnorm_order)
 		self.theano_rng = RandomStreams(rng.randint(2 ** 30))
 		dropout_prob = self.theano_rng.binomial(n=1, p=1-dropout_factor, size=self.output.shape,
 			dtype=theano.config.floatX)	

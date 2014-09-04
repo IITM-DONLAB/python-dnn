@@ -17,6 +17,7 @@
 
 import cPickle, gzip, os, time,sys
 from models.cnn import CNN;
+from models.dropout_cnn import DropoutCNN;
 import numpy
 
 import theano
@@ -60,10 +61,16 @@ def runCNN(arg):
 	#create working dir
 
 	batch_size = model_config['batch_size'];
-	cnn = CNN(numpy_rng,theano_rng,conv_layer_configs = conv_layer_config, batch_size = batch_size,
-			n_outs=model_config['n_outs'],hidden_layers_sizes=mlp_config['layers'], 
-			conv_activation = conv_activation,hidden_activation = hidden_activation,
-			use_fast = conv_config['use_fast'])
+	if mlp_config['do_dropout']:
+		cnn = DropoutCNN(numpy_rng,theano_rng,conv_layer_configs = conv_layer_config, batch_size = batch_size,
+				n_outs=model_config['n_outs'],hidden_layer_configs=mlp_config, 
+				conv_activation = conv_activation,hidden_activation = hidden_activation,
+				use_fast = conv_config['use_fast'])
+	else:
+		cnn = CNN(numpy_rng,theano_rng,conv_layer_configs = conv_layer_config, batch_size = batch_size,
+				n_outs=model_config['n_outs'],hidden_layer_configs=mlp_config, 
+				conv_activation = conv_activation,hidden_activation = hidden_activation,
+				use_fast = conv_config['use_fast'])
 
 	########################
 	# FINETUNING THE MODEL #

@@ -6,7 +6,7 @@ from models import nnet,_array2string,_string2array
 
 from layers.cnn import ConvLayer
 from layers.logistic_sgd import LogisticRegression
-from layers.mlp import HiddenLayer
+from layers.mlp import HiddenLayer,DropoutHiddenLayer,_dropout_from_layer
 from collections import OrderedDict
 from io_modules.file_reader import read_dataset
 from utils.plotter import plot
@@ -15,12 +15,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class CNN(nnet):
+class DropoutCNN(nnet):
 	""" Instantiation of Convolution neural network ... """
 	def __init__(self, numpy_rng, theano_rng, batch_size, n_outs,conv_layer_configs, hidden_layer_configs, 
 			use_fast=False,conv_activation = T.nnet.sigmoid,hidden_activation = T.nnet.sigmoid):
 
-		super(CNN, self).__init__()
+		super(DropoutCNN, self).__init__()
 		self.layers = []
 
 		#self.sparsity = sparsity
@@ -62,47 +62,76 @@ class CNN(nnet):
 		self.conv_output_dim = config['output_shape'][1] * config['output_shape'][2] * config['output_shape'][3]
 		max_out_configs = hidden_layer_configs['max_out'] 
 
+		self.dropout_layers = [];
+		self.dropout_factor = hidden_layer_configs['dropout_factor'];
 		for i in xrange(self.hidden_layer_num):		# construct the hidden layer
 			if i == 0:				# is first sigmoidla layer
 				input_size = self.conv_output_dim
+				if self.dropout_factor > 0.0:
+					dropout_layer_input = _dropout_from_layer(theano_rng, self.layers[-1].output, self.dropout_factor)
+				else:
+					dropout_layer_input = self.layers[-1].output
+				layer_input = self.layers[-1].output
 			else:
 				input_size = hidden_layers[i - 1]	# number of hidden neurons in previous layers
-			
-			layer_input = self.layers[-1].output
-			
+				dropout_layer_input = self.dropout_layers[-1].dropout_output			
+				layer_input = (1 - self.dropout_factor) * self.layers[-1].output
+				
 			if max_out_configs['method'] is None:
+				dropout_sigmoid_layer = DropoutHiddenLayer(rng=numpy_rng, input=layer_input,n_in=input_size, 
+						n_out = hidden_layers[i], activation=hidden_activation,
+						maxout_method = max_out_configs['maxout_method'],
+						pool_size = max_out_configs['pool_size'],
+						pnorm_order = max_out_configs['pnorm_order'],
+						dropout_factor = self.dropout_factor);
+						
 				sigmoid_layer = HiddenLayer(rng=numpy_rng, input=layer_input,n_in=input_size, 
 						n_out = hidden_layers[i], activation=hidden_activation,
-						maxout_method = max_out_configs['method'],
+						maxout_method = max_out_configs['maxout_method'],
 						pool_size = max_out_configs['pool_size'],
-						pnorm_order = max_out_configs['pnorm_order']);
+						pnorm_order = max_out_configs['pnorm_order'],
+						W=dropout_sigmoid_layer.W, b=dropout_sigmoid_layer.b);
+						
+				
 						
 			else:
+				dropout_sigmoid_layer = DropoutHiddenLayer(rng=numpy_rng, input=layer_input,n_in=input_size, 
+						n_out = hidden_layers[i]*max_out_configs['pool_size'], activation=hidden_activation,
+						maxout_method = max_out_configs['method'],
+						pool_size = max_out_configs['pool_size'],
+						pnorm_order = max_out_configs['pnorm_order'],
+						dropout_factor = self.dropout_factor);
+						
 				sigmoid_layer = HiddenLayer(rng=numpy_rng, input=layer_input,n_in=input_size, 
 						n_out = hidden_layers[i]*max_out_configs['pool_size'], activation=hidden_activation,
 						maxout_method = max_out_configs['method'],
 						pool_size = max_out_configs['pool_size'],
-						pnorm_order = max_out_configs['pnorm_order']);
-						
+						pnorm_order = max_out_configs['pnorm_order'],
+						W=dropout_sigmoid_layer.W, b=dropout_sigmoid_layer.b);
 						
 			self.layers.append(sigmoid_layer)
+			self.dropout_layers.append(dropout_sigmoid_layer)
 			self.mlp_layers.append(sigmoid_layer)
 
 			if config['update']==True:	# only few layers of hidden layer are considered for updation
-                		self.params.extend(sigmoid_layer.params)
-                		self.delta_params.extend(sigmoid_layer.delta_params)
-           
+						self.params.extend(dropout_sigmoid_layer.params)
+						self.delta_params.extend(dropout_sigmoid_layer.delta_params)
 
-		self.logLayer = LogisticRegression(input=self.layers[-1].output,n_in=hidden_layers[-1],n_out=n_outs)
+		self.dropout_logLayer = LogisticRegression(input=self.dropout_layers[-1].dropout_output,n_in=hidden_layers[-1],n_out=n_outs)
+		self.logLayer = LogisticRegression(
+							input=(1 - self.dropout_factor) * self.layers[-1].output,
+							n_in=hidden_layers[-1],n_out=n_outs,
+							W=self.dropout_logLayer.W, b=self.dropout_logLayer.b)
 		
+		self.dropout_layers.append(self.dropout_logLayer)
 		self.layers.append(self.logLayer)
-		self.params.extend(self.logLayer.params)
-		self.delta_params.extend(self.logLayer.delta_params)
+		self.params.extend(self.dropout_logLayer.params)
+		self.delta_params.extend(self.dropout_logLayer.delta_params)
 		
-		self.finetune_cost = self.logLayer.negative_log_likelihood(self.y)
+		self.finetune_cost = self.dropout_logLayer.negative_log_likelihood(self.y)
 		self.errors = self.logLayer.errors(self.y)
-		self.output = self.logLayer.prediction()
 		
+		self.output = self.logLayer.prediction()
 		self.features = self.conv_layers[-1].output;
 		self.features_dim = self.conv_output_dim;
 

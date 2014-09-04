@@ -19,8 +19,17 @@
         "activation" : "tanh",
         "use_fast" : false
     },
+    
     "mlp" : {  
         "layers": [500,200],
-        "activation" : "tanh"
+         "max_out" : {
+			"method" : "maxout",
+			"pool_size" : 1,
+			"pnorm_order" : 1
+		},
+		"do_dropout" : true,
+		"dropout_factor" :0.5,
+		"activation" : "tanh"
+        
     }
 }
