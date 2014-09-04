@@ -1,0 +1,37 @@
+{
+
+	"cnn" : {
+	   "layers": [
+			{
+				"convmat_dim" : [7,7],
+				"num_filters" : 100,
+				"poolsize" :  [2,2],
+				"flatten" : false,
+				"update" : true
+                        },
+			 {
+                                "convmat_dim" : [4,4],
+                                "num_filters" : 200,
+                                "poolsize" :  [2,2],
+                                "flatten" : false,
+                                "update" : true
+                        },
+			 {
+                                "convmat_dim" : [2,2],
+                                "num_filters" : 300,
+                                "poolsize" :  [2,2],
+                                "flatten" : true,
+                                "update" : true
+                        }			
+
+		],
+	  "activation" : "tanh",
+	  "use_fast" : false
+	},
+	
+
+	"mlp" : {
+	   "layers": [400,200],
+	   "activation" : "tanh"
+	}
+}
