@@ -75,7 +75,7 @@ def runCNN(arg):
 	#  TESTING THE MODEL   #
 	########################
 	if model_config['processes']['testing']:
-		testing(cnn,model_config,data_spec)
+		testing(cnn,data_spec)
 
 	##########################
 	##   Export Features    ##
@@ -83,8 +83,9 @@ def runCNN(arg):
 	if model_config['processes']['export_data']:
 		exportFeatures(cnn,model_config,data_spec)
 
-
-	cnn.load(filename=model_config['output_file']);
+	logger.info('Saving model to ' + str(model_config['output_file'])+ '....')
+	cnn.save(filename=model_config['output_file']);
+	logger.info('Saved model to ' + str(model_config['output_file']))
 
 	
 if __name__ == '__main__':

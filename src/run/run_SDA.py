@@ -125,7 +125,7 @@ def runSdA(arg):
     #  TESTING THE MODEL   #
     ########################
     if model_config['processes']['testing']:
-        testing(sda,model_config,data_spec)
+        testing(sda,data_spec)
 
     ##########################
     ##   Export Features    ##
@@ -136,9 +136,8 @@ def runSdA(arg):
     # save the pretrained nnet to file
     logger.info('Saving model to ' + str(model_config['output_file']) + '....')
     sda.save(filename=model_config['output_file'], withfinal=True)
+    logger.info('Saved model to ' + str(model_config['output_file']))
 
-
-    #print test_pred
 
 
 if __name__ == '__main__':

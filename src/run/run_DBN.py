@@ -30,7 +30,8 @@ from io_modules.file_reader import read_dataset
 from io_modules import setLogger
 from utils.utils import parse_activation
 
-from run import fineTunning,testing,exportFeatures,createDir
+from run import fineTunning,testing,exportFeatures
+from run import createDir
 
 
 import logging
@@ -136,7 +137,7 @@ def runRBM(arg):
     #  TESTING THE MODEL   #
     ########################
     if model_config['processes']['testing']:
-        testing(dbn,model_config,data_spec)
+        testing(dbn,data_spec)
 
     ##########################
     ##   Export Features    ##
@@ -144,9 +145,9 @@ def runRBM(arg):
     if model_config['processes']['export_data']:
         exportFeatures(dbn,model_config,data_spec)
 
-
     logger.info('Saving model to ' + str(model_config['output_file']) + ' ....')
     dbn.save(filename=model_config['output_file'], withfinal=True);
+    logger.info('Saved model to ' + str(model_config['output_file']))
 
 
 

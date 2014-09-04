@@ -28,7 +28,8 @@ from io_modules.file_reader import read_dataset
 from io_modules import setLogger
 from utils.utils import parse_activation
 
-from run import fineTunning,testing,exportFeatures,createDir
+from run import fineTunning,testing,exportFeatures
+from run import createDir
 
 from models.dnn import DNN
 from models.dropout_nnet import DNN_Dropout
@@ -94,12 +95,13 @@ def runDNN(arg):
               max_col_norm = max_col_norm, l1_reg = l1_reg, l2_reg = l2_reg)
 
 
+    logger.info("Loading Pretrained network weights")
     try:
         # pretraining
         ptr_file = model_config['input_file']
         pretrained_layers = dnn_config['pretrained_layers']
 
-        dnn.load(filename = ptr_file,max_layer_num = pretrained_layers,  withfinal=False)
+        dnn.load(filename = ptr_file,max_layer_num = pretrained_layers,  withfinal=True)
     except KeyError, e:
         logger.critical("KeyMissing:"+str(e));
         logger.error("Pretrained network Missing in configFile")
@@ -119,7 +121,7 @@ def runDNN(arg):
     #  TESTING THE MODEL   #
     ########################
     if model_config['processes']['testing']:
-        testing(dnn,model_config,data_spec)
+        testing(dnn,data_spec)
 
     ##########################
     ##   Export Features    ##
@@ -127,9 +129,10 @@ def runDNN(arg):
     if model_config['processes']['export_data']:
         exportFeatures(dnn,model_config,data_spec)
 
-    logger.info('Saving model to ' + str(model_config['output_file']) + '....')
 
+    logger.info('Saving model to ' + str(model_config['output_file']) + '....')
     dnn.save(filename=model_config['output_file'])
+    logger.info('Saved model to ' + str(model_config['output_file']))
 
 if __name__ == '__main__':
     import sys
