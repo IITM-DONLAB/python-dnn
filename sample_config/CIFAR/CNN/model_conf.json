@@ -1,0 +1,34 @@
+{	
+
+	"nnetType" : "CNN",
+	"wdir" : "/data/abil/CIFAR/export",
+	"data_spec" : "data_spec.json",
+	"nnet_spec" : "nnet_spec.json",
+	"output_file" : "conv_out.model",
+	
+	"logger_level" : "DEBUG",
+	"input_shape" : [3,32,32],
+	"batch_size" : 512,
+	"finetune_momentum" : 0.5,
+	"n_outs" : 10,
+	"finetune_method" : "E",
+	"finetune_rate" : {	
+			"learning_rate" : 0.08,
+			"epoch_num" : 0,
+
+			"start_rate" : 0.08,
+			"scale_by" : 0.5,
+			"min_derror_decay_start" : 0.05,
+			"min_derror_stop" : 0.05,
+			"min_epoch_decay_start" : 15,
+			"init_error" :100
+		},
+	
+	"processes":{
+		"pretraining":false,
+		"finetuning":true,
+		"testing":false,
+		"export_data":true
+	},
+	"export_path" : "data/export"
+}
