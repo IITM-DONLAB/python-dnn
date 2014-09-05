@@ -11,6 +11,7 @@ class nnet(object):
 		self.delta_params = [];
 		self.n_layers = 0;
 		self.type = None;
+		self.mlp_layer_start = 0 
 
 		# allocate symbolic variables for the data
 		self.x = T.matrix('x')  # the data is presented as rasterized images
@@ -85,7 +86,7 @@ class nnet(object):
 			updates[param] = param + updates[dparam]
 
 		if self.max_col_norm is not None:
-			updates = self.__TrainReg__(updates,start=0)
+			updates = self.__TrainReg__(updates,self.mlp_layer_start*2)
 		
 		train_inputs = [index, theano.Param(learning_rate, default = 0.001),
 			theano.Param(momentum, default = 0.5)]
@@ -241,7 +242,6 @@ class nnet(object):
 			dict_key = 'logreg b'
 			self.logLayer.params[1].set_value(numpy.asarray(_string2array(nnet_dict[dict_key]),
 				dtype=theano.config.floatX))
-
 
 # convert an array to a string
 def _array2string(array):

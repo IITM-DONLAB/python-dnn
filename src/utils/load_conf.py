@@ -143,38 +143,76 @@ def initModelCNN(data):
 
 	return data
 
-def load_mlp_spec(spec):
-	logger.info("Loading mlp properties from %s ...")
-	if not spec.has_key('layers') or len(spec['layers'])==0:
+def load_mlp_spec(mlp_spec):
+	#default values:
+	max_col_norm = None
+	l1_reg = None
+	l2_reg = None
+	activation = "sigmoid"
+	maxout = None
+	pool_size = 1
+	pnorm_order = 1
+	do_dropout = False
+	
+	logger.info("Loading mlp properties from  ...")
+	if not mlp_spec.has_key('hidden_layers') or len(mlp_spec['hidden_layers'])==0:
 		logger.critical("mlp configuration is not having layers key which is mandatory")
 		exit(1);
-					
-	if not spec.has_key('do_dropout'):
-		spec['do_dropout']=False;
 		
-	if spec['do_dropout'] and not spec.has_key('dropout_factor'):
-		spec['dropout_factor']=0.2;
+	#dropout::
+	if not mlp_spec.has_key('do_dropout') or not type(mlp_spec['do_dropout']) is bool:
+		mlp_spec['do_dropout'] = do_dropout
+	if mlp_spec['do_dropout']:
+		if not mlp_spec.has_key('dropout_factor') or not type(mlp_spec['dropout_factor']) is list:
+			logger.critical(" dropout_factor is not present (or not a list) in mlp_configuration")
+			exit(1)
+		elif len(mlp_spec['dropout_factor']) != len(mlp_spec['hidden_layers']):
+			logger.critical(" dropout_factor not correct size(should be same of hidden_layers) in mlp_configuration")
+			exit(1)
+		if not mlp_spec.has_key('input_dropout_factor') or not type(mlp_spec['input_dropout_factor']) is float:
+			logger.critical(" input_dropout_factor is not present (or not a float) in mlp_configuration")
+			exit(1)						
 		
-	if not spec.has_key('max_out'):
-		spec['max_out']=None;
-	else:
-		if not spec['max_out'].has_key('method'):
-			spec['max_out']['method'] = 'maxout'
+	#maxout::	
+	if not mlp_spec.has_key('adv_activation') or not type(mlp_spec['adv_activation']) is dict:
+		mlp_spec['adv_activation']=None;
+
+	if not mlp_spec['adv_activation'] is None:
+		if not mlp_spec['adv_activation'].has_key('method') or not type(mlp_spec['adv_activation']['method']) is str:
+			mlp_spec['adv_activation']['method'] = 'maxout'
 		else:
-			if not spec['max_out']['method'] in ['maxout','pnorm']:
-				logger.critical("Invalid max_out method %s.."% spec['max_out']['method'])
+			if not mlp_spec['adv_activation']['method'] in ['maxout','pnorm']:
+				logger.critical("Invalid advancce activation method %s.."% mlp_spec['adv_activation']['method'])
 				exit(1);
 			
-		if not spec['max_out'].has_key('pool_size'):
-			spec['max_out']['pool_size'] = 1	
+		if not mlp_spec['adv_activation'].has_key('pool_size') or not type(mlp_spec['adv_activation']['pool_size']) is int:
+			mlp_spec['adv_activation']['pool_size'] = pool_size	
 		
-		if not spec['max_out'].has_key('pnorm_order'):
-			spec['max_out']['pnorm_order'] = 1	
-	if not spec['max_out'] is None and not spec['activation'] in ['linear','relu','cappedrelu']:
-		spec['activation'] =  'linear';
-		logger.debug("Setting the actiavtion function to linear, since max_out is used")
+		if not mlp_spec['adv_activation'].has_key('pnorm_order') or not type(mlp_spec['adv_activation']['pnorm_order']) is int:
+			mlp_spec['adv_activation']['pnorm_order'] = pnorm_order	
+	
+	#activation::
+	if not mlp_spec['adv_activation'] is None and not mlp_spec['activation'] in ['linear','relu','cappedrelu']:
+		mlp_spec['activation'] =  'linear';
+		logger.warning("Setting the actiavtion function to linear, since adv_activation is used")
+	elif not mlp_spec.has_key('activation'):
+		mlp_spec['activation'] =  activation;
+		
+	#regularization::	
+	if not mlp_spec.has_key('l1_reg') or not type(mlp_spec['l1_reg']) is float:
+		mlp_spec['l1_reg']=l1_reg	
+	if not mlp_spec.has_key('l2_reg') or not type(mlp_spec['l2_reg']) is float:
+		mlp_spec['l2_reg']=l2_reg
+	if not mlp_spec.has_key('max_col_norm') or type(not mlp_spec['max_col_norm']) is float:
+		mlp_spec['max_col_norm']=None
+	
+	#pre_trained_layers::
+	if not mlp_spec.has_key('pretrained_layers') or not type(mlp_spec['pretrained_layers']) is int:
+		mlp_spec['pretrained_layers'] = -1;
+	elif mlp_spec['pretrained_layers'] > (len(mlp_spec['hidden_layers'])):
+		mlp_spec['pretrained_layers'] = len(mlp_spec['hidden_layers'])
 		 
-	return spec;
+	return mlp_spec;
 		
 
 def load_conv_spec(input_file,batch_size,input_shape):
@@ -255,16 +293,12 @@ def load_rbm_spec(input_file):
 
 
 def initModelRBM(data):
-
 	#default values:
-
 	gbrbm_learning_rate = 0.005
 	pretraining_learning_rate = 0.08
 	batch_size=128
 	epochs=10
 	keep_layer_num=0
-
-
 	# momentum; more complicated than dnn
 	initial_pretrain_momentum = 0.5	 # initial momentum
 	final_pretrain_momentum = 0.9	   # final momentum
@@ -365,66 +399,7 @@ def initModelDNN(data):
 def load_dnn_spec(input_file):
 	logger.info("Loading net properties from %s ..",input_file)
 	data = load_json(input_file)
-
-	if not data.has_key('hidden_layers') or not type(data['hidden_layers']) is list:
-		logger.critical(" hidden_layers is not present (or not a list) in " + str(input_file))
-		exit(1)
-
-	if not data.has_key('pretrained_layers') or not type(data['pretrained_layers']) is int:
-		data['pretrained_layers'] = -1;
-	elif data['pretrained_layers'] > (len(data['hidden_layers'])):
-		data['pretrained_layers'] = len(data['hidden_layers'])
-
-	max_col_norm = None
-	l1_reg = None
-	l2_reg = None
-	activation = "sigmoid"
-	do_maxout = False
-	pool_size = 1
-	do_pnorm = False
-	pnorm_order = 1
-	do_dropout = False
-
-	# regularization for hidden layer parameter
-	if not data.has_key('max_col_norm') or not type(data['max_col_norm']) is float:
-		data['max_col_norm'] = max_col_norm
-	if not data.has_key('l1_reg') or not type(data['l1_reg']) is float:
-		data['l1_reg'] = l1_reg
-	if not data.has_key('l2_reg') or not type(data['l2_reg']) is float:
-		data['l2_reg'] = l2_reg
-
-	if not data.has_key('activation') :
-		data['activation'] = 'sigmoid';
-	if not data.has_key('do_maxout') or not type(data['do_maxout']) is bool:
-		data['do_maxout'] = do_maxout
-	if not data.has_key('pool_size') or not type(data['pool_size']) is int:
-		data['pool_size'] = pool_size
-
-	if not data.has_key('do_pnorm') or not type(data['do_pnorm']) is bool:
-		data['do_pnorm'] = do_pnorm
-		data['pnorm_order'] = pnorm_order
-	if data['do_pnorm']:
-		if not data.has_key('pnorm_order'):
-			logger.critical("pnorm_order is not present in " + str(input_file))
-			exit(1)			
-
-	#dropout::
-	if not data.has_key('do_dropout') or not type(data['do_dropout']) is bool:
-		data['do_dropout'] = do_dropout
-	if data['do_dropout']:
-		if not data.has_key('dropout_factor') or not type(data['dropout_factor']) is list:
-			logger.critical(" dropout_factor is not present (or not a list) in " + str(input_file))
-			exit(1)
-		elif len(data['dropout_factor']) != len(data['hidden_layers']):
-			logger.critical(" dropout_factor not correct size(should be same of hidden_layers) in " \
-				+ str(input_file))
-			exit(1)
-		if not data.has_key('input_dropout_factor') or type(data['input_dropout_factor']) is float:
-			logger.critical(" input_dropout_factor is not present (or not a list) in " + str(input_file))
-			exit(1)
-
-
-	return data
+	return load_mlp_spec(data);
 
 ##############################################################################################
 def __debugPrintData__(data,name=None):

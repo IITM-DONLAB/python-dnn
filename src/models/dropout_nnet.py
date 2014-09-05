@@ -30,11 +30,10 @@ class DNN_Dropout(nnet):
 
     def __init__(self, numpy_rng, theano_rng=None, n_ins=784,
                  hidden_layers_sizes=[500, 500], n_outs=10,
-                 activation = T.nnet.sigmoid,
-                 input_dropout_factor = 0,
+                 activation = T.nnet.sigmoid, input_dropout_factor = 0,
                  dropout_factor = [0.2,0.2,0.2,0.2,0.2,0.2,0.2],
-                 do_maxout = False, pool_size = 1,
-                 max_col_norm = None, l1_reg = None, l2_reg = None):
+                 adv_activation = None, max_col_norm = None,
+                 l1_reg = None, l2_reg = None):
 
         super(DNN_Dropout, self).__init__()
 
@@ -56,7 +55,7 @@ class DNN_Dropout(nnet):
         # allocate symbolic variables for the data
         self.x = T.matrix('x') 
         self.y = T.ivector('y')
-
+		
         for i in xrange(self.n_layers):
             # construct the sigmoidal layer
             if i == 0:
@@ -70,8 +69,27 @@ class DNN_Dropout(nnet):
                 input_size = hidden_layers_sizes[i - 1]
                 layer_input = (1 - self.dropout_factor[i - 1]) * self.layers[-1].output
                 dropout_layer_input = self.dropout_layers[-1].dropout_output
-
-            if do_maxout == False:
+			
+            if not adv_activation  is None:
+                dropout_layer = DropoutHiddenLayer(rng=numpy_rng,
+                                        input=dropout_layer_input,
+                                        n_in=input_size,
+                                        n_out=hidden_layers_sizes[i] * adv_activation['pool_size'],
+                                        activation= activation,
+                                        adv_activation_method = adv_activation['method'],
+                                        pool_size = adv_activation['pool_size'],
+                                        pnorm_order = adv_activation['pnorm_order'],
+                                        dropout_factor=self.dropout_factor[i])
+                sigmoid_layer = HiddenLayer(rng=numpy_rng,
+                                        input=layer_input,
+                                        n_in=input_size,
+                                        n_out=hidden_layers_sizes[i] * adv_activation['pool_size'],
+                                        activation=activation,
+                                        adv_activation_method = adv_activation['method'],
+                                        pool_size = adv_activation['pool_size'],
+                                        pnorm_order = adv_activation['pnorm_order'],
+                                        W=dropout_layer.W, b=dropout_layer.b)
+            else:
                 dropout_layer = DropoutHiddenLayer(rng=numpy_rng,
                                         input=dropout_layer_input,
                                         n_in=input_size,
@@ -81,29 +99,16 @@ class DNN_Dropout(nnet):
                 sigmoid_layer = HiddenLayer(rng=numpy_rng,
                                         input=layer_input,
                                         n_in=input_size,
-                                        n_out=hidden_layers_sizes[i],
-                                        activation=activation,
+                                        n_out=hidden_layers_sizes[i] ,
+                                        activation= activation,
                                         W=dropout_layer.W, b=dropout_layer.b)
-            else:
-                dropout_layer = DropoutHiddenLayer(rng=numpy_rng,
-                                        input=dropout_layer_input,
-                                        n_in=input_size,
-                                        n_out=hidden_layers_sizes[i] * pool_size,
-                                        activation= (lambda x: 1.0*x),
-                                        dropout_factor=self.dropout_factor[i],
-                                        do_maxout = True, pool_size = pool_size)
-                sigmoid_layer = HiddenLayer(rng=numpy_rng,
-                                        input=layer_input,
-                                        n_in=input_size,
-                                        n_out=hidden_layers_sizes[i] * pool_size,
-                                        activation= (lambda x: 1.0*x),
-                                        W=dropout_layer.W, b=dropout_layer.b,
-                                        do_maxout = True, pool_size = pool_size)
+                                        
             # add the layer to our list of layers
             self.layers.append(sigmoid_layer)
             self.dropout_layers.append(dropout_layer)
             self.params.extend(dropout_layer.params)
             self.delta_params.extend(dropout_layer.delta_params)
+            
         # We now need to add a logistic layer on top of the MLP
         self.dropout_logLayer = LogisticRegression(
                                  input=self.dropout_layers[-1].dropout_output,

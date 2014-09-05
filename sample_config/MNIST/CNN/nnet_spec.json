@@ -21,14 +21,18 @@
     },
     
     "mlp" : {  
-        "layers": [500,200],
+        "hidden_layers": [500,200],
          "max_out" : {
 			"method" : "maxout",
 			"pool_size" : 1,
 			"pnorm_order" : 1
 		},
+		"max_col_norm":6,
+		"l1_reg":0.5,
+		"l2_reg":0.5,
 		"do_dropout" : true,
-		"dropout_factor" :0.5,
+		"dropout_factor" : [0.5,0.5],
+		"input_dropout_factor" : 0.5,
 		"activation" : "tanh"
         
     }

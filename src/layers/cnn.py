@@ -13,7 +13,7 @@ from theano.sandbox.cuda.basic_ops import gpu_contiguous
 class ConvLayer(object):
 	"""Pool Layer of a convolutional network """
 	def __init__(self, numpy_rng, input, input_shape, filter_shape, poolsize, activation, 
-			W=None, b=None, flatten = False, border_mode = 'valid', use_fast = False):
+			W=None, b=None, border_mode = 'valid', use_fast = False):
 	
 		assert input_shape[1] == filter_shape[1]
 		self.input = input#.reshape(input_shape)
@@ -23,7 +23,6 @@ class ConvLayer(object):
 		self.poolsize = poolsize
 
 		self.activation = activation
-		self.flatten = flatten
 	
 		fan_in = numpy.prod(filter_shape[1:])
 		fan_out = (filter_shape[0] * numpy.prod(filter_shape[2:]) / numpy.prod(poolsize))
@@ -68,8 +67,8 @@ class ConvLayer(object):
 
 		self.output = pooled_out
 
-		if flatten:		#if final convolution layer we need to flatten
-			self.output = self.output.flatten(2)
+		#if flatten:		#if final convolution layer we need to flatten
+		#	self.output = self.output.flatten(2)
 
 		self.params = [self.W, self.b]
 		self.delta_params = [self.delta_W, self.delta_b]

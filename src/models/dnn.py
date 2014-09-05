@@ -29,9 +29,7 @@ class DNN(nnet):
 
     def __init__(self, numpy_rng, theano_rng=None, n_ins=784,
                  hidden_layers_sizes=[500, 500], n_outs=10,
-                 activation = T.nnet.sigmoid,
-                 do_maxout = False, pool_size = 1, 
-                 do_pnorm = False, pnorm_order = 1,
+                 activation = T.nnet.sigmoid, adv_activation = None,
                  max_col_norm = None, l1_reg = None, l2_reg = None):
 
         super(DNN, self).__init__()
@@ -60,30 +58,27 @@ class DNN(nnet):
                 input_size = hidden_layers_sizes[i - 1]
                 layer_input = self.layers[-1].output
 
-            if do_maxout == True:
+            if not adv_activation is  None:
                 sigmoid_layer = HiddenLayer(rng=numpy_rng,
                                         input=layer_input,
                                         n_in=input_size,
                                         n_out=hidden_layers_sizes[i] * pool_size,
-                                        activation = (lambda x: 1.0*x),
-                                        do_maxout = True, pool_size = pool_size)
-            elif do_pnorm == True:
-                sigmoid_layer = HiddenLayer(rng=numpy_rng,
-                                        input=layer_input,
-                                        n_in=input_size,
-                                        n_out=hidden_layers_sizes[i] * pool_size,
-                                        activation = (lambda x: 1.0*x),
-                                        do_pnorm = True, pool_size = pool_size, pnorm_order = pnorm_order)
+                                        activation = activation,
+                                        adv_activation_method = adv_activation['method'],
+                                        pool_size = adv_activation['pool_size'],
+                                        pnorm_order = adv_activation['pnorm_order'])
             else:
                 sigmoid_layer = HiddenLayer(rng=numpy_rng,
                                         input=layer_input,
                                         n_in=input_size,
                                         n_out=hidden_layers_sizes[i],
                                         activation=activation)
+                                        
             # add the layer to our list of layers
             self.layers.append(sigmoid_layer)
             self.params.extend(sigmoid_layer.params)
             self.delta_params.extend(sigmoid_layer.delta_params)
+            
         # We now need to add a logistic layer on top of the MLP
         self.logLayer = LogisticRegression(
                          input=self.layers[-1].output,

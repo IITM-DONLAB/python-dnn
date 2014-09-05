@@ -16,8 +16,7 @@
 # limitations under the License.
 
 import cPickle, gzip, os, time,sys
-from models.cnn import CNN;
-from models.dropout_cnn import DropoutCNN;
+from models.cnn import CNN,DropoutCNN;
 import numpy
 
 import theano
@@ -65,12 +64,33 @@ def runCNN(arg):
 		cnn = DropoutCNN(numpy_rng,theano_rng,conv_layer_configs = conv_layer_config, batch_size = batch_size,
 				n_outs=model_config['n_outs'],hidden_layer_configs=mlp_config, 
 				conv_activation = conv_activation,hidden_activation = hidden_activation,
-				use_fast = conv_config['use_fast'])
+				use_fast = conv_config['use_fast'],l1_reg = mlp_config['l1_reg'],
+				l2_reg = mlp_config['l1_reg'],max_col_norm = mlp_config['max_col_norm'])
 	else:
 		cnn = CNN(numpy_rng,theano_rng,conv_layer_configs = conv_layer_config, batch_size = batch_size,
 				n_outs=model_config['n_outs'],hidden_layer_configs=mlp_config, 
 				conv_activation = conv_activation,hidden_activation = hidden_activation,
-				use_fast = conv_config['use_fast'])
+				use_fast = conv_config['use_fast'],l1_reg = mlp_config['l1_reg'],
+				l2_reg = mlp_config['l1_reg'],max_col_norm = mlp_config['max_col_norm'])
+				
+	########################
+	 # Loading  THE MODEL #
+	########################
+	try:
+		# pretraining
+		ptr_file = model_config['input_file']
+		pretrained_layers = mlp_config['pretrained_layers']
+		logger.info("Loading the pretrained network..")
+		cnn.load(filename=ptr_file,max_layer_num = pretrained_layers,  withfinal=True)
+	except KeyError, e:
+		logger.warning("Pretrained network missing in working directory, skipping model loading")
+	except IOError, e:
+		logger.error("IOError:"+str(e));
+		logger.error('Model cannot be initialize from input file ')
+		exit(2)
+
+		
+	
 
 	########################
 	# FINETUNING THE MODEL #

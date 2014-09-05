@@ -14,6 +14,7 @@
     "initial_pretrain_momentum":0.5,
     "final_pretrain_momentum":0.9,
     "initial_pretrain_momentum_epoch":5,
+    
     "finetune_method":"C",
     "finetune_rate" : {
         "learning_rate" : 0.08,
