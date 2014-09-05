@@ -1,6 +1,7 @@
 class LearningRate(object):
 	@staticmethod
-	def get_instance(method,configs):
+	def get_instance(configs):
+		method = configs['method'];
 		if(method=='C'):
 			return LearningRateConstant(configs);
 		else:

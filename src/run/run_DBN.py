@@ -37,32 +37,30 @@ from run import createDir
 import logging
 logger = logging.getLogger(__name__)
 
-def preTraining(dbn,train_sets,train_xy,train_x,train_y,model_config):
+def preTraining(dbn,train_sets,train_xy,train_x,pretrain_config):
 
     logger.info('Getting the pretraining functions....')
-    pretraining_fns = dbn.pretraining_functions(train_set_x=train_x,
-                                                 batch_size=model_config['batch_size'],
-                                                 weight_cost = 0.0002)
+    batch_size = train_sets.batch_size;
+    pretrainingEpochs = pretrain_config['epochs']
+    keep_layer_num=pretrain_config['keep_layer_num']
     
+    initialMomentum = pretrain_config['initial_momentum']
+    initMomentumEpochs = pretrain_config['initial_momentum_epoch']
+    finalMomentum = pretrain_config['final_momentum']
 
-    batch_size = model_config['batch_size'];
-    pretrainingEpochs = model_config['pretraining_epochs']
-    keep_layer_num=model_config['keep_layer_num']
-    
-    initialMomentum = model_config['initial_pretrain_momentum']
-    initMomentumEpochs = model_config['initial_pretrain_momentum_epoch']
-    finalMomentum = model_config['final_pretrain_momentum']
+    pretraining_fns = dbn.pretraining_functions(train_set_x=train_x,
+                                                 batch_size=batch_size,
+                                                 weight_cost = 0.0002)
     
     logger.info('Pre-training the model ...')
     start_time = time.clock()
     
-
     ## Pre-train layer-wise
     for i in range(keep_layer_num, dbn.nPreTrainLayers):
         if (dbn.rbm_layers[i].is_gbrbm()):
-            pretrain_lr = model_config['gbrbm_learning_rate']
+            pretrain_lr = pretrain_config['gbrbm_learning_rate']
         else:
-            pretrain_lr = model_config['pretraining_learning_rate']
+            pretrain_lr = pretrain_config['learning_rate']
         # go through pretraining epochs
         momentum = initialMomentum
         for epoch in xrange(pretrainingEpochs):
@@ -101,7 +99,7 @@ def runRBM(arg):
 
 
     #generating Random
-    numpy_rng = numpy.random.RandomState(rbm_config['random_seed'])
+    numpy_rng = numpy.random.RandomState(model_config['random_seed'])
     theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
 
     activationFn = parse_activation(rbm_config['activation']);
@@ -109,7 +107,6 @@ def runRBM(arg):
     createDir(model_config['wdir']);
     #create working dir
 
-    keep_layer_num = model_config['keep_layer_num']
     batch_size = model_config['batch_size']
     wdir = model_config['wdir']
     
@@ -125,7 +122,7 @@ def runRBM(arg):
     #########################
     if model_config['processes']['pretraining']:
         train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
-        preTraining(dbn,train_sets,train_xy,train_x,train_y,model_config)
+        preTraining(dbn,train_sets,train_xy,train_x,model_config['pretrain_params'])
 
     ########################
     # FINETUNING THE MODEL #

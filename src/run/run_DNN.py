@@ -40,6 +40,7 @@ logger = logging.getLogger(__name__)
 
 def runDNN(arg):
 
+
 	if type(arg) is dict:
 		model_config = arg
 	else :
@@ -50,7 +51,7 @@ def runDNN(arg):
 
 
 	#generating Random
-	numpy_rng = numpy.random.RandomState(89677)
+	numpy_rng = numpy.random.RandomState(model_config['random_seed'])
 	theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
 	
 	activationFn = parse_activation(dnn_config['activation']);
@@ -124,6 +125,7 @@ def runDNN(arg):
 	logger.info('Saving model to ' + str(model_config['output_file']) + '....')
 	dnn.save(filename=model_config['output_file'])
 	logger.info('Saved model to ' + str(model_config['output_file']))
+
 
 if __name__ == '__main__':
 	import sys

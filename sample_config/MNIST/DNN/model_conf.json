@@ -9,8 +9,9 @@
     "n_ins":784,
     "n_outs":10,
     "input_file" : "rbm_out.model",
-    "finetune_method":"C",
-    "finetune_rate" : {
+    "finetune_params" : {
+        "method":"C",
+        "momentum": 0.5,
         "learning_rate" : 0.08,
         "epoch_num" : 10,
         "start_rate" : 0.08,
@@ -19,12 +20,12 @@
         "min_derror_stop" : 0.05,
         "min_epoch_decay_start" : 15
     },
-    "finetune_momentum": 0.5,
     "export_path":"data/dnn/",
     "processes":{
         "pretraining":false,
         "finetuning":true,
         "testing":true,
         "export_data":true
-    }
+    },
+  "random_seed" : 89677
 }

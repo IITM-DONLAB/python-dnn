@@ -5,7 +5,6 @@ DBN(RBM) Specification
 * `activation` : Activation function used by layers.
 * `pretrained_layers` : Number of layers to be pre-trained.(Default Value = Size of `hidden_layers`)
 * `first_layer_type` : Type for the first layer.It should be either 'bb' (Bernoulli-Bernoulli) or 'gb' (Gaussian-Bernoulli).(Default Value = gb).
-* `random_seed` : Random Seed used for init of weights.
 
 
 ___________________________________________________________________________________
