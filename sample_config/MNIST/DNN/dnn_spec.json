@@ -3,7 +3,6 @@
   "hidden_layers": [1000, 1000, 1000],
   "activation" : "sigmoid",
   "pretrained_layers" : 3,
-  "random_seed" : 89677,
   "max_col_norm":null,
   "l1_reg":null,
   "l2_reg":null,

@@ -9,19 +9,15 @@
 	"logger_level" : "DEBUG",
 	"input_shape" : [3,32,32],
 	"batch_size" : 512,
-	"finetune_momentum" : 0.5,
 	"n_outs" : 10,
-	"finetune_method" : "E",
-	"finetune_rate" : {	
-			"learning_rate" : 0.08,
-			"epoch_num" : 0,
-
+	"finetune_params" : {	
+			"method" : "E",
 			"start_rate" : 0.08,
 			"scale_by" : 0.5,
 			"min_derror_decay_start" : 0.05,
 			"min_derror_stop" : 0.05,
 			"min_epoch_decay_start" : 15,
-			"init_error" :100
+			"momentum" : 0.5
 		},
 	
 	"processes":{

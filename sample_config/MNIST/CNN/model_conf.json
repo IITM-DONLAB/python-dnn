@@ -8,17 +8,12 @@
     "logger_level":"INFO",
     "input_shape" : [1,28,28],
     "batch_size" : 256,
-    "finetune_momentum" : 0.5,
     "n_outs" : 10,
-    "finetune_method" : "C",
-    "finetune_rate" : {
+    "finetune_params" : {
+        "method" : "C",
+        "momentum" : 0.5,
         "learning_rate" : 0.08,
-        "epoch_num" : 0,
-        "start_rate" : 0.08,
-        "scale_by" : 0.5,
-        "min_derror_decay_start" : 0.05,
-        "min_derror_stop" : 0.05,
-        "min_epoch_decay_start" : 15
+        "epoch_num" : 10
     },
     "export_path":"data/cnn/",
     "plot_path":"plot/",

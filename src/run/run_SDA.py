@@ -35,16 +35,26 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def preTraining(layers,epochs,pretrainfns,train_sets,train_xy,corruptions,lr,batch_size):
+def preTraining(sda,train_sets,train_xy,train_x,corruptions,pretraining_config):
+    batch_size = train_sets.batch_size;
+    lr = pretraining_config['learning_rate']
+    epochs = pretraining_config['epochs']
+    keep_layer_num = pretraining_config['keep_layer_num']
+
+    logger.info('Getting the pretraining functions....')
+    pretrainfns = sda.pretraining_functions(train_x=train_x,
+                                            batch_size=batch_size)
+
+    logger.info('Pre-training the model ...')
     ## Pre-train layer-wise
-    for i in xrange(layers):
+    start_time = time.clock()
+    for i in xrange(keep_layer_num,sda.n_layers):
          # go through pretraining epochs
         for epoch in xrange(epochs):
             # go through the training set
             c = []  # keep record of cost
             while not train_sets.is_finish():
                 train_sets.make_partition_shared(train_xy)
-                
                 for batch_index in xrange(train_sets.cur_frame_num / batch_size):  
                     # loop over mini-batches
                     logger.debug("Training For epoch %d and batch %d",epoch,batch_index)
@@ -55,6 +65,9 @@ def preTraining(layers,epochs,pretrainfns,train_sets,train_xy,corruptions,lr,bat
             train_sets.initialize_read()
             err = numpy.mean(c);
             logger.info("Pre-training layer %i, epoch %d, cost %f", i, epoch,err)
+    end_time = time.clock()
+
+    logger.info('The PreTraing ran for %.2fm' % ((end_time - start_time) / 60.))
     return err
 
 
@@ -68,10 +81,8 @@ def runSdA(arg):
     sda_config = load_sda_spec(model_config['nnet_spec'])
     data_spec =  load_data_spec(model_config['data_spec'],model_config['batch_size']);
 
-    train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
-
     # numpy random generator
-    numpy_rng = numpy.random.RandomState(sda_config['random_seed'])
+    numpy_rng = numpy.random.RandomState(model_config['random_seed'])
     #theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
 
     #get Activation function
@@ -95,24 +106,10 @@ def runSdA(arg):
     if model_config['processes']['pretraining']:
         
         train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
-        
-        pretraining_epochs= model_config['pretraining_epochs']
-        pretrain_lr = model_config['pretrain_lr']
-
+        pretraining_config= model_config['pretrain_params']
         corruption_levels =sda_config['corruption_levels']
 
-        logger.info('Getting the pretraining functions....')
-        pretraining_fns = sda.pretraining_functions(train_x=train_x,
-                                                batch_size=batch_size)
-
-        logger.info('Pre-training the model ...')
-    
-        start_time = time.clock()
-        err=preTraining(sda.n_layers,pretraining_epochs,pretraining_fns,
-            train_sets,train_xy,corruption_levels,pretrain_lr,batch_size);
-        end_time = time.clock()
-
-        logger.info('The PreTraing ran for %.2fm' % ((end_time - start_time) / 60.))
+        preTraining(sda,train_sets,train_xy,train_x,corruption_levels,pretraining_config);
 
 
     ########################

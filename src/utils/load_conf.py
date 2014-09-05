@@ -21,7 +21,11 @@ def load_model(input_file,nnetType=None):
 	try:
 		nnetType=data['nnetType']
 	except KeyError, e:
-		logger.critical(" 'nnetType' is missing in model properties file..")
+		logger.critical("'nnetType' is missing in model properties file..")
+		exit(1)
+
+	if nnetType not in ['DNN','SDA','RBM','CNN']:
+		logger.error('Unknown nnetType')
 		exit(1)
 
 	requiredKeys = ['data_spec','wdir','processes','nnet_spec','output_file','n_outs']
@@ -29,6 +33,12 @@ def load_model(input_file,nnetType=None):
 		logger.critical(" the mandatory arguments are missing in model properties file..")
 		exit(1)
 
+	if not data.has_key('batch_size') or not type(data['batch_size']) is int:
+		data['batch_size']=256
+
+	if not data.has_key('random_seed') or not type(data['random_seed']) is int:
+		data['random_seed'] = None
+	
 	if data.has_key('n_ins') or data.has_key('input_shape'):
 		pass
 	else:
@@ -43,24 +53,60 @@ def load_model(input_file,nnetType=None):
                      'hidden_output_file','export_path','plot_path']
 	data = correctPath(data,wdirFiles,data['wdir']+pathSep);
 
-	#init Default Values in processes.
+	#init Default Values in processes or update from Json.
 	data['processes'] = initProcesses(data['processes'])
 
-	#init Default Values or update from Json.
-	if nnetType == 'CNN':
-		data = initModelCNN(data)
-	elif nnetType == 'RBM':
-		data = initModelRBM(data)
-	elif nnetType == 'SDA':
-		data = initModelSDA(data)
-	elif nnetType == 'DNN':
-		data = initModelDNN(data)
-	else:
-		logger.error('Unknown nnetType')
-		exit(1)
+	#init Default Values of finetuning or update from Json.
+	if data['processes']['finetuning']:
+		data=initFinetuneParams(data);
+
+	if data['processes']['pretraining']:
+		data=initPreTrainParams(data);
 
 	#__debugPrintData__(data,'model');
 	return data;
+
+def initFinetuneParams(data):
+	if not data.has_key('finetune_params') or not type(data['finetune_params']) is dict:
+		data['finetune_params'] = dict()
+	finetune_params = data['finetune_params'];
+
+	if not finetune_params.has_key('momentum') or not type(finetune_params['momentum']) is float:
+		finetune_params['momentum']=0.5
+
+	if not finetune_params.has_key('method'):
+		finetune_params['method']="C"
+	else:
+		valid_methods = ['C','E']
+	 	if finetune_params['method'] not in valid_methods:
+			logger.error("Unknown finetuning method");
+			logger.warning("Valid finetuning methods: "+str(valid_methods));
+			exit(1);
+
+	if finetune_params['method'] == "C":
+		if (not finetune_params.has_key('learning_rate') or
+			not type(finetune_params['learning_rate']) is float):
+			finetune_params['learning_rate'] = 0.08
+		if (not finetune_params.has_key('epoch_num') or
+			not type(finetune_params['epoch_num']) is int):	
+			finetune_params['epoch_num'] = 15
+	else:
+		if (not finetune_params.has_key('start_rate') or
+			not type(finetune_params['start_rate']) is float):
+			finetune_params['start_rate'] = 0.08
+		if (not finetune_params.has_key('scale_by') or
+			not type(finetune_params['learning_rate']) is float):
+			finetune_params['scale_by'] = 0.08
+		if (not finetune_params.has_key('min_derror_stop') or
+			not type(finetune_params['min_derror_stop']) is float):
+			finetune_params['min_derror_decay_start'] = 0.05
+		if (not finetune_params.has_key('min_derror_stop') or 
+			not type(finetune_params['min_derror_stop']) is float):
+			finetune_params['min_derror_stop'] = 0.05
+		if (not finetune_params.has_key('min_epoch_decay_start') or
+			not type(finetune_params['min_epoch_decay_start']) is float):
+			finetune_params['min_epoch_decay_start'] = 15
+	return data
 
 def initProcesses(data):
         if not data.has_key('pretraining') or not type(data['pretraining']) is bool:
@@ -74,6 +120,20 @@ def initProcesses(data):
         if not data.has_key('plotting') or not type(data['plotting']) is bool:
                 data['plotting'] = False
         return data
+
+def initPreTrainParams(data):
+	if not data.has_key('pretrain_params') or not type(data['pretrain_params']) is dict:
+		data['pretrain_params'] = dict();
+		logger.warning('Pretrain params not found.Using Default');
+
+	if data['nnetType'] == 'RBM':
+		data['pretrain_params'] = initPreTrainRBM(data['pretrain_params'])
+	elif data['nnetType'] == 'SDA':
+		data['pretrain_params'] = initPreTrainSDA(data['pretrain_params'])
+	else:
+		logger.warning("Pretraining of "+ data['nnetType'] + "is Not defined");
+		data['processes']['pretraining'] = False;
+	return data
 
 def correctPath(data,keys,basePath):
 	for key in keys:
@@ -118,31 +178,6 @@ def load_data_spec(input_file,batch_size):
 #############################################################################
 #CNN
 #############################################################################
-def initModelCNN(data):
-	if not data.has_key('batch_size') or not type(data['batch_size']) is int:
-		data['batch_size']=256
-	if not data.has_key('finetune_momentum') or not type(data['finetune_momentum']) is float:
-		data['finetune_momentum']=0.5
-
-	if not data.has_key('finetune_method'):
-		data['finetune_method']="C"
-
-	if not data.has_key('finetune_rate'):
-		lrate_config=dict()
-		if data['finetune_method'] == "C":
-			lrate_config['learning_rate'] = 0.08
-			lrate_config['epoch_num'] = 15
-		else:
-			lrate_config['start_rate'] = 0.08
-			lrate_config['scale_by'] = 0.08
-			lrate_config['min_derror_decay_start'] = 0.05
-			lrate_config['min_derror_stop'] = 0.05
-			lrate_config['min_epoch_decay_start'] = 15
-			lrate_config['init_error'] = 100
-		data['finetune_rate']=lrate_config
-
-	return data
-
 def load_mlp_spec(spec):
 	logger.info("Loading mlp properties from %s ...")
 	if not spec.has_key('layers') or len(spec['layers'])==0:
@@ -245,72 +280,60 @@ def load_rbm_spec(input_file):
 		first_layer_gb = False
 	data['first_layer_gb'] = first_layer_gb
 
-	if not data.has_key('random_seed') or not type(data['random_seed']) is int:
-		data['random_seed'] = None
-
 	#__debugPrintData__(data,'rbm');
 
 	return (data)
 
 
 
-def initModelRBM(data):
-
-	#default values:
+def initPreTrainRBM(data):
 
 	gbrbm_learning_rate = 0.005
-	pretraining_learning_rate = 0.08
-	batch_size=128
+	learning_rate = 0.08
 	epochs=10
 	keep_layer_num=0
 
-
 	# momentum; more complicated than dnn
-	initial_pretrain_momentum = 0.5	 # initial momentum
-	final_pretrain_momentum = 0.9	   # final momentum
-	initial_pretrain_momentum_epoch = 5 # for how many epochs do we use initial_pretrain_momentum
+	initial_momentum = 0.5	 # initial momentum
+	final_momentum = 0.9	   # final momentum
+	initial_momentum_epoch = 5 # for how many epochs do we use initial_momentum
 
-	if not data.has_key('batch_size') or not type(data['batch_size']) is int:
-		data['batch_size']=batch_size
-	if not data.has_key('gbrbm_learning_rate') or not type(data['gbrbm_learning_rate']) is float:
-		data['gbrbm_learning_rate'] = gbrbm_learning_rate
-	if not data.has_key('pretraining_learning_rate') or type(data['pretraining_learning_rate']) is float:
-		data['pretraining_learning_rate'] = pretraining_learning_rate
-	if not data.has_key('pretraining_epochs') or not type(data['pretraining_epochs']) is int:
-		data['pretraining_epochs'] = epochs
 	if not data.has_key('keep_layer_num') or not type(data['keep_layer_num']) is int:
 		data['keep_layer_num'] = keep_layer_num
 
-	# momentum
-	if not data.has_key('initial_pretrain_momentum') or not type(data['initial_pretrain_momentum']) is float:
-		data['initial_pretrain_momentum']=initial_pretrain_momentum
-	if not data.has_key('final_pretrain_momentum') or not type(data['final_pretrain_momentum']) is float:
-		data['final_pretrain_momentum']=final_pretrain_momentum
-	if not data.has_key('initial_pretrain_momentum_epoch ') or not type(data['initial_pretrain_momentum_epoch']) is int:
-		data['initial_pretrain_momentum_epoch']=initial_pretrain_momentum_epoch
+	if not data.has_key('gbrbm_learning_rate') or not type(data['gbrbm_learning_rate']) is float:
+		data['gbrbm_learning_rate'] = gbrbm_learning_rate
+	if not data.has_key('learning_rate') or not type(data['learning_rate']) is float:
+		data['learning_rate'] = learning_rate
+	if not data.has_key('epochs') or not type(data['epochs']) is int:
+		data['epochs'] = epochs
 
+	# momentum
+	if not data.has_key('initial_momentum') or not type(data['initial_momentum']) is float:
+		data['initial_momentum']=initial_momentum
+	if not data.has_key('final_momentum') or not type(data['final_momentum']) is float:
+		data['final_momentum']=final_momentum
+	if not data.has_key('initial_momentum_epoch ') or not type(data['initial_momentum_epoch']) is int:
+		data['initial_momentum_epoch']=initial_momentum_epoch
 
 	return data
 
 #############################################################################################
 #		SDA
 #############################################################################################
-def initModelSDA(data):
+def initPreTrainSDA(data):
 
-	finetune_lr=0.1
-	pretraining_epochs=15
-	pretrain_lr=0.08
-	batch_size=1
+	epochs=15
+	learning_rate=0.08
+	keep_layer_num = 0;
 
-	if not data.has_key('batch_size') or not type(data['batch_size']) is int:
-		data['batch_size']=batch_size
-	if not data.has_key('finetune_lr') or type(data['finetune_lr']) is float:
-		data['finetune_lr'] = finetune_lr
-	if not data.has_key('pretrain_lr') or type(data['pretrain_lr']) is float:
-		data['pretrain_lr'] = pretrain_lr
-	if not data.has_key('pretraining_epochs') or type(data['pretraining_epochs']) is int:
-		data['pretraining_epochs'] = pretraining_epochs
+	if not data.has_key('keep_layer_num') or not type(data['keep_layer_num']) is int:
+		data['keep_layer_num'] = keep_layer_num
 
+	if not data.has_key('learning_rate') or not type(data['learning_rate']) is float:
+		data['learning_rate'] = learning_rate
+	if not data.has_key('epochs') or not type(data['epochs']) is int:
+		data['epochs'] = epochs
 	return data
 
 
@@ -330,38 +353,12 @@ def load_sda_spec(input_file):
 			+ str(input_file))
 		exit(1)
 
-	if not data.has_key('random_seed') or not type(data['random_seed']) is int:
-		data['random_seed'] = None
-
 
 	return data
 
 #############################################################################################
 #		DNN
 #############################################################################################
-def initModelDNN(data):
-	if not data.has_key('batch_size') or not type(data['batch_size']) is int:
-		data['batch_size']=256
-	if not data.has_key('finetune_momentum') or not type(data['finetune_momentum']) is float:
-		data['finetune_momentum']=0.5
-
-	if not data.has_key('finetune_method'):
-		data['finetune_method']="C"
-
-	if not data.has_key('finetune_rate'):
-		lrate_config=dict()
-		if data['finetune_method'] == "C":
-			lrate_config['learning_rate'] = 0.08
-			lrate_config['epoch_num'] = 15
-		else:
-			lrate_config['start_rate'] = 0.08
-			lrate_config['scale_by'] = 0.08
-			lrate_config['min_derror_decay_start'] = 0.05
-			lrate_config['min_derror_stop'] = 0.05
-			lrate_config['min_epoch_decay_start'] = 15
-		data['finetune_rate']=lrate_config
-	return data
-
 def load_dnn_spec(input_file):
 	logger.info("Loading net properties from %s ..",input_file)
 	data = load_json(input_file)
@@ -419,7 +416,7 @@ def load_dnn_spec(input_file):
 			logger.critical(" dropout_factor not correct size(should be same of hidden_layers) in " \
 				+ str(input_file))
 			exit(1)
-		if not data.has_key('input_dropout_factor') or type(data['input_dropout_factor']) is float:
+		if not data.has_key('input_dropout_factor') or not type(data['input_dropout_factor']) is float:
 			logger.critical(" input_dropout_factor is not present (or not a list) in " + str(input_file))
 			exit(1)
 

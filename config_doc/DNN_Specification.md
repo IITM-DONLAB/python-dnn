@@ -4,7 +4,6 @@ DNN Specification
 * `hidden_layers` : (Mandatory) An Array contain size of hidden RBM layer.
 * `activation` : Activation function used by layers.
 * `pretrained_layers` : Number of layers to be pre-trained.(Default Value = Size of `hidden_layers`)
-* `random_seed` : Random Seed used for init of weights.
 
 * `max_col_norm` : The max value of norm of gradients; usually used in dropout and maxout.(Default Value = null)
 * `l1_reg` : l1 norm regularization weight.(Default Value = 0)

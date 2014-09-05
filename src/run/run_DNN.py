@@ -50,7 +50,7 @@ def runDNN(arg):
 
 
     #generating Random
-    numpy_rng = numpy.random.RandomState(dnn_config['random_seed'])
+    numpy_rng = numpy.random.RandomState(model_config['random_seed'])
     theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
 
     activationFn = parse_activation(dnn_config['activation']);

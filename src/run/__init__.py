@@ -104,14 +104,13 @@ def fineTunning(nnetModel,model_config,data_spec):
 		logger.info("No validation/training set:Skiping Fine tunning");
 	else:
 		try:
-			finetune_method = model_config['finetune_method']
-			finetune_config = model_config['finetune_rate']
-			momentum = model_config['finetune_momentum']
-			lrate = LearningRate.get_instance(finetune_method,finetune_config);
+			finetune_config = model_config['finetune_params']
+			momentum = finetune_config['momentum']
+			lrate = LearningRate.get_instance(finetune_config);
 		except KeyError, e:
-			print("KeyMissing:"+str(e));
-			print("Fine tunning Paramters Missing")
-			sys.exit(2)
+			logger.error("KeyMissing:"+str(e));
+			logger.critical("Fine tunning Paramters Missing")
+			exit(2)
 
 
 		_fineTunning(nnetModel,train_sets,train_xy,train_x,train_y,
