@@ -22,4 +22,5 @@ ________________________________________________________________________________
 
 **Also See**: 
 
-*[Example](../sample_config/MNIST/CNN/data_spec.json)
+* [Example](../sample_config/MNIST/CNN/data_spec.json)
+* [Reader Type and Data Formats](DataFormats.md)
