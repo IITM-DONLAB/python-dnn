@@ -409,70 +409,7 @@ def load_sda_spec(input_file):
 def load_dnn_spec(input_file):
 	logger.info("Loading net properties from %s ..",input_file)
 	data = load_json(input_file)
-<<<<<<< HEAD
 	return load_mlp_spec(data);
-=======
-
-	if not data.has_key('hidden_layers') or not type(data['hidden_layers']) is list:
-		logger.critical(" hidden_layers is not present (or not a list) in " + str(input_file))
-		exit(1)
-
-	if not data.has_key('pretrained_layers') or not type(data['pretrained_layers']) is int:
-		data['pretrained_layers'] = -1;
-	elif data['pretrained_layers'] > (len(data['hidden_layers'])):
-		data['pretrained_layers'] = len(data['hidden_layers'])
-
-	max_col_norm = None
-	l1_reg = None
-	l2_reg = None
-	activation = "sigmoid"
-	do_maxout = False
-	pool_size = 1
-	do_pnorm = False
-	pnorm_order = 1
-	do_dropout = False
-
-	# regularization for hidden layer parameter
-	if not data.has_key('max_col_norm') or not type(data['max_col_norm']) is float:
-		data['max_col_norm'] = max_col_norm
-	if not data.has_key('l1_reg') or not type(data['l1_reg']) is float:
-		data['l1_reg'] = l1_reg
-	if not data.has_key('l2_reg') or not type(data['l2_reg']) is float:
-		data['l2_reg'] = l2_reg
-
-	if not data.has_key('activation') :
-		data['activation'] = 'sigmoid';
-	if not data.has_key('do_maxout') or not type(data['do_maxout']) is bool:
-		data['do_maxout'] = do_maxout
-	if not data.has_key('pool_size') or not type(data['pool_size']) is int:
-		data['pool_size'] = pool_size
-
-	if not data.has_key('do_pnorm') or not type(data['do_pnorm']) is bool:
-		data['do_pnorm'] = do_pnorm
-		data['pnorm_order'] = pnorm_order
-	if data['do_pnorm']:
-		if not data.has_key('pnorm_order'):
-			logger.critical("pnorm_order is not present in " + str(input_file))
-			exit(1)			
-
-	#dropout::
-	if not data.has_key('do_dropout') or not type(data['do_dropout']) is bool:
-		data['do_dropout'] = do_dropout
-	if data['do_dropout']:
-		if not data.has_key('dropout_factor') or not type(data['dropout_factor']) is list:
-			logger.critical(" dropout_factor is not present (or not a list) in " + str(input_file))
-			exit(1)
-		elif len(data['dropout_factor']) != len(data['hidden_layers']):
-			logger.critical(" dropout_factor not correct size(should be same of hidden_layers) in " \
-				+ str(input_file))
-			exit(1)
-		if not data.has_key('input_dropout_factor') or not type(data['input_dropout_factor']) is float:
-			logger.critical(" input_dropout_factor is not present (or not a list) in " + str(input_file))
-			exit(1)
-
-
-	return data
->>>>>>> a865baf6917b45e4bf025a2342d527c44d6dc34c
 
 ##############################################################################################
 def __debugPrintData__(data,name=None):
