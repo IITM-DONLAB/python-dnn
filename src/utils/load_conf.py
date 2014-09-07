@@ -325,21 +325,13 @@ def load_rbm_spec(input_file):
 
 
 
-<<<<<<< HEAD
-def initModelRBM(data):
-	#default values:
-=======
-def initPreTrainRBM(data):
 
->>>>>>> a865baf6917b45e4bf025a2342d527c44d6dc34c
+def initPreTrainRBM(data):
+	#default Values
 	gbrbm_learning_rate = 0.005
 	learning_rate = 0.08
 	epochs=10
 	keep_layer_num=0
-<<<<<<< HEAD
-=======
-
->>>>>>> a865baf6917b45e4bf025a2342d527c44d6dc34c
 	# momentum; more complicated than dnn
 	initial_momentum = 0.5	 # initial momentum
 	final_momentum = 0.9	   # final momentum
