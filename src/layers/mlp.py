@@ -14,6 +14,7 @@ class HiddenLayer(object):
 		self.input = input
 		self.n_in = n_in
 		self.n_out = n_out
+
 		if W is None:
 			W_bound = -numpy.sqrt(6. / (n_in + n_out))
 			W_values = numpy.asarray(rng.uniform(low=-W_bound,high=W_bound,
