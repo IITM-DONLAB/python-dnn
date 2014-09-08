@@ -1,0 +1,40 @@
+{	
+    
+    "nnetType" : "RBM",
+    "wdir" : "wdir",
+    "data_spec" : "data_spec.json",
+    "nnet_spec" : "nnet_spec.json",
+    "output_file" : "rbm_out.model",
+    
+    "logger_level" : "DEBUG",
+    "n_ins" : 3072,
+    "batch_size" : 512,
+    "n_outs" : 10,
+    "pretrain_params": {
+        "epochs": 20, 
+        "gbrbm_learning_rate": 0.005, 
+        "learning_rate": 0.08,
+        "initial_momentum": 0.5, 
+        "initial_momentum_epoch": 5, 
+        "final_momentum": 0.9, 
+        "keep_layer_num": 0 
+    },
+
+    "finetune_params" : {	
+	"method" : "E",
+	"start_rate" : 0.08,
+	"scale_by" : 0.5,
+	"min_derror_decay_start" : 0.05,
+	"min_derror_stop" : 0.05,
+	"min_epoch_decay_start" : 15,
+	"momentum" : 0.5
+    },
+	
+    "processes":{
+	"pretraining":true,
+	"finetuning":true,
+	"testing":false,
+	"export_data":false
+    },
+    "export_path" : "wdir/rbm/export"
+}

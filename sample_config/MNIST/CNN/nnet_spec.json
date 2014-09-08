@@ -15,7 +15,10 @@
     
     "mlp" : {  
         "hidden_layers": [200,400],
-        "adv_activation" : null,
+        "adv_activation" : {
+			"method":"maxout",
+			"pool_size":1
+		},
 		"max_col_norm":null,
 		"l1_reg":null,
 		"l2_reg":null,
@@ -23,11 +26,6 @@
 		"dropout_factor" : [0.2,0.2],
 		"input_dropout_factor" : 0.2,
 		"activation" : "tanh"
-        
-    },
-    "a" : {
-			"method":"maxout",
-			"pool_size":2
-      }
+    }
     
 }

@@ -57,7 +57,24 @@ Where `<feat_dim>` is Dimention of input vector,`<num_feat_vectors>` is No. of V
 
 Text File (Two level header)
 -----------------------------
+In this type,we use a file containing list of filesname with each with a list of **simple text file** names corresponding to a single class.It has Following Format:
+```
+	<feat_dim> <num_classes>
+	<class_index_file1>
+	<class_index_file2>
+	..
+	..
+```
+Where `<feat_dim>` is Dimention of input vector and `<num_classes>` is No. of classes, `<class_index_file1>` is 'class index file' (File with list of files of a class) of class 1,`<class_index_file1>` is 'class index file' of class2 and so on.
 
+Each `<class_index_file>` is a file with Following Format:
+```
+	<td_data_file1>
+	<td_data_file2>
+	..
+	..
+```
+Each `<td_data_file*>` is name of a  **simple text file**.The **simple text file** has the structure same as that of T1.
 
 ------------------------------------------------------------------
 

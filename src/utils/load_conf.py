@@ -95,7 +95,7 @@ def initFinetuneParams(data):
 			not type(finetune_params['start_rate']) is float):
 			finetune_params['start_rate'] = 0.08
 		if (not finetune_params.has_key('scale_by') or
-			not type(finetune_params['learning_rate']) is float):
+			not type(finetune_params['scale_by']) is float):
 			finetune_params['scale_by'] = 0.08
 		if (not finetune_params.has_key('min_derror_stop') or
 			not type(finetune_params['min_derror_stop']) is float):
@@ -324,8 +324,8 @@ def load_rbm_spec(input_file):
 	return (data)
 
 
-def initModelRBM(data):
-	#default values:
+def initPreTrainRBM(data):
+	#default Values
 	gbrbm_learning_rate = 0.005
 	learning_rate = 0.08
 	epochs=10
