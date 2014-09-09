@@ -4,9 +4,10 @@ import numpy
 import theano
 import theano.tensor as T
 from theano.tensor.signal import downsample
-from theano.tensor.nnet import conv
+from  theano.tensor.nnet import conv
 
 from theano.sandbox.cuda.basic_ops import gpu_contiguous
+from theano.tensor.shared_randomstreams import RandomStreams
 #from pylearn2.sandbox.cuda_convnet.filter_acts import FilterActs
 #from pylearn2.sandbox.cuda_convnet.pool import MaxPool
 
@@ -74,5 +75,19 @@ class ConvLayer(object):
 		self.delta_params = [self.delta_W, self.delta_b]
 
 		
-		
+class DropoutConvLayer(ConvLayer):
+	def __init__(self, numpy_rng, input, input_shape, filter_shape, poolsize, activation, 
+			W=None, b=None, border_mode = 'valid', use_fast = False,dropout_factor=0.5):
+		super(DropoutConvLayer, self).__init__(numpy_rng=numpy_rng, input=input, input_shape=input_shape,
+				filter_shape=filter_shape,poolsize=poolsize,activation=activation, W=W, b=b,
+				border_mode=border_mode,use_fast=use_fast)
+		self.theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
+		dropout_prob = self.theano_rng.binomial(n=1, p=1-dropout_factor, size=self.output.shape,
+			dtype=theano.config.floatX)	
+		self.dropout_output = dropout_prob * self.output
+
+def _dropout_from_layer(theano_rng, hid_out, p=0.5):
+    """ p is the factor for dropping a unit """
+    # p=1-p because 1's indicate keep and p is prob of dropping
+    return theano_rng.binomial(n=1, p=1-p, size=hid_out.shape,dtype=theano.config.floatX) * hid_out
 		

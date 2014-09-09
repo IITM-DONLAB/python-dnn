@@ -4,7 +4,7 @@ import theano.tensor as T
 import json,os
 from models import nnet,_array2string,_string2array
 
-from layers.cnn import ConvLayer
+from layers.cnn import ConvLayer,DropoutConvLayer
 from layers.logistic_sgd import LogisticRegression
 from layers.mlp import HiddenLayer,DropoutHiddenLayer,_dropout_from_layer
 from collections import OrderedDict
@@ -167,10 +167,9 @@ class CNN(CNNBase):
 		for i in xrange(self.conv_layer_num):		# construct the convolution layer
 			if i == 0:  				#is_input layer
 				input = self.x
-				is_input_layer = True
 			else:
 				input = self.layers[-1].output #output of previous layer
-				is_input_layer = False
+			
 			config = conv_layer_configs[i]
 	
 			conv_layer = ConvLayer(numpy_rng=numpy_rng, input=input,input_shape=config['input_shape'],
@@ -257,50 +256,61 @@ class DropoutCNN(CNNBase):
 	""" Instantiation of Convolution neural network ... """
 	def __init__(self, numpy_rng, theano_rng, batch_size, n_outs,conv_layer_configs, hidden_layer_configs, 
 			use_fast=False,conv_activation = T.nnet.sigmoid,hidden_activation = T.nnet.sigmoid,
-			l1_reg=None,l2_reg=None,max_col_norm=None):
+			l1_reg=None,l2_reg=None,max_col_norm=None,input_dropout_factor=0.0):
 
 		super(DropoutCNN, self).__init__(conv_layer_configs,hidden_layer_configs,l1_reg,l2_reg,max_col_norm)
+		self.input_dropout_factor = input_dropout_factor;
 		
+		self.dropout_layers = []
 		if not theano_rng:
 			theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
             
 		for i in xrange(self.conv_layer_num):		# construct the convolution layer
-			if i == 0:  				#is_input layer
-				input = self.x
-				is_input_layer = True
+			if i == 0:  							#is_input layer
+				conv_input = self.x
+				if self.input_dropout_factor > 0.0:
+					dropout_conv_input = _dropout_from_layer(theano_rng, self.x,self.input_dropout_factor)
+				else:
+					dropout_conv_input = self.x;	
 			else:
-				input = self.layers[-1].output #output of previous layer
-				is_input_layer = False
+				conv_input = (1-conv_layer_configs[i-1]['dropout_factor'])*self.layers[-1].output #output of previous layer
+				dropout_conv_input = self.dropout_layers[-1].dropout_output;
+				
 			config = conv_layer_configs[i]
-	
-			conv_layer = ConvLayer(numpy_rng=numpy_rng, input=input,input_shape=config['input_shape'],
-				filter_shape=config['filter_shape'],poolsize=config['poolsize'],
-				activation = conv_activation, use_fast = use_fast)
+			
+			dropout_conv_layer = DropoutConvLayer(numpy_rng=numpy_rng, input=dropout_conv_input,
+				input_shape=config['input_shape'],filter_shape=config['filter_shape'],poolsize=config['poolsize'],
+				activation = conv_activation, use_fast = use_fast,dropout_factor=conv_layer_configs[i]['dropout_factor'])
+			
+			conv_layer = ConvLayer(numpy_rng=numpy_rng, input=conv_input,input_shape=config['input_shape'],
+				filter_shape=config['filter_shape'],poolsize=config['poolsize'],activation = conv_activation,
+				use_fast = use_fast, W = dropout_conv_layer.W, b = dropout_conv_layer.b)
+			
+				
+			self.dropout_layers.append(dropout_conv_layer);
 			self.layers.append(conv_layer)
 			self.conv_layers.append(conv_layer)
+			
 			if config['update']==True:	# only few layers of convolution layer are considered for updation
-				self.params.extend(conv_layer.params)
-				self.delta_params.extend(conv_layer.delta_params)
+				self.params.extend(dropout_conv_layer.params)
+				self.delta_params.extend(dropout_conv_layer.delta_params)
 
 		hidden_layers = hidden_layer_configs['hidden_layers'];
 		self.conv_output_dim = config['output_shape'][1] * config['output_shape'][2] * config['output_shape'][3]
 		adv_activation_configs = hidden_layer_configs['adv_activation'] 
 		
 		#flattening the last convolution output layer
+		self.dropout_features = self.dropout_layers[-1].dropout_output.flatten(2);
 		self.features = self.conv_layers[-1].output.flatten(2);
 		self.features_dim = self.conv_output_dim;
 
 		self.dropout_layers = [];
 		self.dropout_factor = hidden_layer_configs['dropout_factor'];
-		self.input_dropout_factor = hidden_layer_configs['input_dropout_factor'];
 		
 		for i in xrange(self.hidden_layer_num):		# construct the hidden layer
-			if i == 0:				# is first sigmoidla layer
+			if i == 0:								# is first sigmoidal layer
 				input_size = self.conv_output_dim
-				if self.dropout_factor[i] > 0.0:
-					dropout_layer_input = _dropout_from_layer(theano_rng, self.layers[-1].output, self.input_dropout_factor)
-				else:
-					dropout_layer_input = self.features
+				dropout_layer_input = self.dropout_features
 				layer_input = self.features
 			else:
 				input_size = hidden_layers[i - 1]	# number of hidden neurons in previous layers

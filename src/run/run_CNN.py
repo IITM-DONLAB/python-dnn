@@ -60,12 +60,13 @@ def runCNN(arg):
 	#create working dir
 
 	batch_size = model_config['batch_size'];
-	if mlp_config['do_dropout']:
+	if mlp_config['do_dropout'] or cnn_config['do_dropout']:
 		cnn = DropoutCNN(numpy_rng,theano_rng,conv_layer_configs = conv_layer_config, batch_size = batch_size,
 				n_outs=model_config['n_outs'],hidden_layer_configs=mlp_config, 
 				conv_activation = conv_activation,hidden_activation = hidden_activation,
 				use_fast = conv_config['use_fast'],l1_reg = mlp_config['l1_reg'],
-				l2_reg = mlp_config['l1_reg'],max_col_norm = mlp_config['max_col_norm'])
+				l2_reg = mlp_config['l1_reg'],max_col_norm = mlp_config['max_col_norm'],
+				input_dropout_factor=conv_config['input_dropout_factor'])
 	else:
 		cnn = CNN(numpy_rng,theano_rng,conv_layer_configs = conv_layer_config, batch_size = batch_size,
 				n_outs=model_config['n_outs'],hidden_layer_configs=mlp_config, 

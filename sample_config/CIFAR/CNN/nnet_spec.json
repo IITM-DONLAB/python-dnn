@@ -3,35 +3,33 @@
 	"cnn" : {
 	   "layers": [
 			{
-				"convmat_dim" : [7,7],
-				"num_filters" : 100,
+				"convmat_dim" : [5,5],
+				"num_filters" : 10,
 				"poolsize" :  [2,2],
 				"flatten" : false,
+				"dropout_factor" : 0.2,
 				"update" : true
-                        },
-			 {
-                                "convmat_dim" : [4,4],
-                                "num_filters" : 200,
-                                "poolsize" :  [2,2],
-                                "flatten" : false,
-                                "update" : true
-                        },
-			 {
-                                "convmat_dim" : [2,2],
-                                "num_filters" : 300,
-                                "poolsize" :  [2,2],
-                                "flatten" : true,
-                                "update" : true
-                        }			
+            },{
+				"convmat_dim" : [4,4],
+				"num_filters" : 20,
+				"poolsize" :  [2,2],
+				"flatten" : false,
+				"dropout_factor" : 0.2,
+				"update" : true
+            }	
 
 		],
 	  "activation" : "tanh",
-	  "use_fast" : false
+	  "use_fast" : false,
+	  "do_dropout" : true,
+	  "input_dropout_factor" : 0.5,
 	},
 	
 
 	"mlp" : {
-	   "layers": [400,200],
-	   "activation" : "tanh"
+	   "hidden_layers": [60,30],
+	   "do_dropout" : true,
+	   "dropout_factor" : [0.5,0.5],
+	   "activation" : "relu"
 	}
 }

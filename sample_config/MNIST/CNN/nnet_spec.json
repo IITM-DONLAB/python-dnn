@@ -3,29 +3,39 @@
         "layers": [
             {
                 "convmat_dim" : [5,5],
-                "num_filters" : 100,
+                "num_filters" : 10,
                 "poolsize" :  [2,2],
-                "flatten" : true,
-                "update" : true
+                "update" : true,
+                "dropout_factor" : 0.2
+            },
+            {
+                "convmat_dim" : [5,5],
+                "num_filters" : 10,
+                "poolsize" :  [2,2],
+                "update" : true,
+                "dropout_factor" : 0.2
             }
+            
         ],
+        "do_dropout" : true,
+        "input_dropout_factor" : 0.2,
         "activation" : "tanh",
         "use_fast" : false
     },
     
     "mlp" : {  
-        "hidden_layers": [200,400],
-        "adv_activation" : {
-			"method":"maxout",
-			"pool_size":1
-		},
+        "hidden_layers": [50],
+        "adv_activation" : null,
 		"max_col_norm":null,
 		"l1_reg":null,
 		"l2_reg":null,
-		"do_dropout" : false,
-		"dropout_factor" : [0.2,0.2],
-		"input_dropout_factor" : 0.2,
+		"do_dropout" : true,
+		"dropout_factor" : [0.2],
 		"activation" : "tanh"
-    }
+    },
+    "a" : {
+			"method":"maxout",
+			"pool_size":1
+		}
     
 }

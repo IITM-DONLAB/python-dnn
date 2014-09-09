@@ -207,8 +207,13 @@ def load_mlp_spec(mlp_spec):
 			exit(1)
 		if not mlp_spec.has_key('input_dropout_factor') or not type(mlp_spec['input_dropout_factor']) is float:
 			logger.critical(" input_dropout_factor is not present (or not a float) in mlp_configuration")
-			exit(1)						
-		
+			exit(1)
+	else:											#setting default factor to zero
+		mlp_spec['dropout_factor']=[]
+		for ind in xrange(len(mlp_spec['hidden_layers'])):
+				mlp_spec['dropout_factor'].append(0.0);
+		mlp_spec['input_dropout_factor'] =0.0
+
 	#maxout::	
 	if not mlp_spec.has_key('adv_activation') or not type(mlp_spec['adv_activation']) is dict:
 		mlp_spec['adv_activation']=None;
@@ -258,6 +263,21 @@ def load_conv_spec(input_file,batch_size,input_shape):
 		logger.critical("CNN configuration is not present in " + str(input_file))
 		exit(1)
 	cnn_data = data['cnn'];
+	
+	#do_dropout
+	if not cnn_data.has_key('do_dropout'):
+		cnn_data['do_dropout']=False;		
+	do_dropout = cnn_data['do_dropout'];	
+	
+	#input_dropout_factor
+	if do_dropout:
+		if not cnn_data.has_key('input_dropout_factor') or not type(cnn_data['input_dropout_factor']) is float:
+			logger.critical("input_dropout_factor of cnn is not present (or not a float) in cnn configuration")
+			exit(1);
+	else:
+		cnn_data['input_dropout_factor']=0.0;
+	
+	#layer_configs
 	layer_configs=cnn_data.pop('layers');
 	conv_configs = cnn_data;
 	if len(layer_configs)==0:
@@ -286,11 +306,22 @@ def load_conv_spec(input_file,batch_size,input_shape):
 			outdim = (inp-wdim+1)/pool
 			layer_configs[layer_index]['output_shape'].append(outdim)
 			input_shape.append(outdim);
-
+		
+		if (do_dropout and (not layer_configs[layer_index].has_key('dropout_factor') and 
+				not type(layer_configs[layer_index]['dropout_factor']) is float)):
+			logger.critical("dropout_factor of cnn layer  %d is not present (or not a float) in mlp_configuration"%layer_index)
+			exit(1);
+		elif not do_dropout:
+			layer_configs[layer_index]['dropout_factor']=0.0;
+		
 		prev_map_number = current_map_number
-	if not data.has_key('cnn'):
+		
+	
+	if not data.has_key('mlp'):
 		logger.critical("mlp configuration is not present in " + str(input_file))
 		exit(1)
+	# Workaround for using the same input attribute
+	data['mlp']['input_dropout_factor']= 0.0;
 	mlp_configs = load_mlp_spec(data['mlp']);
 	return (conv_configs,layer_configs,mlp_configs)
 
