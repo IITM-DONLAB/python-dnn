@@ -70,7 +70,7 @@ class  T1DataExporter(DataExporter):
 			in_child_options['filename'] = self.filehandle.readline().strip()	#filename of individual classes
 			in_child_options['reader_type'] = "TD"
 			in_child_options['label'] = idx;
-			file_reader  = read_dataset(in_child_options,pad_zeros=True)[0]	#taking only one reader 
+			file_reader  = read_dataset(in_child_options,pad_zeros=True)	#taking only one reader 
 			out_child_options = in_child_options.copy();
 			out_child_options['base_path'] = self.export_path;
 			out_child_options['featdim'] = out_featdim;
