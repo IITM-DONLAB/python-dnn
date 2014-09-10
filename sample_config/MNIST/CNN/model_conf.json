@@ -1,27 +1,30 @@
 {
-    "nnetType" : "CNN",
-    "wdir" : "wdir",
-    "data_spec" : "data_spec.json",
-    "nnet_spec" : "nnet_spec.json",
-    "input_file" : "conv_out.model",
-    "output_file" : "conv_out.model",
-    "logger_level":"INFO",
-    "input_shape" : [1,28,28],
-    "batch_size" : 256,
-    "n_outs" : 10,
-    "finetune_params" : {
-        "method" : "C",
-        "momentum" : 0.5,
-        "learning_rate" : 0.08,
-        "epoch_num" : 10
-    },
-    "export_path":"data/cnn/",
-    "plot_path":"plot/",
-    "processes":{
-        "pretraining":false,
-        "finetuning":true,
-        "testing":true,
-        "export_data":true,
-	"plotting":true
-    }
+	"nnetType" : "CNN",
+	"wdir" : "wdir",
+	"data_spec" : "data_spec.json",
+	"nnet_spec" : "nnet_spec.json",
+	"output_file" : "conv_out.model",
+	"logger_level":"INFO",
+	"input_shape" : [1,28,28],
+	"batch_size" : 256,
+	"n_outs" : 10,
+	"finetune_params" : {
+		"method" : "E",
+		"momentum" : 0.5,
+		"learning_rate" : 0.08,
+		"start_rate" : 0.08,
+		"scale_by" : 0.5,
+		"min_derror_decay_start" : 0.05,
+		"min_derror_stop" : 0.05,
+		"min_epoch_decay_start" : 15
+	},
+	"export_path":"data/cnn/",
+	"plot_path":"plot/",
+	"processes":{
+		"pretraining":false,
+		"finetuning":true,
+		"testing":true,
+		"export_data":true,
+	"plotting":false
+	}
 }

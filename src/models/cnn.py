@@ -198,17 +198,14 @@ class CNN(CNNBase):
 				layer_input = self.layers[-1].output
 			
 			
-			if adv_activation_configs['method'] is None:
+			if adv_activation_configs is None:
 				sigmoid_layer = HiddenLayer(rng=numpy_rng, input=layer_input,n_in=input_size, 
-						n_out = hidden_layers[i], activation=hidden_activation,
-						maxout_method = adv_activation_configs['method'],
-						pool_size = adv_activation_configs['pool_size'],
-						pnorm_order = adv_activation_configs['pnorm_order']);
+						n_out = hidden_layers[i], activation=hidden_activation);
 						
 			else:
 				sigmoid_layer = HiddenLayer(rng=numpy_rng, input=layer_input,n_in=input_size, 
 						n_out = hidden_layers[i]*adv_activation_configs['pool_size'], activation=hidden_activation,
-						maxout_method = adv_activation_configs['method'],
+						adv_activation_method = adv_activation_configs['method'],
 						pool_size = adv_activation_configs['pool_size'],
 						pnorm_order = adv_activation_configs['pnorm_order']);
 						
@@ -323,14 +320,14 @@ class DropoutCNN(CNNBase):
 			else:
 				dropout_sigmoid_layer = DropoutHiddenLayer(rng=numpy_rng, input=layer_input,n_in=input_size, 
 						n_out = hidden_layers[i]*adv_activation_configs['pool_size'], activation=hidden_activation,
-						maxout_method = adv_activation_configs['method'],
+						adv_activation_method = adv_activation_configs['method'],
 						pool_size = adv_activation_configs['pool_size'],
 						pnorm_order = adv_activation_configs['pnorm_order'],
 						dropout_factor = self.dropout_factor[i]);
 						
 				sigmoid_layer = HiddenLayer(rng=numpy_rng, input=layer_input,n_in=input_size, 
 						n_out = hidden_layers[i]*adv_activation_configs['pool_size'], activation=hidden_activation,
-						maxout_method = adv_activation_configs['method'],
+						adv_activation_method = adv_activation_configs['method'],
 						pool_size = adv_activation_configs['pool_size'],
 						pnorm_order = adv_activation_configs['pnorm_order'],
 						W=dropout_sigmoid_layer.W, b=dropout_sigmoid_layer.b);

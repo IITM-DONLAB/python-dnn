@@ -324,8 +324,6 @@ def load_rbm_spec(input_file):
 	return (data)
 
 
-
-
 def initPreTrainRBM(data):
 	#default Values
 	gbrbm_learning_rate = 0.005
