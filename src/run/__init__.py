@@ -49,8 +49,6 @@ def _fineTunning(nnetModel,train_sets,valid_sets,lrate,momentum):
 	train_xy = train_sets.shared_xy
 	train_x = train_sets.shared_x
 	train_y = train_sets.shared_y
-	print type(train_y)
-	print "\n"
 
 	valid_xy = valid_sets.shared_xy
 	valid_x = valid_sets.shared_x
@@ -146,18 +144,21 @@ def saveLabels(nnetModel,export_path,data_spec):
 	# get the testing function for the model
 	logger.info('Getting the Test(Get Label) function')
 	getLabel = nnetModel.getLabelFunction()
-	
+	x=0;
 	batch_size = test_sets.batch_size
 	with open(export_path,'w') as fp:
 		while (not test_sets.is_finish()):
 			for batch_index in xrange(test_sets.nBatches):
 				s_idx = batch_index*batch_size;
-				e_idx= min(test_sets.cur_frame_num -test_sets.num_pad_frames,s_idx+batch_size);
+				e_idx = s_idx+batch_size;
 				pred = getLabel(test_sets.feat[s_idx:e_idx])
+
+                                if ((batch_index == test_sets.nBatches-1) and
+                                    (not test_sets.num_pad_frames == 0)) :
+                                        pred=pred[:-test_sets.num_pad_frames]
+                                x=x+len(pred)
 				numpy.savetxt(fp, pred.T,fmt='%d')
 			test_sets.read_next_partition_data(pad_zeros=True);
-		fp.close();
-
 
 
 def createDir(wdir):

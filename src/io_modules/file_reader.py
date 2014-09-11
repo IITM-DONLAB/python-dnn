@@ -10,20 +10,34 @@ def read_dataset(options,pad_zeros=False,makeShared=True):
 	filepath =   options['base_path'] + os.sep + options['filename'];
 	logger.info("%s dataset will be initialized to reader to %s",
 				options['reader_type'],filepath);
-	logger.debug("options : %s" % str(options))
 
 	file_reader = FileReader.get_instance(filepath,options)
 	#file_header = file_reader.read_file_info()
 	file_reader.read_next_partition_data(
 		pad_zeros=pad_zeros,
 		makeShared=makeShared);
-	#create shared.
 	return file_reader
 
 ##########################################BASE CLASS##############################################################
 
 class FileReader(object):
 	'''Gets instance of file based on the reader type'''
+
+	@staticmethod
+	def get_instance(filepath,options):
+		file_reader = None;
+		if options['reader_type']=='NP':
+			file_reader = NPFileReader(filepath,options);
+		elif options['reader_type']=='TD':
+			file_reader = TDFileReader(filepath,options);
+		elif options['reader_type']=='T1':
+			file_reader = T1FileReader(filepath,options);
+		elif options['reader_type']=='T2':
+			file_reader = T2FileReader(filepath,options);
+		else:
+			logger.critical("'%s' reader_type is not defined...",options['reader_type'])
+		return file_reader
+
 	def __init__(self):
 		self.filepath = None;
 		self.options=None;
@@ -43,35 +57,21 @@ class FileReader(object):
 		self.nBatches = 0
 		self.made_shared = False;
 
-	@staticmethod
-	def get_instance(filepath,options):
-		file_reader = None;
-		if options['reader_type']=='NP':
-			file_reader = NPFileReader(filepath,options);
-		elif options['reader_type']=='TD':
-			file_reader = TDFileReader(filepath,options);
-		elif options['reader_type']=='T1':
-			file_reader = T1FileReader(filepath,options);
-		elif options['reader_type']=='T2':
-			file_reader = T2FileReader(filepath,options);
-		else:
-			logger.critical("'%s' reader_type is not defined...",options['reader_type'])
-		return file_reader
 
-	'''Reads the file header information'''
 	def read_file_info(self):
+                '''Reads the file header information'''
 		pass
 
-	'''skip header in data'''
 	def skipHeader(self):
+                '''skip header in data'''
 		pass
 
-	'''Reads the data from the next partition'''
 	def read_next_partition_data(self,already_read=0,pad_zeros=False,makeShared=True):
+                '''Reads the data from the next partition'''
 		pass
 
-	'''Makes the current partition shared across GPU's'''
 	def make_partition_shared(self):
+                '''Makes the current partition shared across GPU's'''
 		if not self.made_shared:
 			self.create_shared();
 
@@ -89,8 +89,8 @@ class FileReader(object):
 		shared_x.set_value(self.feat, borrow=True)
 		shared_y.set_value(self.label, borrow=True)
 
-	'''Set approximate amount data to be loaded one partition'''
 	def setPartitionFrames(self):
+                '''Set approximate amount data to be loaded one partition'''
 		# partitions specifies approximate amount data to be loaded one operation
 		if self.partition == 0:
 			# if partition is zero,partition has NO LIMIT!!!!
@@ -100,18 +100,33 @@ class FileReader(object):
 			batch_residual = self.frames_per_partition% self.batch_size
 			self.frames_per_partition = self.frames_per_partition - batch_residual
 
-	def pad_zeros(self,num_pad_frames):
-		if num_pad_frames > 0:
-			logger.debug("Padded %d frames for one partition" % num_pad_frames);
-			self.num_pad_frames = num_pad_frames;
-			padding= [0]*(self.feat_dim*num_pad_frames);
-			self.feat = numpy.append(self.feat,padding)
-			self.label = numpy.append(self.label,[0]*num_pad_frames);
-			self.cur_frame_num+=num_pad_frames
+	def pad_zeros(self):
+                """
+                Padd Zeros(if required) to remaining batch size
+                """
+                ## framesRemains = batch_size*(cur_frame_num/batch_size +1) - cur_frame_num
+                ## framesRemains = (batch_size - (cur_frame_num % batch_size))%batch_size
+                ## framesRemains = (batch_size%batch_size - (cur_frame_num % batch_size)%batch_size)%batch_size
+                ## framesRemains = ( 0 - (cur_frame_num % batch_size))%batch_size
+                ## framesRemains = (-1*cur_frame_num) % batch_size)
+                
+                framesRemains = (-1*self.cur_frame_num) % self.batch_size;
+		
+                if framesRemains > 0:
+			logger.debug("Padded %d frames for one partition",framesRemains);
+			self.num_pad_frames = framesRemains;
+			padding = numpy.zeros((framesRemains,self.feat_dim),dtype = theano.config.floatX)
+                        try:
+                                #try append verticaly
+                                self.feat = numpy.append(self.feat,padding,axis=0)
+                        except ValueError:
+                                self.feat = numpy.append(self.feat,padding)
+			self.label = numpy.append(self.label,[0]*framesRemains);
+			self.cur_frame_num+=framesRemains
 
 
-	'''Create first partition shared across GPU's'''
 	def create_shared(self):
+                '''Create first partition shared across GPU's'''
 		shared_x = theano.shared(self.feat, name = 'x', borrow = True)
 		shared_y = theano.shared(self.label, name = 'y', borrow = True)
 		self.shared_xy = (shared_x, shared_y)
@@ -120,13 +135,12 @@ class FileReader(object):
 
 		self.made_shared = True;
 
-
-	'''Checks if the file reading reached end of file '''
 	def is_finish(self):
+                '''Checks if the file reading reached end of file '''
 		return self.end_reading
 
-	''' Initialize the file_reader options'''
 	def initialize_read(self,makeShared=True):
+                ''' Initialize the file_reader options'''
 		logger.debug("File reader is initialzed again for file reading");
 		self.end_reading = False
 		if self.partition_num == 1:
@@ -139,6 +153,9 @@ class FileReader(object):
 			self.feat = None
 			self.skipHeader()
 			self.read_next_partition_data(makeShared=makeShared)
+
+        def __len__(self):
+                return self.cur_frame_num;
 
 
 ##########################################NP FILEREADER##############################################################
@@ -185,10 +202,7 @@ class NPFileReader(FileReader):
 			self.label = numpy.asarray(data['l'], dtype = theano.config.floatX)
 			self.partition_num = self.partition_num + 1
 			if pad_zeros:
-				self.pad_zeros(int(self.frames_per_partition)-self.cur_frame_num);
-
-			logger.debug('NP Filereader : from file %s, %d partition has %d frames',
-				self.filepath,self.partition_num,self.cur_frame_num);
+				self.pad_zeros();
 
 			if not self.options['keep_flatten'] :	#reshape the vector if needed
 				logger.debug('NP Filereader : Reshape input...')
@@ -199,9 +213,12 @@ class NPFileReader(FileReader):
 			if makeShared:
 				self.make_partition_shared();
 			self.nBatches = self.cur_frame_num/self.batch_size;
+                        logger.debug('T1 Filereader : from file %s, %d partition has %d frames [%d Batches]',
+                                     self.filepath,self.partition_num-1,self.cur_frame_num,self.nBatches);
+                        
 		else:
 			self.end_reading = True;
-
+                        logger.debug('TD Filereader : NO more frames to read from %s',self.filepath)
 ##########################################TD FILEREADER##############################################################
 """
 	Reads the simple text file following is the structure
@@ -261,7 +278,7 @@ class TDFileReader(FileReader):
 			self.feat = fvalues;
 
 			if pad_zeros:
-				self.pad_zeros(int(self.frames_per_partition)-already_read-self.cur_frame_num);
+				self.pad_zeros();
 			
 			self.feat = self.feat.reshape([self.cur_frame_num,self.feat_dim])
 			# convert float64 to floatX
@@ -269,7 +286,7 @@ class TDFileReader(FileReader):
 
 			self.label = numpy.asarray([self.lbl]*self.cur_frame_num , dtype = theano.config.floatX)
 			self.partition_num = self.partition_num + 1
-			logger.debug('TD Filereader : %d frames read from %s' % (self.cur_frame_num,self.filepath))
+			logger.debug('TD Filereader : %d frames read from %s',self.cur_frame_num,self.filepath)
 			if not self.options['keep_flatten'] :	#reshape the vector if needed
 				logger.debug('TD Filereader : Reshape input...')
 				shape = [self.cur_frame_num];
@@ -281,8 +298,8 @@ class TDFileReader(FileReader):
 				self.make_partition_shared();
 			self.nBatches = self.cur_frame_num/self.batch_size;
 		else:
+                        logger.debug('TD Filereader : NO more frames to read from %s',self.filepath)
 			self.end_reading = True;
-		#logger.debug('TD Filereader : %d frames read: %d',cur_frame_num,self.end_reading)
 
 
 ##########################################T1 FILEREADER##############################################################
@@ -351,9 +368,8 @@ class T1FileReader(FileReader):
 		cur_frame_num = 0
 		feat = []
 		label = []
-		nFinished = 0
-		while cur_frame_num < self.frames_per_partition-already_read and nFinished < self.classes :
-			#nFinished = 0
+		while cur_frame_num < self.frames_per_partition-already_read :
+
 			if not self.filehandles[self.last_class_idx].end_reading:
 				#if TD is  not finshed.
 				# Read Next part.
@@ -361,28 +377,26 @@ class T1FileReader(FileReader):
 				self.filehandles[self.last_class_idx].read_next_partition_data(
 					already_read=self.frames_per_partition-self.frames_per_class,
 					makeShared=False)
-				
-				feat = numpy.append(feat,self.filehandles[self.last_class_idx].feat)
-				label = numpy.append(label,self.filehandles[self.last_class_idx].label)
-				cur_frame_num += self.filehandles[self.last_class_idx].cur_frame_num
+				if self.filehandles[self.last_class_idx].end_reading:
+                                        pass
+                                else:
+                                        feat = numpy.append(feat,self.filehandles[self.last_class_idx].feat)
+                                        label = numpy.append(label,self.filehandles[self.last_class_idx].label)
+                                        cur_frame_num += self.filehandles[self.last_class_idx].cur_frame_num
 
-				nFinished = 0
-
-			else:
-				#if TD is finshed.
-				nFinished = nFinished+1;
 			self.last_class_idx = (self.last_class_idx + 1)	% self.classes
+                        
+                        if all([x.end_reading for x in self.filehandles]):
+                                break;
 
 		if cur_frame_num >  0:
 			self.feat = feat;
 			self.label = label;
 			self.cur_frame_num = cur_frame_num;
 
-			if pad_zeros:	#padding zeros
-				self.pad_zeros(int(self.frames_per_partition)-already_read-self.cur_frame_num);
+                        if pad_zeros:
+				self.pad_zeros();
 
-			logger.debug('T1 Filereader : from file %s, %d partition has %d frames',
-				self.filepath,self.partition_num,self.cur_frame_num);
 			self.partition_num = self.partition_num + 1
 
 			self.feat = self.feat.reshape([self.cur_frame_num,self.feat_dim])
@@ -398,9 +412,11 @@ class T1FileReader(FileReader):
 			if makeShared:
 				self.make_partition_shared();
 			self.nBatches = self.cur_frame_num/self.batch_size;
-
+                        logger.debug('T1 Filereader : from file %s, %d partition has %d frames [%d Batches]',
+                                     self.filepath,self.partition_num-1,self.cur_frame_num,self.nBatches);
 		else:
 			self.end_reading = True
+                        logger.debug('TD Filereader : NO more frames to read from %s',self.filepath)
 
 	def initialize_read(self,makeShared=True):
 		logger.debug("File reader is initialzed again for file reading");
@@ -540,7 +556,7 @@ class T2FileReader(FileReader):
 			self.cur_frame_num = cur_frame_num;
 
 			if pad_zeros:	#padding zeros
-				self.pad_zeros(int(self.frames_per_partition)-already_read-self.cur_frame_num);
+				self.pad_zeros();
 
 			logger.debug('T2 Filereader : from file %s, %d partition has %d frames',
 				self.filepath,self.partition_num,self.cur_frame_num);
