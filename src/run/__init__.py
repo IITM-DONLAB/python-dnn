@@ -21,9 +21,7 @@ def _testing(nnetModel,test_sets):
 	logger.info('Starting Testing');
 	test_error  = []
 	while not test_sets.is_finish():
-		#test_sets.make_partition_shared(test_xy)
-		n_test_batches= test_sets.cur_frame_num / batch_size;
-		test_losses = [test_fn(i) for i in xrange(n_test_batches)]
+		test_losses = [test_fn(i) for i in xrange(test_sets.nBatches)]
 		test_error.extend(test_losses)
 		test_sets.read_next_partition_data()
 		logger.debug("Test Error (upto curr part) = %f",numpy.mean(test_error))
@@ -62,12 +60,10 @@ def _fineTunning(nnetModel,train_sets,valid_sets,lrate,momentum):
 		val_batch_size = valid_sets.batch_size
 		valid_error = []
 		while not valid_sets.is_finish():
-			#valid_sets.make_partition_shared(valid_xy)
-			n_valid_batches= valid_sets.cur_frame_num / val_batch_size;
-			validation_losses = [validate_fn(i) for i in xrange(n_valid_batches)]
+			validation_losses = [validate_fn(i) for i in xrange(valid_sets.nBatches)]
 			valid_error.extend(validation_losses)
-			valid_sets.read_next_partition_data()
 			logger.debug("Valid Error (upto curr part) = %f",numpy.mean(valid_error))
+			valid_sets.read_next_partition_data()
 		valid_sets.initialize_read();
 		return numpy.mean(valid_error);
 
@@ -85,8 +81,7 @@ def _fineTunning(nnetModel,train_sets,valid_sets,lrate,momentum):
 	while (lrate.get_rate() != 0):
 		train_error = []
 		while not train_sets.is_finish():
-			#train_sets.make_partition_shared(train_xy)
-			for batch_index in xrange(train_sets.cur_frame_num / batch_size):  # loop over mini-batches
+			for batch_index in xrange(train_sets.nBatches):  # loop over mini-batches
 				train_error.append(train_fn(index=batch_index,
 					learning_rate = lrate.get_rate(), momentum = momentum))
 				logger.debug('Training batch %d error %f',batch_index, numpy.mean(train_error))
@@ -147,12 +142,15 @@ def saveLabels(nnetModel,export_path,data_spec):
 	TODO:Write label to file;
 	"""
 	#fo = open(export_path, "w").close
+	test_sets  = read_dataset(data_spec,pad_zeros=True,makeShared=False)
+	# get the testing function for the model
+	logger.info('Getting the Test(Get Label) function')
 	getLabel = nnetModel.getLabelFunction()
-	test_sets  = read_dataset(data_spec,pad_zeros=True)[0]
+	
 	batch_size = test_sets.batch_size
 	with open(export_path,'w') as fp:
 		while (not test_sets.is_finish()):
-			for batch_index in xrange(test_sets.cur_frame_num/batch_size):
+			for batch_index in xrange(test_sets.nBatches):
 				s_idx = batch_index*batch_size;
 				e_idx= min(test_sets.cur_frame_num -test_sets.num_pad_frames,s_idx+batch_size);
 				pred = getLabel(test_sets.feat[s_idx:e_idx])
