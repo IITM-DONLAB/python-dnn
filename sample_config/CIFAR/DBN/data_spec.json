@@ -2,25 +2,21 @@
 	"validation": {
 		"base_path" : "/data/abil/CIFAR/data",
 		"filename" : "val.dat",
-		"partition" : 400,
+		"partition" : 900,
 		"random" : true,
 		"random_seed" : 123,
-		"input_shape" : [32,32,3],
-		"dim_shuffle" : [0,3,2,1],
-		"keep_flatten" : false,
+		"keep_flatten" : true,
 		"reader_type" : "T1"
 	},
 
 	"training" : {
 		"base_path" : "/data/abil/CIFAR/data",
 		"filename" : "train.dat",
-		"partition" : 400,
+		"partition" : 900,
 		"random" : true,
 		"random_seed" : 123,
-		"input_shape" : [32,32,3],
-		"dim_shuffle" : [0,3,2,1],
 		"batch_size": 512,
-		"keep_flatten" : false,
+		"keep_flatten" : true,
 		"reader_type" : "T1"
 	}
 
