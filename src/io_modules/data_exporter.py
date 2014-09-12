@@ -73,15 +73,22 @@ class  T1DataExporter(DataExporter):
 			out_child_options['featdim'] = out_featdim;
 			out_child_options['writer_type'] = "TD"
 			file_writer =  write_dataset(out_child_options);
-                        batch_size=file_reader.batch_size
+			batch_size=file_reader.batch_size
+			
 			while (not file_reader.is_finish()):
 				for batch_index in xrange(file_reader.nBatches):
 					s_idx = batch_index*batch_size;
-                                        e_idx = s_idx + batch_size
+					e_idx = s_idx + batch_size
 					data = out_fn(file_reader.feat[s_idx:e_idx])
-                                        e_idx= min(file_reader.cur_frame_num - file_reader.num_pad_frames,s_idx+batch_size);
-                                        file_writer.write_data(data[s_idx:e_idx],file_reader.label[s_idx:e_idx]);
-                                file_reader.read_next_partition_data(pad_zeros=True);
+					label = file_reader.label[s_idx:e_idx];
+
+					if ((batch_index == file_reader.nBatches-1) and (not file_reader.num_pad_frames == 0)) :
+						data=data[:-file_reader.num_pad_frames]
+						label = label[:-file_reader.num_pad_frames]
+
+					file_writer.write_data(data,label);
+				
+				file_reader.read_next_partition_data(pad_zeros=True);
 				
 		logger.debug('T1 Dataexporter : data is exported to %s' % self.export_path);
 		
@@ -128,14 +135,20 @@ class  T2DataExporter(DataExporter):
 				out_child_options['featdim'] = out_featdim;
 				out_child_options['writer_type'] = "TD"
 				file_writer =  write_dataset(out_child_options);
-                                batch_size=file_reader.batch_size
+				batch_size=file_reader.batch_size
 
 				while not file_reader.is_finish():
 					for batch_index in xrange(file_reader.nBatches):
 						s_idx = batch_index * batch_size; e_idx = s_idx + batch_size
 						data = out_fn(file_reader.feat[s_idx:e_idx])
-						e_idx= min(file_reader.cur_frame_num - file_reader.num_pad_frames,s_idx+batch_size);
-						file_writer.write_data(data[s_idx:e_idx],file_reader.label[s_idx:e_idx]);
+						label = file_reader.label[s_idx:e_idx];
+
+						if ((batch_index == file_reader.nBatches-1) and (not file_reader.num_pad_frames == 0)) :
+							data=data[:-file_reader.num_pad_frames]
+							label = label[:-file_reader.num_pad_frames]
+
+						file_writer.write_data(data,label);
+					
 					file_reader.read_next_partition_data(pad_zeros=True);
 			
 				level2_filepath = self.level1FileHandle.readline().strip();
@@ -160,12 +173,19 @@ class  NPDataExporter(DataExporter):
 		out_options['featdim'] = out_featdim;
 		out_options['writer_type'] = "NP"
 		file_writer =  write_dataset(out_options);
-                batch_size=file_reader.batch_size
+		batch_size=file_reader.batch_size
+
 		while not file_reader.is_finish():
 			for batch_index in xrange(file_reader.nBatches):
 				s_idx = batch_index * batch_size; e_idx = s_idx + batch_size
 				data = out_fn(file_reader.feat[s_idx:e_idx])
-				e_idx= min(file_reader.cur_frame_num - file_reader.num_pad_frames,s_idx+batch_size);
-				file_writer.write_data(data[s_idx:e_idx],file_reader.label[s_idx:e_idx]);
+				label = file_reader.label[s_idx:e_idx];
+
+				if ((batch_index == file_reader.nBatches-1) and (not file_reader.num_pad_frames == 0)) :
+					data=data[:-file_reader.num_pad_frames]
+					label = label[:-file_reader.num_pad_frames]
+
+				file_writer.write_data(data,label);
+
 			file_reader.read_next_partition_data(pad_zeros=True);
 		logger.debug('NP Dataexporter : data is exported to %s' % self.export_path);

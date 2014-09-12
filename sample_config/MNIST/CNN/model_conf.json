@@ -25,6 +25,6 @@
 		"finetuning":true,
 		"testing":true,
 		"export_data":true,
-	"plotting":false
+		"plotting":false
 	}
 }

@@ -144,7 +144,7 @@ def saveLabels(nnetModel,export_path,data_spec):
 	# get the testing function for the model
 	logger.info('Getting the Test(Get Label) function')
 	getLabel = nnetModel.getLabelFunction()
-	x=0;
+
 	batch_size = test_sets.batch_size
 	with open(export_path,'w') as fp:
 		while (not test_sets.is_finish()):
@@ -153,10 +153,9 @@ def saveLabels(nnetModel,export_path,data_spec):
 				e_idx = s_idx+batch_size;
 				pred = getLabel(test_sets.feat[s_idx:e_idx])
 
-                                if ((batch_index == test_sets.nBatches-1) and
-                                    (not test_sets.num_pad_frames == 0)) :
-                                        pred=pred[:-test_sets.num_pad_frames]
-                                x=x+len(pred)
+				if ((batch_index == test_sets.nBatches-1) and (not test_sets.num_pad_frames == 0)) :
+					pred=pred[:-test_sets.num_pad_frames]
+
 				numpy.savetxt(fp, pred.T,fmt='%d')
 			test_sets.read_next_partition_data(pad_zeros=True);
 
