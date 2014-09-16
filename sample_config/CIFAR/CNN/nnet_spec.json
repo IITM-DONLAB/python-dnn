@@ -31,7 +31,7 @@
 	
 
 	"mlp" : {
-	   "layers": [400,200],
+	   "hidden_layers": [400,200],
 	   "activation" : "tanh"
 	}
 }

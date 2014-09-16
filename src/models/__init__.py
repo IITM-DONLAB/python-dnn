@@ -161,7 +161,8 @@ class nnet(object):
 		"""
 		in_x = self.x.type('in_x');
 		fn = theano.function(inputs=[in_x],outputs=self.output,
-			givens={self.x: in_x},name='features')#,on_unused_input='warn')
+			givens={self.x: in_x},name='labels',
+			allow_input_downcast=True)#,on_unused_input='warn')
 		return fn
 
 	def __l1Regularization__(self,start=0):

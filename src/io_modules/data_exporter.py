@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 def export_data(data_spec,export_path,out_fn,out_featdim):
 	logger.info("%s data exporter will be initialized to export to %s",
 				data_spec['reader_type'],export_path);
-	logger.debug("input options :  %s" % data_spec)
 	exporter = DataExporter.get_instance(data_spec,export_path);
 	exporter.dump_data(out_fn,out_featdim);
 
@@ -36,8 +35,7 @@ class DataExporter(object):
 		elif(data_spec['reader_type']=='NP'):
 			return NPDataExporter(data_spec,export_path);
 		else:
-			logger.critical('\'%s\'  reader_type is not defined...'\
-						%data_spec['reader_type'])
+			logger.critical(" '%s\'  reader_type is not defined...",data_spec['reader_type'])
 	def dump_data(self,out_fn):
 		pass
 
@@ -55,7 +53,6 @@ class  T1DataExporter(DataExporter):
 		
 	def dump_data(self,out_fn,out_featdim):
 		filepath = self.data_spec['base_path'] + os.sep + self.data_spec['filename']
-		batch_size = self.data_spec['batch_size'];
 		
 		copy_path = create_folder_structure_if_not_exists(self.export_path + os.sep + self.data_spec['filename'])
 		shutil.copy(filepath,copy_path);	#copies the file directly
@@ -70,19 +67,21 @@ class  T1DataExporter(DataExporter):
 			in_child_options['filename'] = self.filehandle.readline().strip()	#filename of individual classes
 			in_child_options['reader_type'] = "TD"
 			in_child_options['label'] = idx;
-			file_reader  = read_dataset(in_child_options,pad_zeros=True)[0]	#taking only one reader 
+			file_reader  = read_dataset(in_child_options,pad_zeros=True)	#taking only one reader 
 			out_child_options = in_child_options.copy();
 			out_child_options['base_path'] = self.export_path;
 			out_child_options['featdim'] = out_featdim;
 			out_child_options['writer_type'] = "TD"
 			file_writer =  write_dataset(out_child_options);
+                        batch_size=file_reader.batch_size
 			while (not file_reader.is_finish()):
-				for batch_index in xrange(file_reader.cur_frame_num/batch_size):
-					s_idx = batch_index*batch_size; e_idx = s_idx + batch_size
+				for batch_index in xrange(file_reader.nBatches):
+					s_idx = batch_index*batch_size;
+                                        e_idx = s_idx + batch_size
 					data = out_fn(file_reader.feat[s_idx:e_idx])
-					e_idx= min(file_reader.cur_frame_num -file_reader.num_pad_frames,s_idx+batch_size);
-					file_writer.write_data(data[s_idx:e_idx],file_reader.label[s_idx:e_idx]);
-				file_reader.read_next_partition_data(pad_zeros=True);
+                                        e_idx= min(file_reader.cur_frame_num - file_reader.num_pad_frames,s_idx+batch_size);
+                                        file_writer.write_data(data[s_idx:e_idx],file_reader.label[s_idx:e_idx]);
+                                file_reader.read_next_partition_data(pad_zeros=True);
 				
 		logger.debug('T1 Dataexporter : data is exported to %s' % self.export_path);
 		
@@ -100,7 +99,6 @@ class  T2DataExporter(DataExporter):
 		
 	def dump_data(self,out_fn,out_featdim):
 		filepath = self.data_spec['base_path'] + os.sep + self.data_spec['filename']
-		batch_size = self.data_spec['batch_size'];
 		
 		copy_path = create_folder_structure_if_not_exists(self.export_path + os.sep + self.data_spec['filename'])
 		shutil.copy(filepath,copy_path);	#copies the file directly
@@ -124,15 +122,16 @@ class  T2DataExporter(DataExporter):
 				in_child_options['filename'] = level2_filepath	#filename of individual classes
 				in_child_options['reader_type'] = "TD"
 				in_child_options['label'] = idx;
-				file_reader  = read_dataset(in_child_options,pad_zeros=True)[0]	#taking only one reader 
+				file_reader  = read_dataset(in_child_options,pad_zeros=True)	#taking only one reader 
 				out_child_options = in_child_options.copy();
 				out_child_options['base_path'] = self.export_path;	#updating the base_path
 				out_child_options['featdim'] = out_featdim;
 				out_child_options['writer_type'] = "TD"
 				file_writer =  write_dataset(out_child_options);
-				
+                                batch_size=file_reader.batch_size
+
 				while not file_reader.is_finish():
-					for batch_index in xrange(file_reader.cur_frame_num/batch_size):
+					for batch_index in xrange(file_reader.nBatches):
 						s_idx = batch_index * batch_size; e_idx = s_idx + batch_size
 						data = out_fn(file_reader.feat[s_idx:e_idx])
 						e_idx= min(file_reader.cur_frame_num - file_reader.num_pad_frames,s_idx+batch_size);
@@ -155,15 +154,15 @@ class  NPDataExporter(DataExporter):
 		self.export_path = export_path;
 		
 	def dump_data(self,out_fn,out_featdim):
-		batch_size = self.data_spec['batch_size'];
-		file_reader  = read_dataset(self.data_spec,pad_zeros=True)[0]	#taking only one reader 
+		file_reader  = read_dataset(self.data_spec,pad_zeros=True)	#taking only one reader 
 		out_options = self.data_spec.copy();
 		out_options['base_path'] = self.export_path;	#updating the base_path
 		out_options['featdim'] = out_featdim;
 		out_options['writer_type'] = "NP"
 		file_writer =  write_dataset(out_options);
+                batch_size=file_reader.batch_size
 		while not file_reader.is_finish():
-			for batch_index in xrange(file_reader.cur_frame_num/batch_size):
+			for batch_index in xrange(file_reader.nBatches):
 				s_idx = batch_index * batch_size; e_idx = s_idx + batch_size
 				data = out_fn(file_reader.feat[s_idx:e_idx])
 				e_idx= min(file_reader.cur_frame_num - file_reader.num_pad_frames,s_idx+batch_size);
