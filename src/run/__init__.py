@@ -6,19 +6,22 @@ from io_modules.file_reader import read_dataset
 from utils.learn_rates import LearningRate
 from io_modules.data_exporter import export_data
 
-def _testing(nnetModel,test_sets, test_xy, test_x, test_y):
+def _testing(nnetModel,test_sets):
 
-	# get the testing function for the model
+	test_xy = test_sets.shared_xy
+	test_x = test_sets.shared_x
+	test_y = test_sets.shared_y
+
 	batch_size = test_sets.batch_size
+	
+	# get the testing function for the model
 	logger.info('Getting the Test function')
-	test_fn = nnetModel.build_test_function((test_x, test_y), batch_size=batch_size)
+	test_fn = nnetModel.build_test_function((test_x,test_y), batch_size=batch_size)
 
 	logger.info('Starting Testing');
 	test_error  = []
 	while not test_sets.is_finish():
-		test_sets.make_partition_shared(test_xy)
-		n_test_batches= test_sets.cur_frame_num / batch_size;
-		test_losses = [test_fn(i) for i in xrange(n_test_batches)]
+		test_losses = [test_fn(i) for i in xrange(test_sets.nBatches)]
 		test_error.extend(test_losses)
 		test_sets.read_next_partition_data()
 		logger.debug("Test Error (upto curr part) = %f",numpy.mean(test_error))
@@ -31,37 +34,42 @@ def _testing(nnetModel,test_sets, test_xy, test_x, test_y):
 
 def testing(nnetModel,data_spec,saveLabel=True,outFile='test.out'):
 	try:
-		test_sets, test_xy, test_x, test_y = read_dataset(data_spec['testing']) 
+		test_sets = read_dataset(data_spec['testing']) 
 	except KeyError:
 		#raise e
 		logger.info("No testing set:Skiping Testing");
 	else:
-		_testing(nnetModel,test_sets, test_xy, test_x, test_y)
+		_testing(nnetModel,test_sets)
 		if saveLabel:
 			saveLabels(nnetModel,outFile,data_spec['testing'])
 
 
-def _fineTunning(nnetModel,train_sets,train_xy,train_x,train_y,
-		valid_sets,valid_xy,valid_x,valid_y,lrate,momentum):
+def _fineTunning(nnetModel,train_sets,valid_sets,lrate,momentum):
+	
+	train_xy = train_sets.shared_xy
+	train_x = train_sets.shared_x
+	train_y = train_sets.shared_y
+
+	valid_xy = valid_sets.shared_xy
+	valid_x = valid_sets.shared_x
+	valid_y = valid_sets.shared_y	
 
 	def valid_score():
 		val_batch_size = valid_sets.batch_size
 		valid_error = []
 		while not valid_sets.is_finish():
-			valid_sets.make_partition_shared(valid_xy)
-			n_valid_batches= valid_sets.cur_frame_num / val_batch_size;
-			validation_losses = [validate_fn(i) for i in xrange(n_valid_batches)]
+			validation_losses = [validate_fn(i) for i in xrange(valid_sets.nBatches)]
 			valid_error.extend(validation_losses)
-			valid_sets.read_next_partition_data()
 			logger.debug("Valid Error (upto curr part) = %f",numpy.mean(valid_error))
+			valid_sets.read_next_partition_data()
 		valid_sets.initialize_read();
 		return numpy.mean(valid_error);
 
 	# get the training, validation function for the model
 	batch_size = train_sets.batch_size
 	logger.info('Getting the finetuning functions')
-	train_fn, validate_fn = nnetModel.build_finetune_functions((train_x, train_y),
-			 (valid_x, valid_y), batch_size=batch_size)
+	train_fn, validate_fn = nnetModel.build_finetune_functions((train_x,train_y),
+		(valid_x,valid_y), batch_size=batch_size)
 	
 	best_validation_loss=float('Inf')
 
@@ -71,8 +79,7 @@ def _fineTunning(nnetModel,train_sets,train_xy,train_x,train_y,
 	while (lrate.get_rate() != 0):
 		train_error = []
 		while not train_sets.is_finish():
-			train_sets.make_partition_shared(train_xy)
-			for batch_index in xrange(train_sets.cur_frame_num / batch_size):  # loop over mini-batches
+			for batch_index in xrange(train_sets.nBatches):  # loop over mini-batches
 				train_error.append(train_fn(index=batch_index,
 					learning_rate = lrate.get_rate(), momentum = momentum))
 				logger.debug('Training batch %d error %f',batch_index, numpy.mean(train_error))
@@ -97,8 +104,8 @@ def _fineTunning(nnetModel,train_sets,train_xy,train_x,train_y,
 
 def fineTunning(nnetModel,model_config,data_spec):
 	try:
-		train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
-		valid_sets, valid_xy, valid_x, valid_y = read_dataset(data_spec['validation'])
+		train_sets = read_dataset(data_spec['training'])
+		valid_sets = read_dataset(data_spec['validation'])
 	except KeyError:
 		#raise e
 		logger.info("No validation/training set:Skiping Fine tunning");
@@ -113,8 +120,7 @@ def fineTunning(nnetModel,model_config,data_spec):
 			exit(2)
 
 
-		_fineTunning(nnetModel,train_sets,train_xy,train_x,train_y,
-			valid_sets,valid_xy,valid_x,valid_y,lrate,momentum)
+		_fineTunning(nnetModel,train_sets,valid_sets,lrate,momentum)
 
 
 def exportFeatures(nnetModel,model_config,data_spec):
@@ -134,19 +140,25 @@ def saveLabels(nnetModel,export_path,data_spec):
 	TODO:Write label to file;
 	"""
 	#fo = open(export_path, "w").close
+	test_sets  = read_dataset(data_spec,pad_zeros=True,makeShared=False)
+	# get the testing function for the model
+	logger.info('Getting the Test(Get Label) function')
 	getLabel = nnetModel.getLabelFunction()
-	test_sets  = read_dataset(data_spec,pad_zeros=True)[0]
+	x=0;
 	batch_size = test_sets.batch_size
 	with open(export_path,'w') as fp:
 		while (not test_sets.is_finish()):
-			for batch_index in xrange(test_sets.cur_frame_num/batch_size):
+			for batch_index in xrange(test_sets.nBatches):
 				s_idx = batch_index*batch_size;
-				e_idx= min(test_sets.cur_frame_num -test_sets.num_pad_frames,s_idx+batch_size);
+				e_idx = s_idx+batch_size;
 				pred = getLabel(test_sets.feat[s_idx:e_idx])
+
+                                if ((batch_index == test_sets.nBatches-1) and
+                                    (not test_sets.num_pad_frames == 0)) :
+                                        pred=pred[:-test_sets.num_pad_frames]
+                                x=x+len(pred)
 				numpy.savetxt(fp, pred.T,fmt='%d')
 			test_sets.read_next_partition_data(pad_zeros=True);
-		fp.close();
-
 
 
 def createDir(wdir):

@@ -8,13 +8,16 @@ from collections import OrderedDict
 class RBM(object):
     """Bernoulli-bernoulli restricted Boltzmann machine (RBM)  """
     
-    def __init__(self, input=None, n_visible=1024, n_hidden=1024,
+    def __init__(self, input=None, n_visible=100, n_hidden=1000,
                  W = None, hbias = None, vbias = None, numpy_rng = None,
-                 theano_rng = None):
+                 theano_rng = None,activation=T.nnet.sigmoid):
                
         self.n_visible = n_visible
         self.n_hidden  = n_hidden
+        self.activation = activation;
 
+        if self.activation != T.nnet.sigmoid:
+            raise ValueError('Activation to RBM should allways >= 0 and <= 1');
 
         if numpy_rng is None:
             numpy_rng = numpy.random.RandomState(1234)
@@ -71,7 +74,7 @@ class RBM(object):
     def propup(self, vis):
         ''' Propagate the visible activations up to the hidden units '''
         pre_sigmoid_activation = T.dot(vis, self.W) + self.hbias
-        return [pre_sigmoid_activation, T.nnet.sigmoid(pre_sigmoid_activation)]
+        return [pre_sigmoid_activation, self.activation(pre_sigmoid_activation)]
 
     def sample_h_given_v(self, v0_sample):
         ''' Generates hidden unit outputs given visible inputs '''
@@ -86,7 +89,7 @@ class RBM(object):
     def propdown(self, hid):
         '''Propagates the hidden activation downwards to the visible units'''
         pre_sigmoid_activation = T.dot(hid, self.W.T) + self.vbias
-        return [pre_sigmoid_activation, T.nnet.sigmoid(pre_sigmoid_activation)]
+        return [pre_sigmoid_activation, self.activation(pre_sigmoid_activation)]
 
     def sample_v_given_h(self, h0_sample):
         ''' Generates visible units given hidden units '''
@@ -147,15 +150,15 @@ class RBM(object):
 class GBRBM(RBM):
     """Gaussian-bernoulli restricted Boltzmann machine"""
     
-    def __init__(self, input=None, n_visible=351, n_hidden=1000,
+    def __init__(self, input=None, n_visible=100, n_hidden=1000,
                  W = None, hbias = None, vbias = None, numpy_rng = None,
-                 theano_rng = None):
+                 theano_rng = None,activation=T.nnet.sigmoid):
         
         super(GBRBM, self).__init__(input=input, n_visible=n_visible,
                     n_hidden=n_hidden,
                     W=W, hbias=hbias,
                     vbias=vbias, numpy_rng=numpy_rng, 
-                    theano_rng=theano_rng)
+                    theano_rng=theano_rng,activation=activation)
     
     def free_energy(self, v_sample):
         ''' Compute the free energy '''

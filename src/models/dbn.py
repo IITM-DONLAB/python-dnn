@@ -121,7 +121,8 @@ class DBN(nnet):
                               n_visible=input_size,
                               n_hidden=hidden_layers_sizes[i],
                               W=sigmoid_layer.W,
-                              hbias=sigmoid_layer.b)
+                              hbias=sigmoid_layer.b,
+                              activation=activation)
             else:
                 rbm_layer = RBM(numpy_rng=numpy_rng,
                               theano_rng=theano_rng,
@@ -129,7 +130,8 @@ class DBN(nnet):
                               n_visible=input_size,
                               n_hidden=hidden_layers_sizes[i],
                               W=sigmoid_layer.W,
-                              hbias=sigmoid_layer.b)
+                              hbias=sigmoid_layer.b,
+                              activation=activation)
             self.rbm_layers.append(rbm_layer)            
 
         # We now need to add a logistic layer on top of the MLP

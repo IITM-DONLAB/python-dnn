@@ -35,7 +35,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def preTraining(sda,train_sets,train_xy,train_x,corruptions,pretraining_config):
+def preTraining(sda,train_sets,corruptions,pretraining_config):
+
+    train_xy = train_sets.shared_xy
+    train_x = train_sets.shared_x
+
     batch_size = train_sets.batch_size;
     lr = pretraining_config['learning_rate']
     epochs = pretraining_config['epochs']
@@ -54,7 +58,7 @@ def preTraining(sda,train_sets,train_xy,train_x,corruptions,pretraining_config):
             # go through the training set
             c = []  # keep record of cost
             while not train_sets.is_finish():
-                train_sets.make_partition_shared(train_xy)
+                #train_sets.make_partition_shared(train_xy)
                 for batch_index in xrange(train_sets.cur_frame_num / batch_size):  
                     # loop over mini-batches
                     logger.debug("Training For epoch %d and batch %d",epoch,batch_index)
@@ -105,12 +109,12 @@ def runSdA(arg):
     #########################
     if model_config['processes']['pretraining']:
         
-        train_sets, train_xy, train_x, train_y = read_dataset(data_spec['training'])
-        pretraining_config= model_config['pretrain_params']
-        corruption_levels =sda_config['corruption_levels']
+        train_sets = read_dataset(data_spec['training'])
+        pretraining_config = model_config['pretrain_params']
+        corruption_levels = sda_config['corruption_levels']
 
-        preTraining(sda,train_sets,train_xy,train_x,corruption_levels,pretraining_config);
-
+        preTraining(sda,train_sets,corruption_levels,pretraining_config);
+        del train_sets;
 
     ########################
     # FINETUNING THE MODEL #

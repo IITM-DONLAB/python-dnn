@@ -27,9 +27,14 @@
 	
 
 	"mlp" : {
+<<<<<<< HEAD
 	   "hidden_layers": [60,30],
 	   "do_dropout" : true,
 	   "dropout_factor" : [0.5,0.5],
 	   "activation" : "relu"
+=======
+	   "hidden_layers": [400,200],
+	   "activation" : "tanh"
+>>>>>>> 8c63a991a208540fed20c82988274d41dbf3d68e
 	}
 }

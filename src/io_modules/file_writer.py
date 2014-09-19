@@ -9,7 +9,6 @@ def write_dataset(options):
 	file_path = options['base_path'] + os.sep + options['filename'];
 	logger.info("%s dataset will be initialized to write to %s",
 				options['writer_type'],file_path);
-	logger.debug("options : %s" % str(options))	
 	create_folder_structure_if_not_exists(file_path);
 	file_writer = FileWriter.get_instance(file_path,options);
 	file_writer.write_file_info()
@@ -32,8 +31,7 @@ class FileWriter(object):
 		elif header['writer_type']=='NP':
 			return NPFileWriter(path,header);
 		else:
-			logger.critical('\'%s\'  writer_type is not defined...' \
-					% options['writer_type'])
+			logger.critical("`%s` writer_type is not defined...",options['writer_type'])
 			
 	def __init__(self,filepath,header):
 		self.header = header
