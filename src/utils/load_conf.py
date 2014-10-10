@@ -24,7 +24,7 @@ def load_model(input_file,nnetType=None):
 		logger.critical("'nnetType' is missing in model properties file..")
 		exit(1)
 
-	if nnetType not in ['DNN','SDA','RBM','CNN']:
+	if nnetType not in ['DNN','SDA','RBM','CNN','CNN3D']:
 		logger.error('Unknown nnetType')
 		exit(1)
 
@@ -285,27 +285,30 @@ def load_conv_spec(input_file,batch_size,input_shape):
 		exit(1)
 	prev_map_number = 1;
 	for layer_index in range(0,len(layer_configs)):
+		layer_configs[layer_index]['input_shape']=[batch_size];
+		layer_configs[layer_index]['input_shape'].extend(input_shape);
 		if layer_index==0:
-			layer_configs[layer_index]['input_shape']=[batch_size];
-			layer_configs[layer_index]['input_shape'].extend(input_shape);
-			prev_map_number = input_shape[0];
-		else:
-			layer_configs[layer_index]['input_shape']=[batch_size];
-			layer_configs[layer_index]['input_shape'].extend(input_shape);
+			prev_map_number = input_shape[-3];
 
 		current_map_number = layer_configs[layer_index]['num_filters']
-		layer_configs[layer_index]['filter_shape']=[current_map_number,prev_map_number];
-		layer_configs[layer_index]['filter_shape'].extend(layer_configs[layer_index]['convmat_dim']);
+		layer_configs[layer_index]['filter_shape']=[current_map_number];
+		layer_configs[layer_index]['filter_shape'].extend(layer_configs[layer_index]['convmat_dim'][:-2]);
+		layer_configs[layer_index]['filter_shape'].extend([prev_map_number])
+		layer_configs[layer_index]['filter_shape'].extend(layer_configs[layer_index]['convmat_dim'][-2:]);
 
-		layer_configs[layer_index]['output_shape'] = [batch_size,current_map_number];
-		if not len(layer_configs[layer_index]['input_shape'][2:]) == len(layer_configs[layer_index]['convmat_dim']):
+		layer_configs[layer_index]['output_shape'] = [batch_size];
+		
+		if not len(layer_configs[layer_index]['input_shape'])-2 == len(layer_configs[layer_index]['convmat_dim']):
 			logger.error("Input shape and convolution matrix dimension are not matching on layer %d ",layer_index+1)
-		input_shape=[current_map_number];
-		for inp,wdim,pool in zip(layer_configs[layer_index]['input_shape'][2:],layer_configs[layer_index]['convmat_dim'],
-				layer_configs[layer_index]['poolsize']):
-			outdim = (inp-wdim+1)/pool
-			layer_configs[layer_index]['output_shape'].append(outdim)
-			input_shape.append(outdim);
+		input_shape=[];
+		for inp,wdim,pool in zip(layer_configs[layer_index]['input_shape'][1:-3],layer_configs[layer_index]['convmat_dim'][:-2],
+				layer_configs[layer_index]['poolsize'][:-2]):
+			input_shape.append((inp-wdim+1)/pool);
+		input_shape.append(current_map_number)
+		for inp,wdim,pool in zip(layer_configs[layer_index]['input_shape'][-2:],layer_configs[layer_index]['convmat_dim'][-2:],
+				layer_configs[layer_index]['poolsize'][-2:]):
+			input_shape.append((inp-wdim+1)/pool);
+		layer_configs[layer_index]['output_shape'].extend(input_shape)
 		
 		if (do_dropout and (not layer_configs[layer_index].has_key('dropout_factor') and 
 				not type(layer_configs[layer_index]['dropout_factor']) is float)):

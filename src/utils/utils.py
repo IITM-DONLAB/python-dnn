@@ -35,9 +35,11 @@ def dimshuffle(a,shuffle):
 	return a
 
 def linear(x):
-	return (lambda x: 1.0*x)
+	return 1.0*x
+	
 def relu(x):
 	return x * (x > 0);
+	
 def cappedrelu(x):
 	return T.minimum(x * (x > 0), 6)
 		   
@@ -70,7 +72,7 @@ def activation_to_txt(act_func):
 		return 'relu'
 	elif act_func == cappedrelu:
 		return 'cappedrelu'
-	else
+	else:
 		return 'UNK';
 		
 def parse_two_integers(argument_str):

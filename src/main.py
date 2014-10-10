@@ -50,6 +50,8 @@ def runNet(modelConfig):
 	logger.info("Loading Other Configuration for %s",nnetType);
 	if nnetType == 'CNN':
 		from run.run_CNN import runCNN as runModel
+	elif nnetType == 'CNN3D':
+		from run.run_CNN3d import runCNN3D as runModel
 	elif nnetType == 'RBM':
 		from run.run_DBN import runRBM as runModel
 	elif nnetType == 'SDA':
