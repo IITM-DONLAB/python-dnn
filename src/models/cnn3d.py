@@ -23,10 +23,9 @@ class CNN3DBase(nnet):
 		self.max_col_norm = max_col_norm
 		self.l1_reg = l1_reg
 		self.l2_reg = l2_reg
-
-		self.x = tensor5('x')  
+		self.x = tensor5('x')
 		self.y = T.ivector('y')
-
+	
 		self.conv_layer_num = len(conv_layer_configs) 	#counting number of convolution layers
 		self.hidden_layer_num = len(hidden_layer_configs['hidden_layers'])
 		self.mlp_layer_start = self.hidden_layer_num;
@@ -179,7 +178,7 @@ class CNN3D(CNN3DBase):
 				self.delta_params.extend(conv_layer.delta_params)
 
 		hidden_layers = hidden_layer_configs['hidden_layers'];
-		self.conv_output_dim = numpy.prod(config['output_shape'])
+		self.conv_output_dim = numpy.prod(config['output_shape'][1:])
 		adv_activation_configs = hidden_layer_configs['adv_activation'] 
 		
 		#flattening the last convolution output layer

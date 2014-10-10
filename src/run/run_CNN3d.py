@@ -23,7 +23,7 @@ import theano
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
 
-from utils.load_conf import load_model,load_conv_spec,load_data_spec,__debugPrintData__
+from utils.load_conf import load_model,load_conv_spec,load_data_spec
 from io_modules.file_reader import read_dataset
 from utils.utils import parse_activation
 from io_modules import setLogger
@@ -45,7 +45,6 @@ def runCNN3D(arg):
 			model_config['nnet_spec'],
 			model_config['batch_size'],
 			model_config['input_shape'])
-	__debugPrintData__(conv_layer_config)
 	
 	data_spec =  load_data_spec(model_config['data_spec'],model_config['batch_size']);
 	
@@ -99,13 +98,14 @@ def runCNN3D(arg):
 	if model_config['processes']['finetuning']:
 		fineTunning(cnn,model_config,data_spec)
 		
-	""""
+	
 	########################
 	#  TESTING THE MODEL   #
 	########################
 	if model_config['processes']['testing']:
 		testing(cnn,data_spec)
-
+	
+	"""
 	##########################
 	##   Export Features    ##
 	##########################
