@@ -36,8 +36,8 @@ import numpy
 import theano
 import theano.tensor as T
 
-class dA(object):
-    """Denoising Auto-Encoder class (dA)
+class AutoEncoder(object):
+    """Denoising Auto-Encoder class
 
     A denoising autoencoders tries to reconstruct the input from a corrupted
     version of it by projecting it first in a latent space and reprojecting
@@ -187,14 +187,75 @@ class dA(object):
                                          p=1 - corruption_level,
                                          dtype=theano.config.floatX) * input
 
+
+    def get_hidden_values(self, input):
+        """ Compute the values of the hidden layer """ 
+        raise NotImplementedError(str(type(self))+ " does not implement get_hidden_values.")
+    
+    def get_reconstructed_input(self, hidden):
+        """ Compute the reconstructed input given the hidden rep'n """
+        raise NotImplementedError(str(type(self))+ " does not implement get_reconstructed_input.")
+    
+    def get_cost_updates(self, corruption_level, learning_rate):
+        """ Compute the reconstruction error over the mini-batched input
+       taking into account a certain level of corruption of the input """
+        raise NotImplementedError(str(type(self))+ " does not implement get_cost_updates.")
+
+class BernoulliAutoEncoder(AutoEncoder):
+    def __init__(self, numpy_rng, theano_rng=None, input=None,
+                 n_visible=784, n_hidden=500,
+                 W=None, bhid=None, bvis=None,activation=T.nnet.sigmoid):
+        """
+        :type numpy_rng: numpy.random.RandomState
+        :param numpy_rng: number random generator used to generate weights
+
+        :type theano_rng: theano.tensor.shared_randomstreams.RandomStreams
+        :param theano_rng: Theano random generator; if None is given one is
+                     generated based on a seed drawn from `rng`
+
+        :type input: theano.tensor.TensorType
+        :param input: a symbolic description of the input or None for
+                      standalone dA
+
+        :type n_visible: int
+        :param n_visible: number of visible units
+
+        :type n_hidden: int
+        :param n_hidden:  number of hidden units
+
+        :type W: theano.tensor.TensorType
+        :param W: Theano variable pointing to a set of weights that should be
+                  shared belong the dA and another architecture; if dA should
+                  be standalone set this to None
+
+        :type bhid: theano.tensor.TensorType
+        :param bhid: Theano variable pointing to a set of biases values (for
+                     hidden units) that should be shared belong dA and another
+                     architecture; if dA should be standalone set this to None
+
+        :type bvis: theano.tensor.TensorType
+        :param bvis: Theano variable pointing to a set of biases values (for
+                     visible units) that should be shared belong dA and another
+                     architecture; if dA should be standalone set this to None
+
+        :type activation: <theano.tensor.elemwise.Elemwise object>
+        :param activation: activation function
+
+        """
+        super(BernoulliAutoEncoder,self).__init__(numpy_rng, theano_rng, input,
+                                                  n_visible, n_hidden, W, bhid,
+                                                  bvis,activation)
+        self.output = activation(T.dot(input, self.W) + self.b)
+
+
     def get_hidden_values(self, input):
         """ Computes the values of the hidden layer """
         return self.activation(T.dot(input, self.W) + self.b)
-
+        
     def get_reconstructed_input(self, hidden):
         """Computes the reconstructed input given the values of the
         hidden layer
-
+        
         """
         return  self.activation(T.dot(hidden, self.W_prime) + self.b_prime)
 
@@ -227,3 +288,82 @@ class dA(object):
         return (cost, updates)
 
 
+class GaussianAutoEncoder(AutoEncoder):
+
+    def __init__(self, numpy_rng, theano_rng=None, input=None,
+                 n_visible=784, n_hidden=500,
+                 W=None, bhid=None, bvis=None,activation=T.nnet.sigmoid):
+        """ A de-noising AutoEncoder with Gaussian visible units
+            
+            :type numpy_rng: numpy.random.RandomState
+            :param numpy_rng: number random generator used to generate weights
+        
+            :type theano_rng: theano.tensor.shared_randomstreams.RandomStreams
+            :param theano_rng: Theano random generator; if None is given one is generated
+                based on a seed drawn from `rng`
+        
+            :type input: theano.tensor.TensorType
+            :paran input: a symbolic description of the input or None for standalone
+                          dA
+        
+            :type n_visible: int
+            :param n_visible: number of visible units
+        
+            :type n_hidden: int
+            :param n_hidden:  number of hidden units
+        
+            :type W: theano.tensor.TensorType
+            :param W: Theano variable pointing to a set of weights that should be
+                      shared Theano variables connecting the visible and hidden layers.
+                      
+        
+            :type bhid: theano.tensor.TensorType
+            :param bhid: Theano variable pointing to a set of biases values (for
+                         hidden units).
+        
+            :type bvis: theano.tensor.TensorType
+            :param bvis: Theano variable pointing to a set of biases values (for
+                         visible units).
+        """
+               
+        super(GaussianAutoEncoder,self).__init__(numpy_rng, theano_rng, input,
+                                                 n_visible, n_hidden, W, bhid, bvis,activation)
+                 
+        self.output = activation(T.dot(input, self.W) + self.b)
+
+    def get_hidden_values(self, input):
+        """ Compute the values of the hidden layer """    
+        return self.activation(T.dot(input, self.W) + self.b)    
+    
+    def get_reconstructed_input(self, hidden):
+        """ Use a linear decoder to compute the reconstructed input given the hidden rep'n """
+        return T.dot(hidden, self.W_prime) + self.b_prime
+    
+    def get_cost_updates(self, corruption_level, learning_rate):
+        """ 
+        Compute the reconstruction error over the mini-batched input
+        taking into account a certain level of corruption of the input 
+        """
+        
+        tilde_x = self.get_corrupted_input(self.x, corruption_level)
+        y = self.get_hidden_values(tilde_x)
+        
+        z = self.get_reconstructed_input(y)
+        
+        # Take the sum over columns
+        # Use the squared error loss function
+        L = T.sum((self.x - z) **2, axis = 1)
+    
+        cost = T.mean(L)
+
+        # compute the gradients of the cost of the `dA` with respect
+        # to its parameters
+        gparams = T.grad(cost, self.params)
+        # generate the list of updates
+        updates = []
+        for param, gparam in zip(self.params, gparams):
+            updates.append((param, param - learning_rate * gparam))
+
+        return (cost, updates)
+    
+        

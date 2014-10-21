@@ -61,10 +61,10 @@ def preTraining(sda,train_sets,corruptions,pretraining_config):
                 #train_sets.make_partition_shared(train_xy)
                 for batch_index in xrange(train_sets.cur_frame_num / batch_size):  
                     # loop over mini-batches
-                    logger.debug("Training For epoch %d and batch %d",epoch,batch_index)
                     curcost = pretrainfns[i](index=batch_index,
                         corruption=corruptions[i],lr=lr)
                     c.append(curcost)
+                    logger.debug("Training For epoch %d and batch %d: Error=%f",epoch,batch_index,curcost)
                 train_sets.read_next_partition_data()
             train_sets.initialize_read()
             err = numpy.mean(c);

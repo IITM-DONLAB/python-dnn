@@ -38,7 +38,9 @@ from theano.tensor.shared_randomstreams import RandomStreams
 
 from layers.logistic_sgd import LogisticRegression
 from layers.mlp import HiddenLayer
-from layers.dA import dA
+
+#from layers.dA import GaussianAutoEncoder as dA
+from layers.dA import BernoulliAutoEncoder as dA
 
 from models import nnet
 
