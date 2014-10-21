@@ -23,7 +23,7 @@ import theano
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
 
-from utils.load_conf import load_model,load_conv_spec,load_data_spec
+from utils.load_conf import load_model,load_conv_spec,load_data_spec,__debugPrintData__
 from io_modules.file_reader import read_dataset
 from utils.utils import parse_activation
 from io_modules import setLogger
@@ -45,6 +45,7 @@ def runCNN3D(arg):
 			model_config['nnet_spec'],
 			model_config['batch_size'],
 			model_config['input_shape'])
+	#__debugPrintData__(conv_layer_config,'covolution config')
 	
 	data_spec =  load_data_spec(model_config['data_spec'],model_config['batch_size']);
 	
@@ -56,21 +57,15 @@ def runCNN3D(arg):
 	hidden_activation = parse_activation(mlp_config['activation']);
 
 	createDir(model_config['wdir']);
+	
 	#create working dir
 
 	batch_size = model_config['batch_size'];
 	
-	if mlp_config['do_dropout'] or conv_config['do_dropout']:
-		cnn = DropoutCNN(numpy_rng,theano_rng,conv_layer_configs = conv_layer_config, batch_size = batch_size,
-				n_outs=model_config['n_outs'],hidden_layer_configs=mlp_config, 
-				conv_activation = conv_activation,hidden_activation = hidden_activation,
-				l1_reg = mlp_config['l1_reg'],l2_reg = mlp_config['l1_reg'],max_col_norm = mlp_config['max_col_norm'],
-				input_dropout_factor=conv_config['input_dropout_factor'])
-	else:
-		cnn = CNN3D(numpy_rng,theano_rng,conv_layer_configs = conv_layer_config, batch_size = batch_size,
-				n_outs=model_config['n_outs'],hidden_layer_configs=mlp_config, 
-				conv_activation = conv_activation,hidden_activation = hidden_activation,
-				l1_reg = mlp_config['l1_reg'],l2_reg = mlp_config['l1_reg'],max_col_norm = mlp_config['max_col_norm'])
+	cnn = CNN3D(numpy_rng,theano_rng,conv_layer_configs = conv_layer_config, batch_size = batch_size,
+			n_outs=model_config['n_outs'],hidden_layer_configs=mlp_config, 
+			conv_activation = conv_activation,hidden_activation = hidden_activation,
+			l1_reg = mlp_config['l1_reg'],l2_reg = mlp_config['l1_reg'],max_col_norm = mlp_config['max_col_norm'])
 	
 	"""			
 	########################

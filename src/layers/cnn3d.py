@@ -22,8 +22,10 @@ class ConvLayer(object):
                 input_shape = (batchsize, in_time, in_channels, in_height, in_width)
                 filter_shape= (flt_channels, flt_time, in_channels, flt_height, flt_width)
         """
+
         assert input_shape[2] == filter_shape[2]
         self.input = input
+        #print 'in > ',self.input.tag.test_value.shape, input_shape
         self.input_shape = input_shape
         self.filter_shape = filter_shape
         self.poolsize = poolsize
@@ -47,10 +49,13 @@ class ConvLayer(object):
         self.b = b
         self.delta_W = theano.shared(value=numpy.zeros(filter_shape, dtype=theano.config.floatX), name='delta_W')
         self.delta_b = theano.shared(value=numpy.zeros_like(self.b.get_value(borrow=True), dtype=theano.config.floatX), name='delta_b')
+        
         conv_out = T.nnet.conv3d2d.conv3d(signals=self.input, filters=self.W, signals_shape=input_shape, filters_shape=filter_shape, border_mode=border_mode)
         y_out = activation(conv_out + self.b.dimshuffle('x', 'x', 0, 'x', 'x'))
+       
         pooled_out = max_pool_3d(input=y_out, ds=poolsize, ignore_border=True)
         self.output = pooled_out
+        #print 'out > ',self.output.tag.test_value.shape
         self.params = [self.W, self.b]
         self.delta_params = [self.delta_W, self.delta_b]
 

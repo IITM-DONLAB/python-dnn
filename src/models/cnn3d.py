@@ -23,9 +23,12 @@ class CNN3DBase(nnet):
 		self.max_col_norm = max_col_norm
 		self.l1_reg = l1_reg
 		self.l2_reg = l2_reg
+		#theano.config.compute_test_value = 'warn'
 		self.x = tensor5('x')
+		#self.x.tag.test_value = numpy.array(numpy.random.rand(128,10,3,80,40),dtype=theano.config.floatX);
 		self.y = T.ivector('y')
-	
+		#self.y.tag.test_value = numpy.random.random_integers(0,9,128);
+			
 		self.conv_layer_num = len(conv_layer_configs) 	#counting number of convolution layers
 		self.hidden_layer_num = len(hidden_layer_configs['hidden_layers'])
 		self.mlp_layer_start = self.hidden_layer_num;

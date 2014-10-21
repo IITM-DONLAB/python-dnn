@@ -1,6 +1,6 @@
 import theano.tensor as T
 from theano.tensor.signal.downsample import DownsampleFactorMax
-
+import numpy as np
 def max_pool_3d(input, ds, ignore_border=False):
 	"""
 		Takes as input a N-D tensor, where N >= 3. It downscales the input video by
@@ -18,13 +18,14 @@ def max_pool_3d(input, ds, ignore_border=False):
 		raise NotImplementedError('max_pool_3d requires a dimension >= 3')
 		
 	vid_dim = input.ndim
-	
 	#Maxpool frame
 	frame_shape = input.shape[-2:]
+
 	# count the number of "leading" dimensions, store as dmatrix
 	batch_size = T.prod(input.shape[:-2])
 	batch_size = T.shape_padright(batch_size,1)
 	new_shape = T.cast(T.join(0, batch_size,T.as_tensor([1,]),frame_shape), 'int32')
+	
 	input_4D = T.reshape(input, new_shape, ndim=4)
 	# downsample mini-batch of videos in rows and cols
 	op = DownsampleFactorMax((ds[1],ds[2]), ignore_border)
@@ -35,7 +36,7 @@ def max_pool_3d(input, ds, ignore_border=False):
 	
 	#Maxpool time 
 	# output (time, rows, cols), reshape so that time is in the back
-	shufl = (list(range(vid_dim-3)) + [vid_dim-2]+[vid_dim-1]+[vid_dim-3])
+	shufl = (list(range(vid_dim-4)) + list(range(vid_dim-3,vid_dim))+[vid_dim-4])
 	input_time = out.dimshuffle(shufl)
 	# reset dimensions
 	vid_shape = input_time.shape[-2:]
@@ -50,5 +51,6 @@ def max_pool_3d(input, ds, ignore_border=False):
 	outtime = op(input_4D_time)
 	# restore to original shape (xxx, rows, cols, time)
 	outshape = T.join(0, input_time.shape[:-2], outtime.shape[-2:])
-	shufl = (list(range(vid_dim-3)) + [vid_dim-1]+[vid_dim-3]+[vid_dim-2])
+	shufl = (list(range(vid_dim-4)) + [vid_dim-1] + list(range(vid_dim-4,vid_dim-1)))
+	#shufl = (list(range(vid_dim-3)) + [vid_dim-1]+[vid_dim-3]+[vid_dim-2])
 	return T.reshape(outtime, outshape, ndim=input.ndim).dimshuffle(shufl)
