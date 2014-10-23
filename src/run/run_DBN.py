@@ -123,6 +123,19 @@ def runRBM(arg):
             first_layer_gb = rbm_config['first_layer_gb'],
             pretrainedLayers=rbm_config['pretrained_layers'],
             activation=activationFn)
+    
+    logger.info("Loading Pretrained network weights")
+    try:
+    # pretraining
+        ptr_file = model_config['input_file']
+        dbn.load(filename=ptr_file)
+    except KeyError, e:
+        logger.info("KeyMissing:"+str(e));
+        logger.info("Pretrained network Missing in configFile: Skipping Loading");
+    except IOError, e:
+        logger.error("IOError:"+str(e));
+        logger.error('Model cannot be initialize from input file ')
+        sys.exit(2)
 
     #########################
     # PRETRAINING THE MODEL #

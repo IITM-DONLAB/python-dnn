@@ -123,7 +123,8 @@ class FileReader(object):
                                 self.feat = numpy.append(self.feat,padding)
 			self.label = numpy.append(self.label,[0]*framesRemains);
 			self.cur_frame_num+=framesRemains
-
+                else:
+                        self.num_pad_frames = 0;
 
 	def create_shared(self):
                 '''Create first partition shared across GPU's'''

@@ -93,17 +93,23 @@ class TDFileWriter(FileWriter):
 		logger.debug('TD Filewriter : feats : %d' % self.feat_dim)
 
 	def write_data(self,vector_array,labels):
-		for vector,label in zip(vector_array,labels):
-			flatten_vector = vector.flatten();
-			if self.feat_dim!=len(flatten_vector):
-				logger.critical('Feature dimension mentioned in header and vector length are mismatching');
-				exit(0)
-			else:
-				for element in vector:
-					self.filehandle.write('%f ' % element)
-			self.filehandle.write(os.linesep);
-		self.filehandle.flush();		
-		logger.debug('TD Filewriter : data writen to %s' % self.filepath)
+                
+		#for vector,label in zip(vector_array,labels):
+		#	flatten_vector = vector.flatten();
+		#	if self.feat_dim!=len(flatten_vector):
+		#		logger.critical('Feature dimension mentioned in header and vector length are mismatching');
+		#		exit(0)
+		#	else:
+		#		for element in vector:
+		#			self.filehandle.write('%f ' % element)
+		#	self.filehandle.write(os.linesep);
+		(n,m)=vector_array.shape;
+                if self.feat_dim!=m:
+                        logger.critical('Feature dimension mentioned in header and vector length are mismatching');
+                        exit(0)
+                numpy.savetxt(self.filehandle,vector_array, fmt='%f', delimiter=' ');
+                self.filehandle.flush();		
+		logger.debug('TD Filewriter : data writen to %s [%d]',self.filepath,n)
 
 """
 class T1FileWriter(FileWriter):
