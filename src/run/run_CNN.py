@@ -111,11 +111,11 @@ def runCNN(arg):
 	##########################
 	if model_config['processes']['export_data']:
 		exportFeatures(cnn,model_config,data_spec)
-
+	
 	logger.info('Saving model to ' + str(model_config['output_file'])+ '....')
 	cnn.save(filename=model_config['output_file']);
 	logger.info('Saved model to ' + str(model_config['output_file']))
-
+	
 
 	##############################
 	##	Plotting  Layer output ##

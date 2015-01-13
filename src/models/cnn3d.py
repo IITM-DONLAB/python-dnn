@@ -35,17 +35,18 @@ class CNN3DBase(nnet):
 		self.mlp_layers = []
 		self.conv_layers = []
 	
-	"""
+	
 	def save_cnn2dict(self):
 		n_layers = self.conv_layer_num
 		cnn_dict = {}
 		for i in xrange(n_layers):
 			conv_layer = self.conv_layers[i]
 			filter_shape = conv_layer.filter_shape
-			for next_X in xrange(filter_shape[0]):
-				for this_X in xrange(filter_shape[1]):
-					dict_a = 'W ' + str(i) + ' ' + str(next_X) + ' ' + str(this_X) 
-					cnn_dict[dict_a] = _array2string((conv_layer.W.get_value())[next_X, this_X])
+			for X_0 in xrange(filter_shape[0]):
+				for X_1 in xrange(filter_shape[1]):
+					for X_2 in xrange(filter_shape[2]):
+						dict_a = 'W ' + str(i) + ' ' + str(X_0) + ' ' + str(X_1) + ' ' + str(X_2) 
+						cnn_dict[dict_a] = _array2string((conv_layer.W.get_value())[X_0, X_1, X_2])
 	
 			dict_a = 'b ' + str(i)
 			cnn_dict[dict_a] = _array2string(conv_layer.b.get_value())
@@ -78,10 +79,11 @@ class CNN3DBase(nnet):
 			filter_shape = conv_layer.filter_shape
 			W_array = conv_layer.W.get_value()
 			
-			for next_X in xrange(filter_shape[0]):
-				for this_X in xrange(filter_shape[1]):
-					dict_a = 'W ' + str(i) + ' ' + str(next_X) + ' ' + str(this_X)
-					W_array[next_X, this_X, :, :] = numpy.asarray(_string2array(cnn_dict[dict_a]))
+			for X_0 in xrange(filter_shape[0]):
+				for X_1 in xrange(filter_shape[1]):
+					for X_2 in xrange(filter_shape[2]):
+						dict_a = 'W ' + str(i) + ' ' + str(X_0) + ' ' + str(X_1) + ' ' + str(X_2)
+						W_array[X_0,X_1,X_2, :, :] = numpy.asarray(_string2array(cnn_dict[dict_a]))
 					
 			conv_layer.W.set_value(W_array) 
 			dict_a = 'b ' + str(i)
@@ -124,7 +126,7 @@ class CNN3DBase(nnet):
 		
 		if withMLP and not mlp_dict is None:
 			self.load_dict2mlp(mlp_dict,max_layer_num)
-	
+	"""
 	def getLayerOutFunction(self,idx):
 		in_x = self.x.type('in_x');
 		fn = theano.function(inputs=[in_x],outputs=self.layers[idx].output,

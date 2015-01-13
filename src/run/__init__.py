@@ -136,15 +136,11 @@ def exportFeatures(nnetModel,model_config,data_spec):
 
 
 def saveLabels(nnetModel,export_path,data_spec):
-	"""
-	TODO:Write label to file;
-	"""
-	#fo = open(export_path, "w").close
-	test_sets  = read_dataset(data_spec,pad_zeros=True,makeShared=False)
-	# get the testing function for the model
 	logger.info('Getting the Test(Get Label) function')
+	#fp = open(out_path, "w");
+	test_sets  = read_dataset(data_spec,pad_zeros=True,makeShared=False)
+	# get the label function for the model
 	getLabel = nnetModel.getLabelFunction()
-	x=0;
 	batch_size = test_sets.batch_size
 	with open(export_path,'w') as fp:
 		while (not test_sets.is_finish()):
@@ -152,12 +148,13 @@ def saveLabels(nnetModel,export_path,data_spec):
 				s_idx = batch_index*batch_size;
 				e_idx = s_idx+batch_size;
 				pred = getLabel(test_sets.feat[s_idx:e_idx])
-
-                                if ((batch_index == test_sets.nBatches-1) and
-                                    (not test_sets.num_pad_frames == 0)) :
-                                        pred=pred[:-test_sets.num_pad_frames]
-                                x=x+len(pred)
-				numpy.savetxt(fp, pred.T,fmt='%d')
+				act = test_sets.label[s_idx:e_idx]
+				if ((batch_index == test_sets.nBatches-1) and
+					(not test_sets.num_pad_frames == 0)) :
+						pred=pred[:-test_sets.num_pad_frames]
+						act= act[:-test_sets.num_pad_frames]
+				labels = zip(pred.T,act)
+				numpy.savetxt(fp, labels,fmt='%d %d')
 			test_sets.read_next_partition_data(pad_zeros=True);
 
 
