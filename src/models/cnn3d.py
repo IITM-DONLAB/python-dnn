@@ -126,13 +126,13 @@ class CNN3DBase(nnet):
 		
 		if withMLP and not mlp_dict is None:
 			self.load_dict2mlp(mlp_dict,max_layer_num)
-	"""
+	
 	def getLayerOutFunction(self,idx):
 		in_x = self.x.type('in_x');
 		fn = theano.function(inputs=[in_x],outputs=self.layers[idx].output,
 			givens={self.x: in_x})
 		return fn
-	
+	"""
 	def plot_layer_output(self,plot_spec,plot_path,max_images=10):
 		#default all nodes set to value 1
 		#inp = numpy.random.random(self.conv_input_dim).astype(theano.config.floatX);
@@ -235,7 +235,7 @@ class CNN3D(CNN3DBase):
 		if self.l2_reg is not None:
 			self.__l2Regularization__(self.hidden_layer_num*2);
 		
-	"""	
+	
 	def save_mlp2dict(self,withfinal=True,max_layer_num=-1):
 		if max_layer_num == -1:
 		   max_layer_num = self.hidden_layer_num
@@ -252,7 +252,7 @@ class CNN3D(CNN3DBase):
 			dict_a = 'logreg b'
 			mlp_dict[dict_a] = _array2string(self.logLayer.params[1].get_value())
 		return mlp_dict
-	"""
+	
 
 ######################################## Dropout CNN ############################################
 """

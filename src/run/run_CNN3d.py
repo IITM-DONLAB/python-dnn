@@ -67,7 +67,7 @@ def runCNN3D(arg):
 			conv_activation = conv_activation,hidden_activation = hidden_activation,
 			l1_reg = mlp_config['l1_reg'],l2_reg = mlp_config['l1_reg'],max_col_norm = mlp_config['max_col_norm'])
 	
-	"""			
+				
 	########################
 	 # Loading  THE MODEL #
 	########################
@@ -84,7 +84,6 @@ def runCNN3D(arg):
 		logger.error('Model cannot be initialize from input file ')
 		exit(2)
 
-	"""	
 	
 	
 	########################
@@ -100,18 +99,19 @@ def runCNN3D(arg):
 	if model_config['processes']['testing']:
 		testing(cnn,data_spec)
 	
-	"""
+	
 	##########################
 	##   Export Features    ##
 	##########################
 	if model_config['processes']['export_data']:
 		exportFeatures(cnn,model_config,data_spec)
-
+	
+	
 	logger.info('Saving model to ' + str(model_config['output_file'])+ '....')
 	cnn.save(filename=model_config['output_file']);
 	logger.info('Saved model to ' + str(model_config['output_file']))
 
-
+	"""
 	##############################
 	##	Plotting  Layer output ##
 	##############################
