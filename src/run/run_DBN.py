@@ -27,6 +27,7 @@ from theano.tensor.shared_randomstreams import RandomStreams
 from utils.load_conf import load_model,load_rbm_spec,load_data_spec
 from models.dbn import DBN
 from io_modules.file_reader import read_dataset
+from io_modules.data_exporter import export_data
 from io_modules import setLogger
 from utils.utils import parse_activation
 
@@ -36,6 +37,16 @@ from run import createDir
 
 import logging
 logger = logging.getLogger(__name__)
+
+
+def getFunction(dbn):
+    (op,k) = dbn.rbm_layers[-1].propdown(dbn.features);
+    in_x = dbn.x.type('in_x');
+    fn = theano.function(inputs=[in_x],outputs=op,
+                         givens={dbn.x: in_x},name='re')#,on_unused_input='warn')
+    return fn
+
+    
 
 def preTraining(dbn,train_sets,pretrain_config):
 
@@ -162,6 +173,13 @@ def runRBM(arg):
     ##########################
     if model_config['processes']['export_data']:
         exportFeatures(dbn,model_config,data_spec)
+        export_path = model_config['export_path']+'.re'
+        data_spec_testing = data_spec['testing']
+
+        out_function = getFunction(dbn)
+        export_data(data_spec_testing,export_path,out_function,
+                    model_config['n_ins']);
+
 
     logger.info('Saving model to ' + str(model_config['output_file']) + ' ....')
     dbn.save(filename=model_config['output_file'], withfinal=True);
