@@ -141,6 +141,7 @@ def saveLabels(nnetModel,export_path,data_spec):
 	test_sets  = read_dataset(data_spec,pad_zeros=True,makeShared=False)
 	# get the label function for the model
 	getLabel = nnetModel.getLabelFunction()
+
 	batch_size = test_sets.batch_size
 	with open(export_path,'w') as fp:
 		while (not test_sets.is_finish()):
@@ -148,6 +149,7 @@ def saveLabels(nnetModel,export_path,data_spec):
 				s_idx = batch_index*batch_size;
 				e_idx = s_idx+batch_size;
 				pred = getLabel(test_sets.feat[s_idx:e_idx])
+
 				act = test_sets.label[s_idx:e_idx]
 				if ((batch_index == test_sets.nBatches-1) and
 					(not test_sets.num_pad_frames == 0)) :

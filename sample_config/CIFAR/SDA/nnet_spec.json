@@ -1,0 +1,6 @@
+{
+    "hidden_layers": [3000,4000,1000,100],
+    "corruption_levels":  [0.1, 0.2, 0.3,0.2],
+    "activation" : "tanh"
+
+}

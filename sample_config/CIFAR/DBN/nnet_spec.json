@@ -1,6 +1,5 @@
 {
-  "hidden_layers": [3500,4000,3000,2000,1000,100],
+  "hidden_layers": [3500,4000,2500,100],
   "activation" : "sigmoid",
-  "pretrained_layers" : 6,
   "first_layer_type" : "gb"
 }
