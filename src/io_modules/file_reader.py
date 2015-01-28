@@ -261,6 +261,21 @@ class TDFileReader(FileReader):
 	def skipHeader(self):
 		self.filehandle.seek(self.header_size,0)
 
+	def initialize_read(self,makeShared=True):
+		''' Initialize the file_reader options'''
+		logger.debug("File reader is initialzed again for file reading");
+		self.finished = False
+		if self.partition_num == 1:
+			logger.debug("File reader:Only one partition keep same.");
+		else:
+			self.num_pad_frames = 0
+			#self.frames_per_partition = 0
+			self.partition_num = 0
+			self.label = None
+			self.feat = None
+			self.skipHeader()
+			#self.read_next_partition_data(makeShared=makeShared)
+
 	def read_next_partition_data(self,already_read=0,pad_zeros=False,makeShared=True):
 
 		if self.finished:
@@ -324,6 +339,7 @@ class T1FileReader(FileReader):
 		self.options=options;
 		self.batch_size = options['batch_size']
 		self.partition = options['partition']
+		self.frames_per_class=0;
 		self.read_file_info();
 
 	def read_file_info(self):
@@ -422,10 +438,10 @@ class T1FileReader(FileReader):
 			logger.debug('TD Filereader : NO more frames to read from %s',self.filepath)
 
 	def initialize_read(self,makeShared=True):
-		logger.debug("File reader is initialzed again for file reading");
+		logger.debug("File reader [T1] is initialzed again for file reading");
 		self.finished = False
 		if self.partition_num == 1:
-			logger.debug("File reader:Only one partition keep same.");
+			logger.debug("File reader [T1]:Only one partition. keep same.");
 		else:
 			self.num_pad_frames = 0
 			#self.frames_per_partition = 0
