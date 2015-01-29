@@ -10,6 +10,7 @@ from layers.mlp import HiddenLayer,DropoutHiddenLayer,_dropout_from_layer
 from collections import OrderedDict
 from io_modules.file_reader import read_dataset
 from utils.plotter import plot
+from utils.utils import parse_activation
 
 import logging
 logger = logging.getLogger(__name__)
@@ -157,8 +158,7 @@ class CNNBase(nnet):
 class CNN(CNNBase):
 	""" Instantiation of Convolution neural network ... """
 	def __init__(self, numpy_rng, theano_rng, batch_size, n_outs,conv_layer_configs, hidden_layer_configs, 
-			use_fast=False,conv_activation = T.nnet.sigmoid,hidden_activation = T.nnet.sigmoid,
-			l1_reg=None,l2_reg=None,max_col_norm=None):
+			use_fast=False,hidden_activation = T.nnet.sigmoid,l1_reg=None,l2_reg=None,max_col_norm=None):
 
 		super(CNN, self).__init__(conv_layer_configs, hidden_layer_configs,l1_reg,l2_reg,max_col_norm)
 		if not theano_rng:
@@ -171,7 +171,7 @@ class CNN(CNNBase):
 				input = self.layers[-1].output #output of previous layer
 			
 			config = conv_layer_configs[i]
-	
+			conv_activation= parse_activation(config['activation'])
 			conv_layer = ConvLayer(numpy_rng=numpy_rng, input=input,input_shape=config['input_shape'],
 				filter_shape=config['filter_shape'],poolsize=config['poolsize'],
 				activation = conv_activation, use_fast = use_fast)
@@ -255,8 +255,8 @@ class CNN(CNNBase):
 class DropoutCNN(CNNBase):
 	""" Instantiation of Convolution neural network ... """
 	def __init__(self, numpy_rng, theano_rng, batch_size, n_outs,conv_layer_configs, hidden_layer_configs, 
-			use_fast=False,conv_activation = T.nnet.sigmoid,hidden_activation = T.nnet.sigmoid,
-			l1_reg=None,l2_reg=None,max_col_norm=None,input_dropout_factor=0.0):
+			use_fast=False,hidden_activation = T.nnet.sigmoid,l1_reg=None,l2_reg=None,
+			max_col_norm=None,input_dropout_factor=0.0):
 
 		super(DropoutCNN, self).__init__(conv_layer_configs,hidden_layer_configs,l1_reg,l2_reg,max_col_norm)
 		self.input_dropout_factor = input_dropout_factor;
@@ -277,7 +277,7 @@ class DropoutCNN(CNNBase):
 				dropout_conv_input = self.dropout_layers[-1].dropout_output;
 				
 			config = conv_layer_configs[i]
-			
+			activation = conv_activation
 			dropout_conv_layer = DropoutConvLayer(numpy_rng=numpy_rng, input=dropout_conv_input,
 				input_shape=config['input_shape'],filter_shape=config['filter_shape'],poolsize=config['poolsize'],
 				activation = conv_activation, use_fast = use_fast,dropout_factor=conv_layer_configs[i]['dropout_factor'])

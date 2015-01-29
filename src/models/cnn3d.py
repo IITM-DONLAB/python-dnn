@@ -10,6 +10,7 @@ from layers.mlp import HiddenLayer,DropoutHiddenLayer,_dropout_from_layer
 from collections import OrderedDict
 from io_modules.file_reader import read_dataset
 from utils.plotter import plot
+from utils.utils import parse_activation
 
 import logging
 logger = logging.getLogger(__name__)
@@ -158,8 +159,8 @@ class CNN3DBase(nnet):
 
 class CNN3D(CNN3DBase):
 	""" Instantiation of Convolution neural network ... """
-	def __init__(self, numpy_rng, theano_rng, batch_size, n_outs,conv_layer_configs, hidden_layer_configs, 
-			conv_activation = T.nnet.sigmoid,hidden_activation = T.nnet.sigmoid,l1_reg=None,l2_reg=None,max_col_norm=None):
+	def __init__(self, numpy_rng, theano_rng, batch_size, n_outs,conv_layer_configs, hidden_layer_configs,
+		hidden_activation = T.nnet.sigmoid,l1_reg=None,l2_reg=None,max_col_norm=None):
 
 		super(CNN3D, self).__init__(conv_layer_configs, hidden_layer_configs,l1_reg,l2_reg,max_col_norm)
 		if not theano_rng:
@@ -172,7 +173,7 @@ class CNN3D(CNN3DBase):
 				input = self.layers[-1].output #output of previous layer
 			
 			config = conv_layer_configs[i]
-	
+			conv_activation = parse_activation(config['activation']);
 			conv_layer = ConvLayer(numpy_rng=numpy_rng, input=input,input_shape=config['input_shape'],
 				filter_shape=config['filter_shape'],poolsize=config['poolsize'],
 				activation = conv_activation)

@@ -15,7 +15,7 @@
 # See the Apache 2 License for the specific language governing permissions and
 # limitations under the License.
 
-import cPickle, gzip, os, time,sys
+import sys
 from models.cnn3d import CNN3D
 import numpy
 
@@ -53,7 +53,6 @@ def runCNN3D(arg):
 	theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
 	
 	logger.info('> ... building the model')
-	conv_activation = parse_activation(conv_config['activation']);
 	hidden_activation = parse_activation(mlp_config['activation']);
 
 	createDir(model_config['wdir']);
@@ -63,8 +62,7 @@ def runCNN3D(arg):
 	batch_size = model_config['batch_size'];
 	
 	cnn = CNN3D(numpy_rng,theano_rng,conv_layer_configs = conv_layer_config, batch_size = batch_size,
-			n_outs=model_config['n_outs'],hidden_layer_configs=mlp_config, 
-			conv_activation = conv_activation,hidden_activation = hidden_activation,
+			n_outs=model_config['n_outs'],hidden_layer_configs=mlp_config,hidden_activation = hidden_activation,
 			l1_reg = mlp_config['l1_reg'],l2_reg = mlp_config['l1_reg'],max_col_norm = mlp_config['max_col_norm'])
 	
 				

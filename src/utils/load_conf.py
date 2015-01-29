@@ -277,6 +277,9 @@ def load_conv_spec(input_file,batch_size,input_shape):
 	else:
 		cnn_data['input_dropout_factor']=0.0;
 	
+	if not cnn_data.has_key('activation'):
+		cnn_data['activation'] =  "sigmoid";
+
 	#layer_configs
 	layer_configs=cnn_data.pop('layers');
 	conv_configs = cnn_data;
@@ -310,6 +313,9 @@ def load_conv_spec(input_file,batch_size,input_shape):
 			input_shape.append((inp-wdim+1)/pool);
 		layer_configs[layer_index]['output_shape'].extend(input_shape)
 		
+		if not layer_configs[layer_index].has_key('activation'):
+			layer_configs[layer_index]['activation'] =  cnn_data['activation'];
+
 		if (do_dropout and (not layer_configs[layer_index].has_key('dropout_factor') and 
 				not type(layer_configs[layer_index]['dropout_factor']) is float)):
 			logger.critical("dropout_factor of cnn layer  %d is not present (or not a float) in mlp_configuration"%layer_index)
@@ -317,6 +323,8 @@ def load_conv_spec(input_file,batch_size,input_shape):
 		elif not do_dropout:
 			layer_configs[layer_index]['dropout_factor']=0.0;
 		
+
+
 		prev_map_number = current_map_number
 		
 	

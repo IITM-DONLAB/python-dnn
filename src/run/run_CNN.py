@@ -25,9 +25,8 @@ from theano.tensor.shared_randomstreams import RandomStreams
 
 from utils.load_conf import load_model,load_conv_spec,load_data_spec
 from io_modules.file_reader import read_dataset
-from utils.utils import parse_activation
 from io_modules import setLogger
-
+from utils.utils import parse_activation
 from run import fineTunning,testing,exportFeatures,createDir
 
 import logging
@@ -53,8 +52,7 @@ def runCNN(arg):
 	theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
 	
 	logger.info('> ... building the model')
-	conv_activation = parse_activation(conv_config['activation']);
-	hidden_activation = parse_activation(mlp_config['activation']);
+	activationFn = parse_activation(mlp_config['activation']);
 
 	createDir(model_config['wdir']);
 	#create working dir
@@ -64,14 +62,14 @@ def runCNN(arg):
 		logger.info('>Initializing dropout cnn model')
 		cnn = DropoutCNN(numpy_rng,theano_rng,conv_layer_configs = conv_layer_config, batch_size = batch_size,
 				n_outs=model_config['n_outs'],hidden_layer_configs=mlp_config, 
-				conv_activation = conv_activation,hidden_activation = hidden_activation,
+				hidden_activation = activationFn,
 				use_fast = conv_config['use_fast'],l1_reg = mlp_config['l1_reg'],
 				l2_reg = mlp_config['l1_reg'],max_col_norm = mlp_config['max_col_norm'],
 				input_dropout_factor=conv_config['input_dropout_factor'])
 	else:
 		cnn = CNN(numpy_rng,theano_rng,conv_layer_configs = conv_layer_config, batch_size = batch_size,
 				n_outs=model_config['n_outs'],hidden_layer_configs=mlp_config, 
-				conv_activation = conv_activation,hidden_activation = hidden_activation,
+				hidden_activation = activationFn,
 				use_fast = conv_config['use_fast'],l1_reg = mlp_config['l1_reg'],
 				l2_reg = mlp_config['l1_reg'],max_col_norm = mlp_config['max_col_norm'])
 				

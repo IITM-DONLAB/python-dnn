@@ -33,26 +33,26 @@ class HiddenLayer(object):
 		self.delta_W = theano.shared(value = numpy.zeros((n_in,n_out),dtype=theano.config.floatX), name='delta_W')
 		self.delta_b = theano.shared(value = numpy.zeros_like(self.b.get_value(borrow=True), dtype=theano.config.floatX), name='delta_b')
 
-		lin_output = T.dot(input, self.W) + self.b
+		self.lin_output = T.dot(input, self.W) + self.b
 	
 		if adv_activation_method == 'maxout':	# pooling of output of neuron based on poolsize
 			self.last_start = n_out - pool_size
-			self.tmp_output = lin_output[:,0:self.last_start+1:pool_size]
+			self.tmp_output = self.lin_output[:,0:self.last_start+1:pool_size]
 			for i in range(1, pool_size):
-				cur = lin_output[:,i:self.last_start+i+1:pool_size]
+				cur = self.lin_output[:,i:self.last_start+i+1:pool_size]
 				self.tmp_output = T.maximum(cur, self.tmp_output)
 			self.output = activation(self.tmp_output)
 		elif adv_activation_method == 'pnorm': # pooling of output of neuron based on poolsize and normalizing the output
 			self.last_start = n_out - pool_size
-			self.tmp_output = abs(lin_output[:,0:self.last_start+1:pool_size]) ** pnorm_order
+			self.tmp_output = abs(self.lin_output[:,0:self.last_start+1:pool_size]) ** pnorm_order
 			for i in range(1, pool_size):
-				cur = abs(lin_output[:,i:self.last_start+i+1:pool_size]) ** pnorm_order
+				cur = abs(self.lin_output[:,i:self.last_start+i+1:pool_size]) ** pnorm_order
 				self.tmp_output = self.tmp_output + cur
 			self.tmp_output = self.tmp_output ** (1.0 / pnorm_order)
 			self.output = activation(self.tmp_output)
 		else:
-			self.output = (lin_output if activation is None
-						   else activation(lin_output))
+			self.output = (self.lin_output if activation is None
+						   else activation(self.lin_output))
 
 		# parameters of the model
 		self.params = [self.W, self.b]
