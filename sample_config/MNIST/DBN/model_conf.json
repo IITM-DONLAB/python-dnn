@@ -1,6 +1,6 @@
 {
     "nnetType" : "RBM",
-    "wdir" : "wdir",
+    "wdir" : "MNIST_DBN",
     "data_spec" : "data_spec.json",
     "nnet_spec" : "rbm_spec.json",
     "output_file" : "rbm_out.model",

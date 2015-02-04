@@ -141,7 +141,7 @@ class CNNBase(nnet):
 			img_plot_remaining = max_images;
 			layer_out_fn = self.getLayerOutFunction(layer_idx);
 			logger.info('Plotting the layer %d'%layer_idx);
-			file_reader =read_dataset(plot_spec,pad_zeros=True)[0];
+			file_reader =read_dataset(plot_spec,pad_zeros=True);
 			while not file_reader.is_finish():
 				for batch_index in xrange(file_reader.cur_frame_num/batch_size):
 					s_idx = batch_index * batch_size; e_idx = s_idx + batch_size
@@ -277,7 +277,7 @@ class DropoutCNN(CNNBase):
 				dropout_conv_input = self.dropout_layers[-1].dropout_output;
 				
 			config = conv_layer_configs[i]
-			activation = conv_activation
+			conv_activation= parse_activation(config['activation'])
 			dropout_conv_layer = DropoutConvLayer(numpy_rng=numpy_rng, input=dropout_conv_input,
 				input_shape=config['input_shape'],filter_shape=config['filter_shape'],poolsize=config['poolsize'],
 				activation = conv_activation, use_fast = use_fast,dropout_factor=conv_layer_configs[i]['dropout_factor'])

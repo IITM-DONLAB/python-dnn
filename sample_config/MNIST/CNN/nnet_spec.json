@@ -26,16 +26,12 @@
     "mlp" : {  
         "hidden_layers": [50],
         "adv_activation" : null,
-		"max_col_norm":null,
-		"l1_reg":null,
-		"l2_reg":null,
-		"do_dropout" : true,
-		"dropout_factor" : [0.2],
-		"activation" : "tanh"
-    },
-    "a" : {
-			"method":"maxout",
-			"pool_size":1
-		}
+	"max_col_norm":null,
+	"l1_reg":null,
+	"l2_reg":null,
+	"do_dropout" : true,
+	"dropout_factor" : [0.2],
+	"activation" : "tanh"
+    }
     
 }

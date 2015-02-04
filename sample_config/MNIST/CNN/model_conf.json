@@ -1,6 +1,6 @@
 {
 	"nnetType" : "CNN",
-	"wdir" : "wdir",
+	"wdir" : "MNIST_CNN",
 	"data_spec" : "data_spec.json",
 	"nnet_spec" : "nnet_spec.json",
 	"output_file" : "conv_out.model",
@@ -16,7 +16,7 @@
 		"scale_by" : 0.5,
 		"min_derror_decay_start" : 0.05,
 		"min_derror_stop" : 0.0005,
-		"min_epoch_decay_start" : 15
+		"min_epoch_decay_start" : 5
 	},
 	"export_path":"data/cnn/",
 	"plot_path":"plot/",

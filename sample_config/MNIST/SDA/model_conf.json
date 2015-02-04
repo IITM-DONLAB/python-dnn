@@ -1,6 +1,6 @@
 {
     "nnetType" : "SDA",
-    "wdir" : "wdir",
+    "wdir" : "MNIST_SDA",
     "data_spec" : "data_spec.json",
     "nnet_spec" : "sda_spec.json",
     "output_file" : "sda_out.model",
@@ -16,7 +16,7 @@
     "finetune_params" : {
         "method":"C",
         "learning_rate" : 0.08,
-        "epoch_num" : 10,
+        "epoch_num" : 5,
         "start_rate" : 0.08,
         "scale_by" : 0.5,
         "min_derror_decay_start" : 0.05,

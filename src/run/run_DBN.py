@@ -167,25 +167,16 @@ def runRBM(arg):
     ########################
     if model_config['processes']['testing']:
         testing(dbn,data_spec)
-
     ##########################
-    ##   Export Features    ##
+    #   Export Features	##
     ##########################
     if model_config['processes']['export_data']:
-        exportFeatures(dbn,model_config,data_spec)
-        export_path = model_config['export_path']+'.re'
-        data_spec_testing = data_spec['testing']
-
-        out_function = getFunction(dbn)
-        export_data(data_spec_testing,export_path,out_function,
-                    model_config['n_ins']);
+	exportFeatures(dbn,model_config,data_spec)
 
 
-    logger.info('Saving model to ' + str(model_config['output_file']) + ' ....')
-    dbn.save(filename=model_config['output_file'], withfinal=True);
+    logger.info('Saving model to ' + str(model_config['output_file']) + '....')
+    dbn.save(filename=model_config['output_file'])
     logger.info('Saved model to ' + str(model_config['output_file']))
-
-
 
 if __name__ == '__main__':
     import sys
