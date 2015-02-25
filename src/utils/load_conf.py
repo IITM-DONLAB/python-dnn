@@ -104,7 +104,7 @@ def initFinetuneParams(data):
 			not type(finetune_params['min_derror_stop']) is float):
 			finetune_params['min_derror_stop'] = 0.05
 		if (not finetune_params.has_key('min_epoch_decay_start') or
-			not type(finetune_params['min_epoch_decay_start']) is float):
+			not type(finetune_params['min_epoch_decay_start']) is int):
 			finetune_params['min_epoch_decay_start'] = 15
 	return data
 
