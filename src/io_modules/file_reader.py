@@ -503,6 +503,8 @@ class T2FileReader(FileReader):
 		self.header['featdim'] = self.feat_dim
 		self.header['classes'] = self.classes
 
+		self.childhandles = [None for i in xrange(self.classes)]
+
 		logger.debug('T2 Filereader : feat : %d' % self.feat_dim)
 
 		#load filehandle for all classes
@@ -521,6 +523,7 @@ class T2FileReader(FileReader):
 		batch_size = self.batch_size
 		self.setPartitionFrames()
 
+		#logger.critical(str(self.last_class_idx))
 
 		if self.frames_per_partition < self.classes:
 			logger.critical('Number of frames per partition must be greater than the number of classes,'
@@ -538,12 +541,12 @@ class T2FileReader(FileReader):
 		while cur_frame_num < self.frames_per_partition and none_cnt < self.classes :
 			if self.childhandles[self.last_class_idx] is None:	
 				#if the child handle is not initialized
-				data_file = self.filenames[self.last_class_idx][fileIndex[self.last_class_idx]];
+				data_file = self.filenames[self.last_class_idx][self.fileIndex[self.last_class_idx]];
 				##Get Next Filename in last Class.
 				if data_file != None:
 					#if Next Filename == NULL;
 
-					fileIndex[self.last_class_idx] = fileIndex[self.last_class_idx] + 1;
+					self.fileIndex[self.last_class_idx] = self.fileIndex[self.last_class_idx] + 1;
 					child_options = self.options.copy()
 					child_options['filename']=data_file
 					child_options['label']= self.last_class_idx
