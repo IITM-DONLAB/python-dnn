@@ -163,7 +163,7 @@ class CNN(CNNBase):
 		super(CNN, self).__init__(conv_layer_configs, hidden_layer_configs,l1_reg,l2_reg,max_col_norm)
 		if not theano_rng:
 			theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
-			            
+						
 		for i in xrange(self.conv_layer_num):		# construct the convolution layer
 			if i == 0:  				#is_input layer
 				input = self.x
@@ -185,13 +185,11 @@ class CNN(CNNBase):
 		self.conv_output_dim = config['output_shape'][1] * config['output_shape'][2] * config['output_shape'][3]
 		adv_activation_configs = hidden_layer_configs['adv_activation'] 
 		#flattening the last convolution output layer
-		self.features = self.conv_layers[-1].output.flatten(2);
-		self.features_dim = self.conv_output_dim;
 		
 		for i in xrange(self.hidden_layer_num):		# construct the hidden layer
 			if i == 0:				# is first sigmoidla layer
 				input_size = self.conv_output_dim
-				layer_input = self.features
+				layer_input = self.conv_layers[-1].output.flatten(2);
 			else:
 				input_size = hidden_layers[i - 1]	# number of hidden neurons in previous layers
 				layer_input = self.layers[-1].output
@@ -213,9 +211,9 @@ class CNN(CNNBase):
 			self.mlp_layers.append(sigmoid_layer)
 
 			if config['update']==True:	# only few layers of hidden layer are considered for updation
-                		self.params.extend(sigmoid_layer.params)
-                		self.delta_params.extend(sigmoid_layer.delta_params)
-           
+						self.params.extend(sigmoid_layer.params)
+						self.delta_params.extend(sigmoid_layer.delta_params)
+
 
 		self.logLayer = LogisticRegression(input=self.layers[-1].output,n_in=hidden_layers[-1],n_out=n_outs)
 		
@@ -232,6 +230,9 @@ class CNN(CNNBase):
 			self.__l1Regularization__(self.hidden_layer_num*2);
 		if self.l2_reg is not None:
 			self.__l2Regularization__(self.hidden_layer_num*2);
+
+		self.features = self.layers[-2].output;
+		self.features_dim = self.layers[-2].n_out
 		
 		
 	def save_mlp2dict(self,withfinal=True,max_layer_num=-1):
@@ -264,7 +265,7 @@ class DropoutCNN(CNNBase):
 		self.dropout_layers = []
 		if not theano_rng:
 			theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
-            
+			
 		for i in xrange(self.conv_layer_num):		# construct the convolution layer
 			if i == 0:  							#is_input layer
 				conv_input = self.x
@@ -301,8 +302,6 @@ class DropoutCNN(CNNBase):
 		
 		#flattening the last convolution output layer
 		self.dropout_features = self.dropout_layers[-1].dropout_output.flatten(2);
-		self.features = self.conv_layers[-1].output.flatten(2);
-		self.features_dim = self.conv_output_dim;
 
 		self.dropout_layers = [];
 		self.dropout_factor = hidden_layer_configs['dropout_factor'];
@@ -311,7 +310,7 @@ class DropoutCNN(CNNBase):
 			if i == 0:								# is first sigmoidal layer
 				input_size = self.conv_output_dim
 				dropout_layer_input = self.dropout_features
-				layer_input = self.features
+				layer_input = self.conv_layers[-1].output.flatten(2);
 			else:
 				input_size = hidden_layers[i - 1]	# number of hidden neurons in previous layers
 				dropout_layer_input = self.dropout_layers[-1].dropout_output			
@@ -364,15 +363,17 @@ class DropoutCNN(CNNBase):
 		self.finetune_cost = self.dropout_logLayer.negative_log_likelihood(self.y)
 		self.errors = self.logLayer.errors(self.y)
 		self.output = self.logLayer.prediction()
+
+		self.features = self.layers[-2].output;
+		self.features_dim = self.layers[-2].n_out
 		
 		#regularization
 		if self.l1_reg is not None:
 			self.__l1Regularization__(self.hidden_layer_num*2);
 		if self.l2_reg is not None:
 			self.__l2Regularization__(self.hidden_layer_num*2);
-			
-			
-			
+
+
 	def save_mlp2dict(self,withfinal=True,max_layer_num=-1):
 		if max_layer_num == -1:
 		   max_layer_num = self.hidden_layer_num

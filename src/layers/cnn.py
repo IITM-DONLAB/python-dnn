@@ -87,7 +87,7 @@ class DropoutConvLayer(ConvLayer):
 		self.dropout_output = dropout_prob * self.output
 
 def _dropout_from_layer(theano_rng, hid_out, p=0.5):
-    """ p is the factor for dropping a unit """
-    # p=1-p because 1's indicate keep and p is prob of dropping
-    return theano_rng.binomial(n=1, p=1-p, size=hid_out.shape,dtype=theano.config.floatX) * hid_out
+	""" p is the factor for dropping a unit """
+	# p=1-p because 1's indicate keep and p is prob of dropping
+	return theano_rng.binomial(n=1, p=1-p, size=hid_out.shape,dtype=theano.config.floatX) * hid_out
 		
