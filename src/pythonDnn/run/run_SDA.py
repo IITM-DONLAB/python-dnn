@@ -22,13 +22,13 @@ import numpy
 import theano
 
 #module imports
-from io_modules.file_reader import read_dataset
-from io_modules import setLogger
-from utils.utils import parse_activation
-from utils.load_conf import load_model,load_sda_spec,load_data_spec
+from pythonDnn.io_modules.file_reader import read_dataset
+from pythonDnn.io_modules import setLogger
+from pythonDnn.utils.utils import parse_activation
+from pythonDnn.utils.load_conf import load_model,load_sda_spec,load_data_spec
 
-from models.sda import SDA
-from run import fineTunning,testing,exportFeatures,createDir
+from pythonDnn.models.sda import SDA
+from pythonDnn.run import fineTunning,testing,exportFeatures,createDir
 
 
 import logging

@@ -36,11 +36,11 @@ import theano
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
 
-from layers.logistic_sgd import LogisticRegression
-from layers.mlp import HiddenLayer
-from layers.dA import dA
+from pythonDnn.layers.logistic_sgd import LogisticRegression
+from pythonDnn.layers.mlp import HiddenLayer
+from pythonDnn.layers.dA import dA
 
-from models import nnet
+from pythonDnn.models import nnet
 
 
 class SDA(nnet):

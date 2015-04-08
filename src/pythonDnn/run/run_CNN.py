@@ -16,18 +16,18 @@
 # limitations under the License.
 
 import cPickle, gzip, os, time,sys
-from models.cnn import CNN,DropoutCNN;
+from pythonDnn.models.cnn import CNN,DropoutCNN;
 import numpy
 
 import theano
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
 
-from utils.load_conf import load_model,load_conv_spec,load_data_spec
-from io_modules.file_reader import read_dataset
-from io_modules import setLogger
-from utils.utils import parse_activation
-from run import fineTunning,testing,exportFeatures,createDir
+from pythonDnn.utils.load_conf import load_model,load_conv_spec,load_data_spec
+from pythonDnn.io_modules.file_reader import read_dataset
+from pythonDnn.io_modules import setLogger
+from pythonDnn.utils.utils import parse_activation
+from pythonDnn.run import fineTunning,testing,exportFeatures,createDir
 
 import logging
 logger = logging.getLogger(__name__)

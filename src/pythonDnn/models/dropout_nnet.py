@@ -20,10 +20,10 @@ import theano
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
 
-from layers.logistic_sgd import LogisticRegression
-from layers.mlp import HiddenLayer, DropoutHiddenLayer, _dropout_from_layer
+from pythonDnn.layers.logistic_sgd import LogisticRegression
+from pythonDnn.layers.mlp import HiddenLayer, DropoutHiddenLayer, _dropout_from_layer
 
-from models import nnet,_array2string,_string2array
+from pythonDnn.models import nnet,_array2string,_string2array
 
 
 class DNN_Dropout(nnet):
