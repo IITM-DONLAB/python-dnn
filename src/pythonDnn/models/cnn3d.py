@@ -2,15 +2,15 @@ import theano,numpy
 import theano.tensor as T
 
 import json,os
-from models import nnet,_array2string,_string2array
+from pythonDnn.models import nnet,_array2string,_string2array
 
-from layers.cnn3d import ConvLayer
-from layers.logistic_sgd import LogisticRegression
-from layers.mlp import HiddenLayer,DropoutHiddenLayer,_dropout_from_layer
+from pythonDnn.layers.cnn3d import ConvLayer
+from pythonDnn.layers.logistic_sgd import LogisticRegression
+from pythonDnn.layers.mlp import HiddenLayer,DropoutHiddenLayer,_dropout_from_layer
 from collections import OrderedDict
-from io_modules.file_reader import read_dataset
-from utils.plotter import plot
-from utils.utils import parse_activation
+from pythonDnn.io_modules.file_reader import read_dataset
+from pythonDnn.utils.plotter import plot
+from pythonDnn.utils.utils import parse_activation
 
 import logging
 logger = logging.getLogger(__name__)

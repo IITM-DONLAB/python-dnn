@@ -8,8 +8,8 @@ import theano
 import theano.tensor as T
 from theano.tensor.signal.downsample import DownsampleFactorMax
 import theano.tensor.nnet.conv3d2d
-from utils.utils import activation_to_txt
-from utils.max_pool import max_pool_3d
+from pythonDnn.utils.utils import activation_to_txt
+from pythonDnn.utils.max_pool import max_pool_3d
 T = theano.tensor
 floatX = theano.config.floatX
 

@@ -1,7 +1,7 @@
 import matplotlib
 import numpy as np
 import logging
-from io_modules import create_folder_structure_if_not_exists
+from pythonDnn.io_modules import create_folder_structure_if_not_exists
 logger = logging.getLogger(__name__)
 
 def plot(layer_output,path,layer_idx,batch_idx,img_plot_remaining,max_subplots=100):

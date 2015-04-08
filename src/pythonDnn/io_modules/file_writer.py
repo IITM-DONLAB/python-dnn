@@ -1,6 +1,6 @@
 
 import json,numpy,os
-from io_modules import create_folder_structure_if_not_exists
+from pythonDnn.io_modules import create_folder_structure_if_not_exists
 
 import logging
 logger = logging.getLogger(__name__)

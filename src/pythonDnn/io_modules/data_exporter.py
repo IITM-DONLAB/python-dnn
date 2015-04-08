@@ -2,10 +2,10 @@ import json,numpy,sys,os,shutil
 import theano
 import theano.tensor as T
 
-from utils.utils import dimshuffle
-from io_modules.file_writer import write_dataset
-from io_modules.file_reader import read_dataset
-from io_modules import create_folder_structure_if_not_exists
+from pythonDnn.utils.utils import dimshuffle
+from pythonDnn.io_modules.file_writer import write_dataset
+from pythonDnn.io_modules.file_reader import read_dataset
+from pythonDnn.io_modules import create_folder_structure_if_not_exists
 
 import logging
 logger = logging.getLogger(__name__)

@@ -1,7 +1,7 @@
 import json,numpy,sys,os
 import theano
 import theano.tensor as T
-from utils.utils import dimshuffle
+from pythonDnn.utils.utils import dimshuffle
 
 import logging
 logger = logging.getLogger(__name__)

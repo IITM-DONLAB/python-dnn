@@ -4,11 +4,11 @@ import numpy
 import theano
 import theano.tensor as T
 
-from layers.logistic_sgd import LogisticRegression
-from layers.mlp import HiddenLayer
-from layers.rbm import RBM, GBRBM
+from pythonDnn.layers.logistic_sgd import LogisticRegression
+from pythonDnn.layers.mlp import HiddenLayer
+from pythonDnn.layers.rbm import RBM, GBRBM
 
-from models import nnet
+from pythonDnn.models import nnet
 
 
 class DBN(nnet):

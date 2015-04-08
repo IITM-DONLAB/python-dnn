@@ -2,9 +2,9 @@ import time,numpy,os
 import logging
 logger = logging.getLogger(__name__)
 
-from io_modules.file_reader import read_dataset
-from utils.learn_rates import LearningRate
-from io_modules.data_exporter import export_data
+from pythonDnn.io_modules.file_reader import read_dataset
+from pythonDnn.utils.learn_rates import LearningRate
+from pythonDnn.io_modules.data_exporter import export_data
 
 def _testing(nnetModel,test_sets):
 

@@ -16,19 +16,19 @@
 # limitations under the License.
 
 import sys
-from models.cnn3d import CNN3D
+from pythonDnn.models.cnn3d import CNN3D
 import numpy
 
 import theano
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
 
-from utils.load_conf import load_model,load_conv_spec,load_data_spec,__debugPrintData__
-from io_modules.file_reader import read_dataset
-from utils.utils import parse_activation
-from io_modules import setLogger
+from pythonDnn.utils.load_conf import load_model,load_conv_spec,load_data_spec,__debugPrintData__
+from pythonDnn.io_modules.file_reader import read_dataset
+from pythonDnn.utils.utils import parse_activation
+from pythonDnn.io_modules import setLogger
 
-from run import fineTunning,testing,exportFeatures,createDir
+from pythonDnn.run import fineTunning,testing,exportFeatures,createDir
 
 import logging
 logger = logging.getLogger(__name__)
