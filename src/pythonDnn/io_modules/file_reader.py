@@ -283,7 +283,7 @@ class TDFileReader(FileReader):
 		#self.feat=[]
 		fvalues = []
 		cur_frame_num = 0
-		while  cur_frame_num < self.frames_per_partition-already_read:
+		while ((cur_frame_num < self.frames_per_partition-already_read) or self.frames_per_partition==float('inf')):
 			values = self.filehandle.readline().split()
 			if values.__len__()==0: #No more values available in the data file
 				break;
@@ -387,7 +387,7 @@ class T1FileReader(FileReader):
 		cur_frame_num = 0
 		feat = []
 		label = []
-		while cur_frame_num < self.frames_per_partition-already_read :
+		while ((cur_frame_num < self.frames_per_partition-already_read) or self.frames_per_partition==float('inf')):
 
 			if not self.filehandles[self.last_class_idx].finished:
 				#if TD is  not finshed.

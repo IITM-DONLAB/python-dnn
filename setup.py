@@ -75,8 +75,6 @@ def git_version():
 
 def get_version_info():
     # Adding the git rev number needs to be done inside
-    # write_version_py(), otherwise the import of scipy.version messes
-    # up the build under Python 3.
     FULLVERSION = VERSION
     if os.path.exists('.git'):
         GIT_REVISION = git_version()
@@ -91,7 +89,7 @@ def get_version_info():
 
 def write_version_py(filename='src/pythonDnn/version.py'):
     cnt = """
-# THIS FILE IS GENERATED FROM SCIPY SETUP.PY
+# THIS FILE IS GENERATED FROM SETUP.PY
 short_version = '%(version)s'
 version = '%(version)s'
 full_version = '%(full_version)s'
@@ -120,23 +118,23 @@ if __name__ == '__main__':
         import theano
         requires=[]
     except ImportError:
-        requires=['theano>=0.7.0']
+    	requires=['theano>=0.7.0']
 
     metadata = dict(
         name = 'pythonDnn',
-        maintainer = "pythonDnn",
-        maintainer_email = "pythonDnn@ex.org",
+        maintainer = "Abil N George,Sudharshan GK",
+        maintainer_email = "mail@abilng.in,sudharpun90@gmail.com",
         description = DOCLINES[0],
         long_description = "\n".join(DOCLINES[2:]),
         url = "https://github.com/IITM-DONLAB/python-dnn",
         download_url = "https://github.com/IITM-DONLAB/python-dnn/zipball/master",
         license = 'Apache v2.0 License',
         packages = [ 
-        	'pythonDnn.io_modules', 'pythonDnn.layers', 'pythonDnn.models',
+        	'pythonDnn','pythonDnn.io_modules', 'pythonDnn.layers', 'pythonDnn.models',
         	'pythonDnn.run', 'pythonDnn.utils'],
-        package_dir = {'': 'src'},
+        package_dir = {'pythonDnn': 'src/pythonDnn'},
         install_requires = requires,
-        zip_safe=False,
+        zip_safe=True,
         cmdclass={'clean': CleanCommand,},
     )
     FULLVERSION, GIT_REVISION = get_version_info()
