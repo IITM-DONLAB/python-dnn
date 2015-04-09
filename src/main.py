@@ -17,12 +17,12 @@
 
 
 
-from utils.load_conf import load_model
+from pythonDnn.utils.load_conf import load_model
 import sys
 
 import logging
 logger = logging.getLogger(__name__)
-from io_modules import setLogger
+from pythonDnn.io_modules import setLogger
 
 
 def setLoggerLevel(modelConfig,name=None):
@@ -49,15 +49,15 @@ def runNet(modelConfig):
 	nnetType = modelConfig ['nnetType']
 	logger.info("Loading Other Configuration for %s",nnetType);
 	if nnetType == 'CNN':
-		from run.run_CNN import runCNN as runModel
+		from pythonDnn.run.run_CNN import runCNN as runModel
 	elif nnetType == 'CNN3D':
-		from run.run_CNN3d import runCNN3D as runModel
+		from pythonDnn.run.run_CNN3d import runCNN3D as runModel
 	elif nnetType == 'RBM':
-		from run.run_DBN import runRBM as runModel
+		from pythonDnn.run.run_DBN import runRBM as runModel
 	elif nnetType == 'SDA':
-		from run.run_SDA import runSdA as runModel
+		from pythonDnn.run.run_SDA import runSdA as runModel
 	elif nnetType == 'DNN':
-		from run.run_DNN import runDNN as runModel
+		from pythonDnn.run.run_DNN import runDNN as runModel
 	else :
 		logger.error('Unknown nnet Type')
 		return 1

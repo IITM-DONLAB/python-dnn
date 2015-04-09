@@ -2,40 +2,40 @@ import theano,numpy
 import theano.tensor as T
 
 import json,os
-from models import nnet,_array2string,_string2array
+from pythonDnn.models import nnet,_array2string,_string2array
 
-from layers.cnn import ConvLayer,DropoutConvLayer
-from layers.logistic_sgd import LogisticRegression
-from layers.mlp import HiddenLayer,DropoutHiddenLayer,_dropout_from_layer
+from pythonDnn.layers.cnn3d import ConvLayer
+from pythonDnn.layers.logistic_sgd import LogisticRegression
+from pythonDnn.layers.mlp import HiddenLayer,DropoutHiddenLayer,_dropout_from_layer
 from collections import OrderedDict
-from io_modules.file_reader import read_dataset
-from utils.plotter import plot
-from utils.utils import parse_activation
+from pythonDnn.io_modules.file_reader import read_dataset
+from pythonDnn.utils.plotter import plot
+from pythonDnn.utils.utils import parse_activation
 
 import logging
 logger = logging.getLogger(__name__)
+tensor5 = T.TensorType(theano.config.floatX, (False,)*5);
 
-class CNNBase(nnet):
+class CNN3DBase(nnet):
 	def __init__(self, conv_layer_configs, hidden_layer_configs,l1_reg,l2_reg,max_col_norm):
-		super(CNNBase, self).__init__()
+		super(CNN3DBase, self).__init__()
 		self.layers = []
-
-		#self.sparsity = sparsity
-		#self.sparsity_weight = sparsity_weight
-		#self.sparse_layer = sparse_layer
 		
 		self.max_col_norm = max_col_norm
 		self.l1_reg = l1_reg
 		self.l2_reg = l2_reg
-
-		self.x = T.tensor4('x')  
+		#theano.config.compute_test_value = 'warn'
+		self.x = tensor5('x')
+		#self.x.tag.test_value = numpy.array(numpy.random.rand(128,10,3,80,40),dtype=theano.config.floatX);
 		self.y = T.ivector('y')
-
+		#self.y.tag.test_value = numpy.random.random_integers(0,9,128);
+			
 		self.conv_layer_num = len(conv_layer_configs) 	#counting number of convolution layers
 		self.hidden_layer_num = len(hidden_layer_configs['hidden_layers'])
 		self.mlp_layer_start = self.hidden_layer_num;
 		self.mlp_layers = []
 		self.conv_layers = []
+	
 	
 	def save_cnn2dict(self):
 		n_layers = self.conv_layer_num
@@ -43,10 +43,11 @@ class CNNBase(nnet):
 		for i in xrange(n_layers):
 			conv_layer = self.conv_layers[i]
 			filter_shape = conv_layer.filter_shape
-			for next_X in xrange(filter_shape[0]):
-				for this_X in xrange(filter_shape[1]):
-					dict_a = 'W ' + str(i) + ' ' + str(next_X) + ' ' + str(this_X) 
-					cnn_dict[dict_a] = _array2string((conv_layer.W.get_value())[next_X, this_X])
+			for X_0 in xrange(filter_shape[0]):
+				for X_1 in xrange(filter_shape[1]):
+					for X_2 in xrange(filter_shape[2]):
+						dict_a = 'W ' + str(i) + ' ' + str(X_0) + ' ' + str(X_1) + ' ' + str(X_2) 
+						cnn_dict[dict_a] = _array2string((conv_layer.W.get_value())[X_0, X_1, X_2])
 	
 			dict_a = 'b ' + str(i)
 			cnn_dict[dict_a] = _array2string(conv_layer.b.get_value())
@@ -79,10 +80,11 @@ class CNNBase(nnet):
 			filter_shape = conv_layer.filter_shape
 			W_array = conv_layer.W.get_value()
 			
-			for next_X in xrange(filter_shape[0]):
-				for this_X in xrange(filter_shape[1]):
-					dict_a = 'W ' + str(i) + ' ' + str(next_X) + ' ' + str(this_X)
-					W_array[next_X, this_X, :, :] = numpy.asarray(_string2array(cnn_dict[dict_a]))
+			for X_0 in xrange(filter_shape[0]):
+				for X_1 in xrange(filter_shape[1]):
+					for X_2 in xrange(filter_shape[2]):
+						dict_a = 'W ' + str(i) + ' ' + str(X_0) + ' ' + str(X_1) + ' ' + str(X_2)
+						W_array[X_0,X_1,X_2, :, :] = numpy.asarray(_string2array(cnn_dict[dict_a]))
 					
 			conv_layer.W.set_value(W_array) 
 			dict_a = 'b ' + str(i)
@@ -131,7 +133,7 @@ class CNNBase(nnet):
 		fn = theano.function(inputs=[in_x],outputs=self.layers[idx].output,
 			givens={self.x: in_x})
 		return fn
-	
+	"""
 	def plot_layer_output(self,plot_spec,plot_path,max_images=10):
 		#default all nodes set to value 1
 		#inp = numpy.random.random(self.conv_input_dim).astype(theano.config.floatX);
@@ -141,7 +143,7 @@ class CNNBase(nnet):
 			img_plot_remaining = max_images;
 			layer_out_fn = self.getLayerOutFunction(layer_idx);
 			logger.info('Plotting the layer %d'%layer_idx);
-			file_reader =read_dataset(plot_spec,pad_zeros=True);
+			file_reader =read_dataset(plot_spec,pad_zeros=True)[0];
 			while not file_reader.is_finish():
 				for batch_index in xrange(file_reader.cur_frame_num/batch_size):
 					s_idx = batch_index * batch_size; e_idx = s_idx + batch_size
@@ -153,14 +155,14 @@ class CNNBase(nnet):
 				if img_plot_remaining == 0:
 					break;
 				file_reader.read_next_partition_data(pad_zeros=True);
+	"""
 
-
-class CNN(CNNBase):
+class CNN3D(CNN3DBase):
 	""" Instantiation of Convolution neural network ... """
-	def __init__(self, numpy_rng, theano_rng, batch_size, n_outs,conv_layer_configs, hidden_layer_configs, 
-			use_fast=False,hidden_activation = T.nnet.sigmoid,l1_reg=None,l2_reg=None,max_col_norm=None):
+	def __init__(self, numpy_rng, theano_rng, batch_size, n_outs,conv_layer_configs, hidden_layer_configs,
+		hidden_activation = T.nnet.sigmoid,l1_reg=None,l2_reg=None,max_col_norm=None):
 
-		super(CNN, self).__init__(conv_layer_configs, hidden_layer_configs,l1_reg,l2_reg,max_col_norm)
+		super(CNN3D, self).__init__(conv_layer_configs, hidden_layer_configs,l1_reg,l2_reg,max_col_norm)
 		if not theano_rng:
 			theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
 			            
@@ -171,10 +173,10 @@ class CNN(CNNBase):
 				input = self.layers[-1].output #output of previous layer
 			
 			config = conv_layer_configs[i]
-			conv_activation= parse_activation(config['activation'])
+			conv_activation = parse_activation(config['activation']);
 			conv_layer = ConvLayer(numpy_rng=numpy_rng, input=input,input_shape=config['input_shape'],
 				filter_shape=config['filter_shape'],poolsize=config['poolsize'],
-				activation = conv_activation, use_fast = use_fast)
+				activation = conv_activation)
 			self.layers.append(conv_layer)
 			self.conv_layers.append(conv_layer)
 			if config['update']==True:	# only few layers of convolution layer are considered for updation
@@ -182,8 +184,9 @@ class CNN(CNNBase):
 				self.delta_params.extend(conv_layer.delta_params)
 
 		hidden_layers = hidden_layer_configs['hidden_layers'];
-		self.conv_output_dim = config['output_shape'][1] * config['output_shape'][2] * config['output_shape'][3]
+		self.conv_output_dim = numpy.prod(config['output_shape'][1:])
 		adv_activation_configs = hidden_layer_configs['adv_activation'] 
+		
 		#flattening the last convolution output layer
 		self.features = self.conv_layers[-1].output.flatten(2);
 		self.features_dim = self.conv_output_dim;
@@ -233,7 +236,7 @@ class CNN(CNNBase):
 		if self.l2_reg is not None:
 			self.__l2Regularization__(self.hidden_layer_num*2);
 		
-		
+	
 	def save_mlp2dict(self,withfinal=True,max_layer_num=-1):
 		if max_layer_num == -1:
 		   max_layer_num = self.hidden_layer_num
@@ -250,13 +253,15 @@ class CNN(CNNBase):
 			dict_a = 'logreg b'
 			mlp_dict[dict_a] = _array2string(self.logLayer.params[1].get_value())
 		return mlp_dict
+	
 
 ######################################## Dropout CNN ############################################
+"""
 class DropoutCNN(CNNBase):
-	""" Instantiation of Convolution neural network ... """
+	#Instantiation of Convolution neural network ... 
 	def __init__(self, numpy_rng, theano_rng, batch_size, n_outs,conv_layer_configs, hidden_layer_configs, 
-			use_fast=False,hidden_activation = T.nnet.sigmoid,l1_reg=None,l2_reg=None,
-			max_col_norm=None,input_dropout_factor=0.0):
+			use_fast=False,conv_activation = T.nnet.sigmoid,hidden_activation = T.nnet.sigmoid,
+			l1_reg=None,l2_reg=None,max_col_norm=None,input_dropout_factor=0.0):
 
 		super(DropoutCNN, self).__init__(conv_layer_configs,hidden_layer_configs,l1_reg,l2_reg,max_col_norm)
 		self.input_dropout_factor = input_dropout_factor;
@@ -277,7 +282,7 @@ class DropoutCNN(CNNBase):
 				dropout_conv_input = self.dropout_layers[-1].dropout_output;
 				
 			config = conv_layer_configs[i]
-			conv_activation= parse_activation(config['activation'])
+			
 			dropout_conv_layer = DropoutConvLayer(numpy_rng=numpy_rng, input=dropout_conv_input,
 				input_shape=config['input_shape'],filter_shape=config['filter_shape'],poolsize=config['poolsize'],
 				activation = conv_activation, use_fast = use_fast,dropout_factor=conv_layer_configs[i]['dropout_factor'])
@@ -392,3 +397,4 @@ class DropoutCNN(CNNBase):
 			dict_a = 'logreg b'
 			mlp_dict[dict_a] = _array2string(self.logLayer.params[1].get_value())
 		return mlp_dict
+"""

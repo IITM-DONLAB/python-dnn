@@ -23,16 +23,16 @@ import theano
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
 
-from utils.load_conf import load_model,load_dnn_spec,load_data_spec
-from io_modules.file_reader import read_dataset
-from io_modules import setLogger
-from utils.utils import parse_activation
+from pythonDnn.utils.load_conf import load_model,load_dnn_spec,load_data_spec
+from pythonDnn.io_modules.file_reader import read_dataset
+from pythonDnn.io_modules import setLogger
+from pythonDnn.utils.utils import parse_activation
 
-from run import fineTunning,testing,exportFeatures
-from run import createDir
+from pythonDnn.run import fineTunning,testing,exportFeatures
+from pythonDnn.run import createDir
 
-from models.dnn import DNN
-from models.dropout_nnet import DNN_Dropout
+from pythonDnn.models.dnn import DNN
+from pythonDnn.models.dropout_nnet import DNN_Dropout
 
 import logging
 logger = logging.getLogger(__name__)

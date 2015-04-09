@@ -24,15 +24,15 @@ import theano
 from theano.tensor.shared_randomstreams import RandomStreams
 
 #module imports
-from utils.load_conf import load_model,load_rbm_spec,load_data_spec
-from models.dbn import DBN
-from io_modules.file_reader import read_dataset
-from io_modules.data_exporter import export_data
-from io_modules import setLogger
-from utils.utils import parse_activation
+from pythonDnn.utils.load_conf import load_model,load_rbm_spec,load_data_spec
+from pythonDnn.models.dbn import DBN
+from pythonDnn.io_modules.file_reader import read_dataset
+from pythonDnn.io_modules.data_exporter import export_data
+from pythonDnn.io_modules import setLogger
+from pythonDnn.utils.utils import parse_activation
 
-from run import fineTunning,testing,exportFeatures
-from run import createDir
+from pythonDnn.run import fineTunning,testing,exportFeatures
+from pythonDnn.run import createDir
 
 
 import logging
