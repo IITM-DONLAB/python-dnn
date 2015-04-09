@@ -164,6 +164,19 @@ class nnet(object):
 			givens={self.x: in_x},name='labels',
 			allow_input_downcast=True)#,on_unused_input='warn')
 		return fn
+		
+	def getScoreFunction(self):
+		"""
+		Get Function for getting score for each labels
+
+		:returns theano.function
+		A function takes input features 
+		"""
+		in_x = self.x.type('in_x');
+		fn = theano.function(inputs=[in_x],outputs=self.logLayer.posterior(),
+			givens={self.x: in_x},name='score',
+			allow_input_downcast=True)#,on_unused_input='warn')
+		return fn
 
 	def __l1Regularization__(self,start=0):
 		"""

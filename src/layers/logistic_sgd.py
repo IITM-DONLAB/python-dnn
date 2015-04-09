@@ -46,3 +46,6 @@ class LogisticRegression(object):
 	
 	def prediction(self):
 		return self.y_pred;
+		
+	def posterior(self):
+		return self.p_y_given_x;
