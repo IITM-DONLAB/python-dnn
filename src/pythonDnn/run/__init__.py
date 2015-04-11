@@ -1,4 +1,5 @@
 import time,numpy,os
+import threading
 import logging
 logger = logging.getLogger(__name__)
 
@@ -44,7 +45,7 @@ def testing(nnetModel,data_spec,saveLabel=True,outFile='test.out'):
 			saveLabels(nnetModel,outFile,data_spec['testing'])
 
 
-def _fineTunning(nnetModel,train_sets,valid_sets,lrate,momentum):
+def _fineTunning(nnetModel,train_sets,valid_sets,lrate,momentum,saveFeq=0,outFile=''):
 	
 	train_xy = train_sets.shared_xy
 	train_x = train_sets.shared_x
@@ -85,6 +86,17 @@ def _fineTunning(nnetModel,train_sets,valid_sets,lrate,momentum):
 				logger.debug('Training batch %d error %f',batch_index, numpy.mean(train_error))
 			train_sets.read_next_partition_data()
 		logger.info('Fine Tunning:epoch %d, training error %f',lrate.epoch, numpy.mean(train_error));
+
+		#savemodel
+		savethread=None
+
+		if(saveFeq!=0 and lrate.epoch%saveFeq==0):
+			logger.info('Saving partial model to:%s',outFile)
+			savethread=threading.Thread(target=nnetModel.save,kwargs={'filename':outFile});
+			savethread.start()
+			#nnetModel.save(filename=outFile);
+
+
 		train_sets.initialize_read()
 
 		valid_error = valid_score()
@@ -92,6 +104,9 @@ def _fineTunning(nnetModel,train_sets,valid_sets,lrate,momentum):
 			best_validation_loss=valid_error
 		logger.info('Fine Tunning:epoch %d, validation error %f',lrate.epoch, valid_error);
 		lrate.get_next_rate(current_error = 100 * valid_error)
+
+		if savethread!=None:
+			savethread.join();
 
 	end_time = time.clock()
 
@@ -111,6 +126,8 @@ def fineTunning(nnetModel,model_config,data_spec):
 		logger.info("No validation/training set:Skiping Fine tunning");
 	else:
 		try:
+			outFile=model_config['output_file']
+			saveFeq=model_config['save_feq']
 			finetune_config = model_config['finetune_params']
 			momentum = finetune_config['momentum']
 			lrate = LearningRate.get_instance(finetune_config);
@@ -119,8 +136,7 @@ def fineTunning(nnetModel,model_config,data_spec):
 			logger.critical("Fine tunning Paramters Missing")
 			exit(2)
 
-
-		_fineTunning(nnetModel,train_sets,valid_sets,lrate,momentum)
+		_fineTunning(nnetModel,train_sets,valid_sets,lrate,momentum,saveFeq,outFile)
 
 
 def exportFeatures(nnetModel,model_config,data_spec):

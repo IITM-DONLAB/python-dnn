@@ -39,6 +39,9 @@ def load_model(input_file,nnetType=None):
 	if not data.has_key('random_seed') or not type(data['random_seed']) is int:
 		data['random_seed'] = None
 	
+	if not data.has_key('save_feq') or not type(data['save_feq']) is int:
+		data['save_feq'] = 0
+
 	if data.has_key('n_ins') or data.has_key('input_shape'):
 		pass
 	else:
