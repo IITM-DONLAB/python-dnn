@@ -24,3 +24,4 @@ It currently supports:
 
 [configuration documentation](config_doc/)
 
+[Python Package Index (PyPI)](https://pypi.python.org/pypi/pythonDnn/1.0.1)
