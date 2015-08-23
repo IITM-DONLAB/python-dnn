@@ -32,4 +32,5 @@
 	   "do_dropout" : true,
 	   "dropout_factor" : [0.5,0.5],
 	   "activation" : "tanh"
+	}
 }
