@@ -11,6 +11,7 @@ Each one contain a json object.`cnn` describes convolution layer configuration a
 * `cnn` contains a json object with following parameters:
 
 > * `layers`: An Array of json objects.Each one decribes a convolution layer which contains:
+
 >> * `convmat_dim` : Dimension of Convolution Weight
 >> * `num_filters` : No. of Feature maps
 >> * `poolsize`    : Dimension for Max-pooling
@@ -25,6 +26,7 @@ Each one contain a json object.`cnn` describes convolution layer configuration a
 
 > * `layers`        : An Array contain size of hidden layers.
 > * `adv_activation`: if maxout/pnorm is used.
+
 >> * `method` : 'maxout','pnorm'.
 >> In `maxout`, a pooling of neuron o/p is done based on poolsize.
 >> But in `pnorm` output is normalized after pooling.
