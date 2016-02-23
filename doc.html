@@ -1,0 +1,70 @@
+---
+layout: default
+title: Configuration
+description: Python-DNN Configuration Documentation
+isHome: false
+hide: false
+---
+
+
+<div>
+  <h1 id=main>Overview</h1>
+  Python-DNN uses 3 configuration files which are in json format.
+  <ol>
+    <li> Model Configuration (model.conf) </li>
+    <li> Data Configuration (data.conf) </li>
+    <li> Network Configuration (nnet.conf)</li>
+  </ol>
+  </div>
+</section>
+
+<section class="bs-docs-section">
+  {% capture my-include %}{% include_relative _doc/Model_Config.md %}{% endcapture %}
+  {{ my-include | markdownify }}
+</section>
+
+<section class="bs-docs-section">
+  <div>
+    {% capture my-include %}{% include_relative _doc/Data_Specification.md %}{% endcapture %}
+    {{ my-include | markdownify }}
+  </div>
+</section>
+
+<section class="bs-docs-section">
+  <h1 id="nnet_spec" class="page-header">NNET Configuration</h1>
+  <div>
+    {% capture my-include %}{% include_relative _doc/CNN_Specification.md %}{% endcapture %}
+    {{ my-include | markdownify }}
+  </div>
+  <div>
+  {% capture my-include %}{% include_relative _doc/DBN_Specification.md %}{% endcapture %}
+  {{ my-include | markdownify }}
+  </div>
+  <div>
+  {% capture my-include %}{% include_relative _doc/DNN_Specification.md %}{% endcapture %}
+  {{ my-include | markdownify }}
+  </div>
+  <div>
+  {% capture my-include %}{% include_relative _doc/SDA_Specification.md %}{% endcapture %}
+  {{ my-include | markdownify }}
+  </div>
+</section>
+<section class="bs-docs-section">
+  {% capture my-include %}{% include_relative _doc/Activation_Fns.md %}{% endcapture %}
+  {{ my-include | markdownify }}
+</section>
+
+<section class="bs-docs-section">
+  <div>
+    {% capture my-include %}{% include_relative _doc/DataFormats.md %}{% endcapture %}
+    {{ my-include | markdownify }}
+  </div>
+</section>
+
+<section class="bs-docs-section">
+<h1 id="examples">Example</h1>
+See: <a href="{{site.githubUrl}}/tree/master/sample_config/">Sample Configuration Folder</a>
+</section>
+
+<section>
+<!-- to balance-->
