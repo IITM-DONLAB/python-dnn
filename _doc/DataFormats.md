@@ -1,4 +1,5 @@
-#Data File Formats#
+Data File Formats
+==================
 
 **Python-dnn** supports 3 file formats* for data:
 

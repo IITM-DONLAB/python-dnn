@@ -1,4 +1,5 @@
-#Activation Functions#
+Activation Functions
+====================
 
 Activation Function is a function used to transform the activation level of a unit (neuron) into an output signal. Typically, activation functions have a "squashing" effect.
 

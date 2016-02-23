@@ -1,4 +1,5 @@
-##DBN(RBM) Specification##
+DBN(RBM) Specification
+----------------------
 
 
 * `hidden_layers` : (Mandatory) An Array contain size of hidden RBM layer.

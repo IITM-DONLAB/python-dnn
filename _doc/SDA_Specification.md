@@ -1,5 +1,5 @@
-##SDA Specification##
-
+SDA Specification
+------------------
 
 * `hidden_layers` : (Mandatory) An Array contains size of hidden denoising autoencoder layers.
 * `activation` : Activation function used by layers

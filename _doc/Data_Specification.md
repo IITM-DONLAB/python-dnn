@@ -1,5 +1,5 @@
-#Data Configuration#
-
+Data Configuration
+===================
 
 Data Specification has 3 fields:
 

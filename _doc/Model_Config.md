@@ -1,4 +1,5 @@
-#Model Configuration#
+Model Configuration
+====================
 
 * `nnetType` : (Mandatory) Type of Network (CNN/RBM/SDA/DNN)
 * `train_data` : (Mandatory) The working directory containing data configuration and output

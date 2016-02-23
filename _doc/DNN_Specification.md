@@ -1,4 +1,5 @@
-##DNN Specification##
+DNN Specification
+-----------------
 
 * `hidden_layers` : (Mandatory) An Array contain size of hidden RBM layer.
 * `pretrained_layers` : Number of layers to be pre-trained.(Default Value = Size of `hidden_layers`)
