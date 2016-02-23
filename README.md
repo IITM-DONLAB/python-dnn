@@ -1,4 +1,4 @@
-Jekyll Bootstrap Doc
-====================
+Python-dnn Documentation
+=======================
 
-http://mistic100.github.io/jekyll-bootstrap-doc
+http://iitm-donlab.github.io/python-dnn/
